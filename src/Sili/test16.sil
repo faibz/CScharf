@@ -1,0 +1,8 @@
+// Test while loop
+
+p = 0;
+
+while(p < 10) {
+	write p;
+	p = p + 1;
+}

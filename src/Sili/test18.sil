@@ -1,0 +1,5 @@
+// Test first-class and anonymous operators
+
+p = fn(x, y) { return x - y };
+
+write p(124, 2);
