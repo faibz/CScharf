@@ -1,0 +1,13 @@
+//Thoroughly test typing system
+
+int i = 10;
+write i;
+i = 15;
+write i;
+
+// i = false;
+
+anon bob = new { a = 24, b = 211, car = "box", dogs = true, fox = 62 };
+
+write bob.a;
+write bob.car;

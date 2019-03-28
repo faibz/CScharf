@@ -76,6 +76,11 @@ TOKEN [IGNORE_CASE] : /* RESERVED WORDS AND LITERALS */
 | < QUIT: "QUIT" >
 }
 
+TOKEN : /* TYPES */
+{
+  < TYPE: "int" | "short" | "long" | "float" | "dec" | "bool" | "string" | "anon" >
+}
+
 TOKEN : /* LITERALS */
 {
   < INTEGER_LITERAL:
@@ -220,8 +225,8 @@ void statement() #Statement :
 {
 				 	LOOKAHEAD(2) assignment() ";"
 				|	fndef()
-				|   classdef()
 				|	block()
+				|   classdef()
 				|	ifstatement()	
 				|	forloop()
 				|   whileloop()
@@ -279,10 +284,22 @@ void returnexpr() #ReturnExpression :
 					expression()
 }
 
-void assignment() :
+void assignment() #Assignment :
 {}
 {
-					identifier() "=" expression() #Assignment(2)
+	  				[type()] identifier() "=" expression()
+}
+
+void type() #Type :
+{Token t;}
+{
+  t = <TYPE> { jjtThis.tokenValue = t.image; } 
+} 
+
+void typeless_assignment() #TypelessAssignment :
+{}
+{
+	  				identifier() "=" expression()
 }
 
 void ifstatement() #IfStatement :
@@ -413,7 +430,7 @@ void literal() :
 							| rational()
 							| bool()
 							| fn()
-							| object()
+							| anon()
 //							| classInvoke()
 }
 
@@ -456,10 +473,10 @@ void fn() #Fn :
 		"}" {jjtThis.tokenValue = t.image;}
 }
 
-void object() #Object :
+void anon() #Anon :
 {Token t;}
 {
-	t = <NEW> "{" assignment() ("," assignment() )* "}" {jjtThis.tokenValue = t.image;}
+	t = <NEW> "{" typeless_assignment() ("," typeless_assignment() )* "}" {jjtThis.tokenValue = t.image;}
 }
 
 //void object() #Object :

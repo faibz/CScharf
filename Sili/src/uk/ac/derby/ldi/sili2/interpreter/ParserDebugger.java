@@ -136,6 +136,11 @@ public class ParserDebugger implements SiliVisitor {
 		dump(node, data);
 		return data;
 	}
+	
+	public Object visit(ASTTypelessAssignment node, Object data) {
+		dump(node, data);
+		return data;
+	}
 
 	// OR
 	public Object visit(ASTOr node, Object data) {
@@ -278,12 +283,12 @@ public class ParserDebugger implements SiliVisitor {
 		return data;
 	}
 
-	public Object visit(ASTObject node, Object data) {
+	public Object visit(ASTAnon node, Object data) {
 		dump(node, data);
 		return data;
 	}
 
-	public Object visit(ASTObjectMemberAccessor node, Object data) {
+	public Object visit(ASTType node, Object data) {
 		dump(node, data);
 		return data;
 	}

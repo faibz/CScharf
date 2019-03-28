@@ -211,6 +211,10 @@ public class Parser implements SiliVisitor {
 		return data;
 	}
 	
+	public Object visit(ASTType node, Object data) {
+		return data;
+	}
+	
 	// Execute the WRITE statement
 	public Object visit(ASTWrite node, Object data) {
 		System.out.println(doChild(node, 0));
@@ -233,15 +237,23 @@ public class Parser implements SiliVisitor {
 		
 		//If this is a member access case (i.e. obj.var)
 		if (node.jjtGetNumChildren() == 1) {
-			ValueObject obj = (ValueObject) value;
+			ValueAnonymousType obj = (ValueAnonymousType) value;
 			return obj.getVariableValue(getTokenOfChild(node, 0));
 		}
 		
 		return value;
 	}
 	
-	// Execute an assignment statement.
+	// Execute a typed assignment statement.
 	public Object visit(ASTAssignment node, Object data) {
+		if (node.jjtGetNumChildren() == 3) {
+			return typedAssignment(node, data);
+		} else {
+			return untypedAssignment(node, data);
+		}
+	}
+	
+	private Object untypedAssignment(ASTAssignment node, Object data) {
 		Display.Reference reference;
 		if (node.optimised == null) {
 			String name = getTokenOfChild(node, 0);
@@ -251,10 +263,86 @@ public class Parser implements SiliVisitor {
 			node.optimised = reference;
 		} else
 			reference = (Display.Reference)node.optimised;
-		reference.setValue(doChild(node, 1));
+		
+		Value valToAssign = doChild(node, 1);
+		
+		if (reference == null) {
+			throw new ExceptionSemantic("Variable: " + getTokenOfChild(node, 0) + " does not exist in the current context.");
+		}
+		
+		Value existingType = reference.getValue();
+		
+		if (!valToAssign.getClass().equals(existingType.getClass())) {
+			throw new ExceptionSemantic("Cannot assign value of type: " + valToAssign.getClass() + " to variable of type: " + existingType.getClass());
+		}
+				
+		reference.setValue(valToAssign);
 		return data;
 	}
 
+	private Object typedAssignment(ASTAssignment node, Object data) {
+		Display.Reference reference;
+		if (node.optimised == null) {
+			String name = getTokenOfChild(node, 1);
+			reference = scope.findReference(name);
+			if (reference == null)
+				reference = scope.defineVariable(name);
+			node.optimised = reference;
+		} else
+			reference = (Display.Reference)node.optimised;
+		
+		Value valToAssign = doChild(node, 2);
+		Value specifiedType;
+		
+		switch(getTokenOfChild(node, 0)) {
+			case "int":
+			case "short":
+			case "long":
+				specifiedType = new ValueInteger(-1);
+				break;
+			case "float":
+			case "dec":
+				specifiedType = new ValueRational(-1.0);
+				break;
+			case "bool":
+				specifiedType = new ValueBoolean(false);
+				break;
+			case "string":
+				specifiedType = new ValueString("");
+				break;
+			case "anon":
+				specifiedType = new ValueAnonymousType();
+				break;
+			case "fn":
+				specifiedType = new ValueFn();
+				break;
+			default:
+				throw new ExceptionSemantic("Invalid type specified.");
+		}
+		
+		if (!valToAssign.getClass().equals(specifiedType.getClass())) {
+			throw new ExceptionSemantic("Cannot assign value of type: " + valToAssign.getClass() + " to variable of type: " + specifiedType.getClass());
+		}
+		
+		reference.setValue(valToAssign);
+		return data;
+	}
+
+	public Object visit(ASTTypelessAssignment node, Object data) {
+		Display.Reference reference;
+		if (node.optimised == null) {
+			String name = getTokenOfChild(node, 0);
+			reference = scope.findReference(name);
+			if (reference == null)
+				reference = scope.defineVariable(name);
+			node.optimised = reference;
+		} else
+			reference = (Display.Reference)node.optimised;
+		
+		reference.setValue(doChild(node, 1));
+		return data;
+	}
+	
 	// OR
 	public Object visit(ASTOr node, Object data) {
 		return doChild(node, 0).or(doChild(node, 1));
@@ -554,8 +642,8 @@ public class Parser implements SiliVisitor {
 		return data;
 	}
 
-	public Object visit(ASTObject node, Object data) {
-		ValueObject obj = new ValueObject();
+	public Object visit(ASTAnon node, Object data) {
+		ValueAnonymousType obj = new ValueAnonymousType();
 		
 		if (node.optimised == null)
 			node.optimised = obj;
@@ -570,25 +658,25 @@ public class Parser implements SiliVisitor {
 		return node.optimised;
 	}
 
-	public Object visit(ASTObjectMemberAccessor node, Object data) {		
-		Value val = new ValueObject();
-		if (node.optimised != null)
-			return node.optimised;
-		
-		Value hopefullyValueObject = doChild(node, 0);
-		
-		if (!(hopefullyValueObject instanceof ValueObject)) {
-			throw new ExceptionSemantic("Cannot access member variable of non-object.");
-		}
-		
-		ValueObject obj = (ValueObject) hopefullyValueObject;
-		
-		val = obj.getVariableValue(getTokenOfChild(node, 1));
-		
-		node.optimised = val;
-		
-		//System.out.println(val.toString());
-		
-		return node.optimised;
-	}
+//	public Object visit(ASTObjectMemberAccessor node, Object data) {		
+//		Value val = new ValueObject();
+//		if (node.optimised != null)
+//			return node.optimised;
+//		
+//		Value hopefullyValueObject = doChild(node, 0);
+//		
+//		if (!(hopefullyValueObject instanceof ValueObject)) {
+//			throw new ExceptionSemantic("Cannot access member variable of non-object.");
+//		}
+//		
+//		ValueObject obj = (ValueObject) hopefullyValueObject;
+//		
+//		val = obj.getVariableValue(getTokenOfChild(node, 1));
+//		
+//		node.optimised = val;
+//		
+//		//System.out.println(val.toString());
+//		
+//		return node.optimised;
+//	}
 }

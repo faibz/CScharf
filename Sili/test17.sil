@@ -1,11 +1,12 @@
 // Test anonymous objects
 
-bob = new { a = 24, b = 211, car = false, dogs = true };
+anon bob = new { a = 24, b = 211, car = false, dogs = true, fox = 62 };
 
 write bob.a;
 write bob.car;
 write bob.b;
 write bob.dogs;
+write bob.fox;
 
 write bob.a + bob.b;
 

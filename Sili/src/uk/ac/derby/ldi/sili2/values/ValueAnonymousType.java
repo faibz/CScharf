@@ -6,12 +6,12 @@ import java.util.UUID;
 
 import uk.ac.derby.ldi.sili2.interpreter.ExceptionSemantic;
 
-public class ValueObject extends ValueAbstract {
+public class ValueAnonymousType extends ValueAbstract {
 	private UUID id = UUID.randomUUID();
 	private Map<String, Value> variables = new HashMap<String, Value>();
 
 	public String getName() {
-		return "Anonymous object";
+		return "Dynamic type";
 	}
 
 	public int compare(Value v) {
@@ -19,7 +19,6 @@ public class ValueObject extends ValueAbstract {
 	}
 	
 	public void addValue(String name, Value value) {
-		System.out.println("Adding new value: " + name + " = " + value.toString());
 		variables.put(name, value);
 	}
 	
