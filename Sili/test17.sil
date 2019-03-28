@@ -1,13 +1,12 @@
-// Test object classes
-class Program {
+// Test anonymous objects
 
-	class Square {
-		fn Square() {
-			length = 5;
-		}
-	}
-	
-	fn main() {
-		bob = new Square();
-	}
-}
+bob = new { a = 24, b = 211, car = false, dogs = true };
+
+write bob.a;
+write bob.car;
+write bob.b;
+write bob.dogs;
+
+write bob.a + bob.b;
+
+write bob;

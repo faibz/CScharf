@@ -413,7 +413,8 @@ void literal() :
 							| rational()
 							| bool()
 							| fn()
-							| classInvoke()
+							| object()
+//							| classInvoke()
 }
 
 void identifier() #Identifier :
@@ -425,14 +426,8 @@ void identifier() #Identifier :
 void dereference() #Dereference :
 {Token t;}
 {
-	t = <IDENTIFIER> {jjtThis.tokenValue = t.image;}
-}
-
-//void class_member() #ClassMemberTest :
-//{Token t;}
-//{
-//  	t = <IDENTIFIER> "." <IDENTIFIER> {jjtThis.tokenValue = t.image;}
-//}  
+	t = <IDENTIFIER> ["." identifier()] {jjtThis.tokenValue = t.image;}
+}  
 
 void character() #Character :
 {Token t;}
@@ -457,15 +452,33 @@ void fn() #Fn :
 {
 	t = <FN> parmlist() "{"
 		fnbody()
-		[ <RETURN> returnexpr() {jjtThis.fnHasReturn = true;} ] 
+		[ <RETURN> returnexpr() ";" {jjtThis.fnHasReturn = true;} ] 
 		"}" {jjtThis.tokenValue = t.image;}
 }
 
-void classInvoke() #ClassInvoke :
+void object() #Object :
 {Token t;}
 {
-	t = <NEW> identifier() arglist() {jjtThis.tokenValue = t.image;}
+	t = <NEW> "{" assignment() ("," assignment() )* "}" {jjtThis.tokenValue = t.image;}
 }
+
+//void object() #Object :
+//{Token t;}
+//{
+//	t = <NEW> "{" objectBody() "}" { jjtThis.tokenValue = t.image;}
+//}
+//
+//void objectBody() #ObjectBody :
+//{}
+//{
+//					assignment() ("," assignment() )*
+//}
+
+//void classInvoke() #ClassInvoke :
+//{Token t;}
+//{
+//	t = <NEW> identifier() arglist() {jjtThis.tokenValue = t.image;}
+//}
 
 void bool() : 
 {} 

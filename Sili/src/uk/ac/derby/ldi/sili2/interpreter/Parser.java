@@ -218,7 +218,7 @@ public class Parser implements SiliVisitor {
 	}
 	
 	// Dereference a variable or parameter, and return its value.
-	public Object visit(ASTDereference node, Object data) {
+	public Object visit(ASTDereference node, Object data) {		
 		Display.Reference reference;
 		if (node.optimised == null) {
 			String name = node.tokenValue;
@@ -228,7 +228,16 @@ public class Parser implements SiliVisitor {
 			node.optimised = reference;
 		} else
 			reference = (Display.Reference)node.optimised;
-		return reference.getValue();
+		
+		Value value = reference.getValue();
+		
+		//If this is a member access case (i.e. obj.var)
+		if (node.jjtGetNumChildren() == 1) {
+			ValueObject obj = (ValueObject) value;
+			return obj.getVariableValue(getTokenOfChild(node, 0));
+		}
+		
+		return value;
 	}
 	
 	// Execute an assignment statement.
@@ -487,22 +496,7 @@ public class Parser implements SiliVisitor {
 		// Execute
 		return scope.execute(classInv, this);
 	}
-	
-//	
-//	public Object visit(ASTAssignment node, Object data) {
-//		Display.Reference reference;
-//		if (node.optimised == null) {
-//			String name = getTokenOfChild(node, 0);
-//			reference = scope.findReference(name);
-//			if (reference == null)
-//				reference = scope.defineVariable(name);
-//			node.optimised = reference;
-//		} else
-//			reference = (Display.Reference)node.optimised;
-//		reference.setValue(doChild(node, 1));
-//		return data;
-//	}
-	
+		
 	public Object visit(ASTFn node, Object data) {	
 		/* 
 		 * Notes:
@@ -512,69 +506,89 @@ public class Parser implements SiliVisitor {
 		 * Child 2 - ret expression
 		 */
 		
-		
-		ValueFn valFn = new ValueFn();
-		
-		if (node.optimised == null)
-			node.optimised = valFn;
-		else
-			return node.optimised;
-		
-		//Param list
-		//getTokenOfChild(node, 0);
-		//doChild(node, 0, valFn);
-		
-		FunctionDefinition temp = new FunctionDefinition("temp", 0);
-		doChild(node, 0, temp);
-		
-		for (int i = 0; i < temp.getParameterCount(); ++i)
-		{
-			valFn.defineParameter(temp.getParameterName(i));
-		}
-		
-		//func body
-		valFn.setFunctionBody(getChild(node, 1));
-		
-		if (node.fnHasReturn)
-			valFn.setFunctionReturnExpression(getChild(node, 2));
-				
-		return node.optimised;
-		
-		
-
-		
-		
-//		ValueFn fn = new ValueFn(node.tokenValue);
+//		ValueFn valFn = new ValueFn();
 //		
-//		//Doesn't work because doChild call seems to try cast a function definition to a ValueFn.
-////		System.out.println("Trying to process params");
-////		doChild(node, 0, fn);
-////		System.out.println("Done processing params");
-//		String fnname = getTokenOfChild(node, 0);
-//		System.out.println("function name: " + fnname);
-//		FunctionDefinition funcDef = new FunctionDefinition("tempfunc", scope.getLevel() + 1);
-//		//Parameters
-//		doChild(node, 0, funcDef);
-//		scope.addFunction(funcDef);
-//		//System.out.printf("parameter count %d", funcDef.getParameterCount());
-//		funcDef.setFunctionBody(getChild(node, 1));
+//		if (node.optimised == null)
+//			node.optimised = valFn;
+//		else
+//			return node.optimised;
+//		
+//		//Param list
+//		//getTokenOfChild(node, 0);
+//		//doChild(node, 0, valFn);
+//		
+//		FunctionDefinition temp = new FunctionDefinition("temp", 0);
+//		doChild(node, 0, temp);
+//		
+//		for (int i = 0; i < temp.getParameterCount(); ++i)
+//		{
+//			valFn.defineParameter(temp.getParameterName(i));
+//		}
+//		
+//		//func body
+//		valFn.setFunctionBody(getChild(node, 1));
 //		
 //		if (node.fnHasReturn)
-//			funcDef.setFunctionReturnExpression(getChild(node, 2));
-//		//fn.setFunctionBody(getChild(node, 1));
-//		
-//		//if (node.fnHasReturn)
-//		//	fn.setFunctionReturnExpression(getChild(node, 2));
-//		
-//		//node.optimised = fn;
-//		node.optimised = funcDef;
-//		
-//		return data;
-	}
-
-	public Object visit(ASTClassMemberTest node, Object data) {
+//			valFn.setFunctionReturnExpression(getChild(node, 2));
+//				
+//		return node.optimised;
+			
+		String fnname = getTokenOfChild((SimpleNode) node.jjtGetParent(), 0);
+		FunctionDefinition funcDef = new FunctionDefinition(fnname, scope.getLevel() + 1);
+		//Parameters
+		doChild(node, 0, funcDef);
+		scope.addFunction(funcDef);
+		//System.out.printf("parameter count %d", funcDef.getParameterCount());
+		funcDef.setFunctionBody(getChild(node, 1));
 		
+		if (node.fnHasReturn)
+			funcDef.setFunctionReturnExpression(getChild(node, 2));
+		//fn.setFunctionBody(getChild(node, 1));
+		
+		//if (node.fnHasReturn)
+		//	fn.setFunctionReturnExpression(getChild(node, 2));
+		
+		//node.optimised = fn;
+		node.optimised = funcDef;
 		
 		return data;
+	}
+
+	public Object visit(ASTObject node, Object data) {
+		ValueObject obj = new ValueObject();
+		
+		if (node.optimised == null)
+			node.optimised = obj;
+		
+		int children = node.jjtGetNumChildren();
+		
+		for(int i = 0; i < children; ++i) {
+			SimpleNode assignmentNode = getChild(node, i);
+			obj.addValue(getTokenOfChild(assignmentNode, 0), doChild(assignmentNode, 1));
+		}
+				
+		return node.optimised;
+	}
+
+	public Object visit(ASTObjectMemberAccessor node, Object data) {		
+		Value val = new ValueObject();
+		if (node.optimised != null)
+			return node.optimised;
+		
+		Value hopefullyValueObject = doChild(node, 0);
+		
+		if (!(hopefullyValueObject instanceof ValueObject)) {
+			throw new ExceptionSemantic("Cannot access member variable of non-object.");
+		}
+		
+		ValueObject obj = (ValueObject) hopefullyValueObject;
+		
+		val = obj.getVariableValue(getTokenOfChild(node, 1));
+		
+		node.optimised = val;
+		
+		//System.out.println(val.toString());
+		
+		return node.optimised;
 	}
 }

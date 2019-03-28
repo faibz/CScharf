@@ -278,7 +278,12 @@ public class ParserDebugger implements SiliVisitor {
 		return data;
 	}
 
-	public Object visit(ASTClassMemberTest node, Object data) {
+	public Object visit(ASTObject node, Object data) {
+		dump(node, data);
+		return data;
+	}
+
+	public Object visit(ASTObjectMemberAccessor node, Object data) {
 		dump(node, data);
 		return data;
 	}

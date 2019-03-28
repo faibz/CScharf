@@ -17,7 +17,7 @@ public class ValueFn extends ValueAbstract {
 	public String getName() {
 		return "Function";
 	}
-
+	
 	public int compare(Value v) {
 		//return v.compare(v)
 		//return v.compareTo(((FunctionDefinition)o).name);

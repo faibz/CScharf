@@ -1,0 +1,13 @@
+// Test object classes
+class Program {
+
+	class Square {
+		fn Square() {
+			length = 5;
+		}
+	}
+	
+	fn main() {
+		bob = new Square();
+	}
+}
