@@ -78,7 +78,7 @@ TOKEN [IGNORE_CASE] : /* RESERVED WORDS AND LITERALS */
 
 TOKEN : /* TYPES */
 {
-  < TYPE: "int" | "short" | "long" | "float" | "dec" | "bool" | "string" | "anon" | "function" >
+  < TYPE: "int" | "short" | "long" | "float" | "dec" | "bool" | "string" | "anon" | "function" | "array" >
 }
 
 TOKEN : /* TYPE MODIFIERS */
@@ -437,12 +437,12 @@ void fn_invoke() #FnInvoke :
 void literal() :
 {}
 {
-							  integer()
+							integer()
                             | character()							  	
 							| rational()
 							| bool()
 							| fn()
-							| anon()
+							| newObj()
 //							| classInvoke()
 }
 
@@ -455,7 +455,7 @@ void identifier() #Identifier :
 void dereference() #Dereference :
 {Token t;}
 {
-	t = <IDENTIFIER> ["." identifier()] {jjtThis.tokenValue = t.image;}
+	t = <IDENTIFIER> ["." identifier()] { jjtThis.tokenValue = t.image; }
 }  
 
 void character() #Character :
@@ -486,10 +486,24 @@ void fn() #Fn :
 }
 
 void anon() #Anon :
-{Token t;}
+{}
 {
-	t = <NEW> "{" typeless_assignment() ("," typeless_assignment() )* "}" {jjtThis.tokenValue = t.image;}
+	"{" typeless_assignment() ("," typeless_assignment() )* "}"
 }
+
+void array() #Array :
+{}
+{
+  	type() "[" integer() "]"
+}
+
+void newObj() #NewObj :
+{}
+{
+	<NEW> (anon() | array()) //{ jjtThis.tokenValue = t.image; }
+}
+  
+  
 
 //void object() #Object :
 //{Token t;}

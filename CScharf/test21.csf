@@ -1,0 +1,5 @@
+//Testing array type
+
+write 10;
+
+array box = new int[5];

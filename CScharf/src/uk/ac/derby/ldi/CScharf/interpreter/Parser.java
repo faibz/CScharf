@@ -1,5 +1,6 @@
 package uk.ac.derby.ldi.CScharf.interpreter;
 
+import uk.ac.derby.ldi.CScharf.CScharfUtil;
 import uk.ac.derby.ldi.CScharf.parser.ast.*;
 import uk.ac.derby.ldi.CScharf.values.*;
 
@@ -222,7 +223,6 @@ public class Parser implements CScharfVisitor {
 	public Object visit(ASTModifier node, Object data) {
 		return data;
 	}
-
 	
 	// Execute the WRITE statement
 	public Object visit(ASTWrite node, Object data) {
@@ -231,10 +231,11 @@ public class Parser implements CScharfVisitor {
 	}
 	
 	// Dereference a variable or parameter, and return its value.
-	public Object visit(ASTDereference node, Object data) {		
+	public Object visit(ASTDereference node, Object data) {	
 		Display.Reference reference;
 		if (node.optimised == null) {
 			String name = node.tokenValue;
+
 			reference = scope.findReference(name);
 			if (reference == null)
 				throw new ExceptionSemantic("Variable or parameter " + name + " is undefined.");
@@ -257,6 +258,7 @@ public class Parser implements CScharfVisitor {
 	public Object visit(ASTAssignment node, Object data) {
 		// Given that we could have anything from "const int val = 10;" to "val = 1;"
 		// We need to be able to distinguish between types of assignment and throw accurate exceptions
+
 		if (node.jjtGetNumChildren() == 2) {
 			return untypedAssignment(node, data);
 		} else {
@@ -288,6 +290,7 @@ public class Parser implements CScharfVisitor {
 		}
 				
 		reference.setValue(valToAssign);
+
 		return data;
 	}
 
@@ -306,8 +309,9 @@ public class Parser implements CScharfVisitor {
 		if (node.optimised == null) {
 			String name = getTokenOfChild(node, childrenCount - 2);
 			reference = scope.findReference(name);
-			if (reference == null)
+			if (reference == null) {
 				reference = scope.defineVariable(name);
+			}
 			else
 				throw new ExceptionSemantic("Variable '" + name + "' has already been defined in this scope.");
 			node.optimised = reference;
@@ -315,35 +319,9 @@ public class Parser implements CScharfVisitor {
 			reference = (Display.Reference)node.optimised;
 		
 		Value valToAssign = doChild(node, childrenCount - 1);
-		Value specifiedType;
+		Class specifiedType = CScharfUtil.getClassFromString(getTokenOfChild(node, childrenCount - 3));
 		
-		switch(getTokenOfChild(node, childrenCount - 3)) {
-			case "int":
-			case "short":
-			case "long":
-				specifiedType = new ValueInteger(-1);
-				break;
-			case "float":
-			case "dec":
-				specifiedType = new ValueRational(-1.0);
-				break;
-			case "bool":
-				specifiedType = new ValueBoolean(false);
-				break;
-			case "string":
-				specifiedType = new ValueString("");
-				break;
-			case "anon":
-				specifiedType = new ValueAnonymousType();
-				break;
-			case "function":
-				specifiedType = new ValueFn();
-				break;
-			default:
-				throw new ExceptionSemantic("Invalid type specified.");
-		}
-		
-		if (!valToAssign.getClass().equals(specifiedType.getClass())) {
+		if (!valToAssign.getClass().equals(specifiedType)) {
 			throw new ExceptionSemantic("Cannot assign value of type: " + valToAssign.getClass() + " to variable of type: " + specifiedType.getClass() + ". Are you missing a cast?");
 		}
 		
@@ -351,6 +329,7 @@ public class Parser implements CScharfVisitor {
 			valToAssign.setConst();
 		
 		reference.setValue(valToAssign);
+		
 		return data;
 	}
 
@@ -366,6 +345,7 @@ public class Parser implements CScharfVisitor {
 			reference = (Display.Reference)node.optimised;
 		
 		reference.setValue(doChild(node, 1));
+		
 		return data;
 	}
 	
@@ -680,6 +660,26 @@ public class Parser implements CScharfVisitor {
 		}
 				
 		return node.optimised;
+	}
+
+	public Object visit(ASTArray node, Object data) {
+		/*
+		 * Child 1 - Type of array
+		 * Child 2 - Length of array
+		 */
+		
+		//System.out.println("Making array of type " + getTokenOfChild(node, 0) + " with length " + getTokenOfChild(node, 1));
+				
+		ValueArray array = new ValueArray(getTokenOfChild(node, 0), Integer.parseInt(getTokenOfChild(node, 1)));
+		
+		node.optimised = array;
+		
+		return node.optimised;
+	}
+	
+	// Process new
+	public Object visit(ASTNewObj node, Object data) {
+		return doChild(node, 0);
 	}
 
 //	public Object visit(ASTObjectMemberAccessor node, Object data) {		

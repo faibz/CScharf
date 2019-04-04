@@ -7,3 +7,8 @@
 function p = fn(x, y) { return x + y; };
 
 write p(124, 2);
+
+//function myop = fn(x, y) { return x(22) + y; };
+//write myop(fn(p) { return p * 4;}, 3);
+
+write p(204 - 14, 2);

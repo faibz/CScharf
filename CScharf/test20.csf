@@ -9,6 +9,8 @@ write i;
 
 anon bob = new { a = 24, b = 211, car = "box", dogs = true, fox = 62 };
 
+write 10;
+
 write bob.a;
 write bob.car;
 
@@ -17,4 +19,3 @@ write bob.car;
 const string chief = "foxes";
 write chief;
 chief = "stringer";
-write chief;
