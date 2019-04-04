@@ -211,9 +211,18 @@ public class Parser implements CScharfVisitor {
 		return data;
 	}
 	
+	// Process a type
+	// This doesn't do anything, but needs to be here because we need an ASTType node.
 	public Object visit(ASTType node, Object data) {
 		return data;
 	}
+	
+	// Process a modifier (e.g. const, readonly)
+	// This doesn't do anything, but needs to be here because we need an ASTModifier node.
+	public Object visit(ASTModifier node, Object data) {
+		return data;
+	}
+
 	
 	// Execute the WRITE statement
 	public Object visit(ASTWrite node, Object data) {
@@ -244,12 +253,14 @@ public class Parser implements CScharfVisitor {
 		return value;
 	}
 	
-	// Execute a typed assignment statement.
+	// Execute an assignment statement.
 	public Object visit(ASTAssignment node, Object data) {
-		if (node.jjtGetNumChildren() == 3) {
-			return typedAssignment(node, data);
-		} else {
+		// Given that we could have anything from "const int val = 10;" to "val = 1;"
+		// We need to be able to distinguish between types of assignment and throw accurate exceptions
+		if (node.jjtGetNumChildren() == 2) {
 			return untypedAssignment(node, data);
+		} else {
+			return typedAssignment(node, data);
 		}
 	}
 	
@@ -283,8 +294,17 @@ public class Parser implements CScharfVisitor {
 	private Object typedAssignment(ASTAssignment node, Object data) {
 		Display.Reference reference;
 		
+		int childrenCount = node.jjtGetNumChildren();
+		
+		/*
+		 * childrenCount - 1 = value to assign
+		 * childrenCount - 2 = name of variable to assign to
+		 * childrenCount - 3 = type of variable
+		 * childrenCount - 4 = modifier
+		 */
+		
 		if (node.optimised == null) {
-			String name = getTokenOfChild(node, 1);
+			String name = getTokenOfChild(node, childrenCount - 2);
 			reference = scope.findReference(name);
 			if (reference == null)
 				reference = scope.defineVariable(name);
@@ -294,10 +314,10 @@ public class Parser implements CScharfVisitor {
 		} else
 			reference = (Display.Reference)node.optimised;
 		
-		Value valToAssign = doChild(node, 2);
+		Value valToAssign = doChild(node, childrenCount - 1);
 		Value specifiedType;
 		
-		switch(getTokenOfChild(node, 0)) {
+		switch(getTokenOfChild(node, childrenCount - 3)) {
 			case "int":
 			case "short":
 			case "long":
@@ -316,7 +336,7 @@ public class Parser implements CScharfVisitor {
 			case "anon":
 				specifiedType = new ValueAnonymousType();
 				break;
-			case "fn":
+			case "function":
 				specifiedType = new ValueFn();
 				break;
 			default:
@@ -326,6 +346,9 @@ public class Parser implements CScharfVisitor {
 		if (!valToAssign.getClass().equals(specifiedType.getClass())) {
 			throw new ExceptionSemantic("Cannot assign value of type: " + valToAssign.getClass() + " to variable of type: " + specifiedType.getClass() + ". Are you missing a cast?");
 		}
+		
+		if (childrenCount == 4 && getTokenOfChild(node, childrenCount - 4).equals("const"))
+			valToAssign.setConst();
 		
 		reference.setValue(valToAssign);
 		return data;
@@ -623,26 +646,24 @@ public class Parser implements CScharfVisitor {
 //			valFn.setFunctionReturnExpression(getChild(node, 2));
 //				
 //		return node.optimised;
-			
-		String fnname = getTokenOfChild((SimpleNode) node.jjtGetParent(), 0);
+		
+		ValueFn valueFunction = new ValueFn();
+		
+		String fnname = getTokenOfChild((SimpleNode) node.jjtGetParent(), 1);
 		FunctionDefinition funcDef = new FunctionDefinition(fnname, scope.getLevel() + 1);
+		
 		//Parameters
 		doChild(node, 0, funcDef);
 		scope.addFunction(funcDef);
-		//System.out.printf("parameter count %d", funcDef.getParameterCount());
 		funcDef.setFunctionBody(getChild(node, 1));
 		
 		if (node.fnHasReturn)
 			funcDef.setFunctionReturnExpression(getChild(node, 2));
-		//fn.setFunctionBody(getChild(node, 1));
 		
-		//if (node.fnHasReturn)
-		//	fn.setFunctionReturnExpression(getChild(node, 2));
+		valueFunction.setFunctionDefinition(funcDef);
+		node.optimised = valueFunction;
 		
-		//node.optimised = fn;
-		node.optimised = funcDef;
-		
-		return data;
+		return node.optimised;
 	}
 
 	public Object visit(ASTAnon node, Object data) {

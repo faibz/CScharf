@@ -12,4 +12,9 @@ anon bob = new { a = 24, b = 211, car = "box", dogs = true, fox = 62 };
 write bob.a;
 write bob.car;
 
-i = "fox";
+//i = "fox";
+
+const string chief = "foxes";
+write chief;
+chief = "stringer";
+write chief;

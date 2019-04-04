@@ -4,22 +4,6 @@
 //TODO: Worst case: when invoking a function with a function as an argument, find the function getting called...
 // look at its param list, and add a function to the scope that has the same function name as the param.
 
-p = fn(x, y) { return x + y; };
+function p = fn(x, y) { return x + y; };
 
 write p(124, 2);
-
-bob = fn(a, b) {
-	return a(22) + b;
-};
-
-//a = fn(p) { return p * 4; };
-
-write bob(fn(p) { return p + 10; }, 5);
-
-box = fn(x, y) {
-	nestedBoi = fn(c, d) { return c + d; };
-	
-	return x + y + nestedBoi(2, 3);
-};
-
-write box(4,5);

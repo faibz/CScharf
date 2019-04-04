@@ -9,6 +9,12 @@ public interface Value {
 	/** Get name of this Value type. */
 	public String getName();
 	
+	/** Check if the value is constant */
+	public boolean isConst();
+	
+	/** Make the value constant */
+	public void setConst();
+	
 	/** Perform logical OR on this value and another. */
 	public Value or(Value v);
 	

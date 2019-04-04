@@ -8,6 +8,16 @@ public abstract class ValueAbstract implements Value {
 
 	public abstract int compare(Value v);
 	
+	private boolean isConst = false;
+	
+	public boolean isConst() {
+		return isConst;
+	}
+
+	public void setConst() {
+		this.isConst = true;
+	}
+	
 	public Value or(Value v) {
 		throw new ExceptionSemantic("Cannot perform OR on " + getName() + " and " + v.getName());
 	}

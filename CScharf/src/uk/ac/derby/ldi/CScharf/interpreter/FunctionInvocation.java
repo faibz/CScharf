@@ -14,6 +14,14 @@ class FunctionInvocation implements Invocation {
 	private final void setSlot(int n, Value v) {
 		if (n >= slots.size())
 			slots.setSize(n + 1);
+		
+		Value existingValue = slots.get(n);
+		
+		if (existingValue != null) {
+			if (existingValue.isConst())
+				throw new ExceptionSemantic("Cannot re-assign to constant value.");
+		}
+		
 		slots.set(n, v);
 	}
 	

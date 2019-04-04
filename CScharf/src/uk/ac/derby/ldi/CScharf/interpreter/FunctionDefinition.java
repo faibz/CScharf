@@ -12,7 +12,7 @@ import java.io.Serializable;
  * @author dave
  *
  */
-class FunctionDefinition implements Comparable<Object>, Serializable {
+public class FunctionDefinition implements Comparable<Object>, Serializable {
 	private static final long serialVersionUID = 0;
 
 	private String name;

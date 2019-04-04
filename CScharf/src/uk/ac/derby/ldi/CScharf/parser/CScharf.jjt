@@ -78,7 +78,12 @@ TOKEN [IGNORE_CASE] : /* RESERVED WORDS AND LITERALS */
 
 TOKEN : /* TYPES */
 {
-  < TYPE: "int" | "short" | "long" | "float" | "dec" | "bool" | "string" | "anon" >
+  < TYPE: "int" | "short" | "long" | "float" | "dec" | "bool" | "string" | "anon" | "function" >
+}
+
+TOKEN : /* TYPE MODIFIERS */
+{
+  < MODIFIER: "const" | "readonly" >
 }
 
 TOKEN : /* LITERALS */
@@ -287,8 +292,15 @@ void returnexpr() #ReturnExpression :
 void assignment() #Assignment :
 {}
 {
-	  				[type()] identifier() "=" expression()
+	  				[[modifier()] type()] identifier() "=" expression()
 }
+
+void modifier() #Modifier :
+{Token t;}
+{
+  t = <MODIFIER> { jjtThis.tokenValue = t.image; }
+}
+  
 
 void type() #Type :
 {Token t;}
