@@ -1,0 +1,41 @@
+#!/bin/sh
+echo "=== Test01.csf ==="
+java -classpath ./bin CScharf < test01.csf
+echo "=== Test02.csf ==="
+java -classpath ./bin CScharf < test02.csf
+echo "=== Test03.csf ==="
+java -classpath ./bin CScharf < test03.csf
+echo "=== Test04.csf ==="
+java -classpath ./bin CScharf < test04.csf
+echo "=== Test05.csf ==="
+java -classpath ./bin CScharf < test05.csf
+echo "=== Test06.csf ==="
+java -classpath ./bin CScharf < test06.csf
+echo "=== Test07.csf ==="
+java -classpath ./bin CScharf < test07.csf
+echo "=== Test08.csf ==="
+java -classpath ./bin CScharf < test08.csf
+echo "=== Test09.csf ==="
+java -classpath ./bin CScharf < test09.csf
+echo "=== Test10.csf ==="
+java -classpath ./bin CScharf < test10.csf
+echo "=== Test11.csf ==="
+java -classpath ./bin CScharf < test11.csf
+echo "=== Test12.csf ==="
+java -classpath ./bin CScharf < test12.csf
+echo "=== Test13.csf ==="
+java -classpath ./bin CScharf < test13.csf
+echo "=== Test14.csf ==="
+java -classpath ./bin CScharf < test14.csf
+echo "=== Test15.csf ==="
+java -classpath ./bin CScharf < test15.csf
+echo "=== Test16.csf ==="
+java -classpath ./bin CScharf < test16.csf
+echo "=== Test17.csf ==="
+java -classpath ./bin CScharf < test17.csf
+echo "=== Test18.csf ==="
+java -classpath ./bin CScharf < test18.csf
+echo "=== Test19.csf ==="
+java -classpath ./bin CScharf < test19.csf
+echo "=== Test20.csf ==="
+java -classpath ./bin CScharf < test20.csf
