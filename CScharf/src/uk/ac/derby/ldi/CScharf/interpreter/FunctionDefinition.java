@@ -1,10 +1,10 @@
 package uk.ac.derby.ldi.CScharf.interpreter;
 
-import java.util.Vector;
-
+import uk.ac.derby.ldi.CScharf.CScharfUtil;
 import uk.ac.derby.ldi.CScharf.parser.ast.SimpleNode;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.io.Serializable;
 
 /** This class captures information about the function currently being defined.
@@ -17,7 +17,7 @@ public class FunctionDefinition implements Comparable<Object>, Serializable {
 
 	private String name;
 	private String parmSignature = "";
-	private Vector<String> parameters = new Vector<String>();
+	private LinkedHashMap<String, Class> parameters = new LinkedHashMap<String, Class>();
 	private HashMap<String, Integer> slots = new HashMap<String, Integer>();
 	private HashMap<String, FunctionDefinition> functions = new HashMap<String, FunctionDefinition>();
 	private SimpleNode ASTFunctionBody = null;
@@ -87,15 +87,20 @@ public class FunctionDefinition implements Comparable<Object>, Serializable {
 	
 	/** Get the name of the ith parameter. */
 	String getParameterName(int i) {
-		return parameters.get(i);
+		return (String)parameters.keySet().toArray()[i];
+	}
+	
+	Class getParameterType(int i) {
+		return (Class)parameters.values().toArray()[i];
 	}
 	
 	/** Define a parameter. */
-	void defineParameter(String name) {
-		if (parameters.contains(name))
+	void defineParameter(String type, String name) {
+		if (parameters.containsKey(name))
 			throw new ExceptionSemantic("Parameter " + name + " already exists in function " + getName());
-		parameters.add(name);
-		parmSignature += ((parmSignature.length()==0) ? name : (", " + name));
+		
+		parameters.put(name, CScharfUtil.getClassFromString(type));
+		parmSignature += ((parmSignature.length()==0) ? type + " " + name : (", " + type + " " + name));
 		defineVariable(name);
 	}
 	

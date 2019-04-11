@@ -1,5 +1,13 @@
-//Testing array type
+//Further testing of the typing system
 
-write 10;
+int p = 3;
 
-array box = new int[5];
+fn blah(int start, int fin, string printme) {
+	for (int i=start; i<=fin; i=i+1)
+		write i;
+	write p + 2;
+	write printme;
+}
+
+//blah(1, 10, "hello");
+blah(1, 10, 5);

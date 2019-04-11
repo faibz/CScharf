@@ -1,6 +1,9 @@
 package uk.ac.derby.ldi.CScharf;
 
+import java.util.HashMap;
+
 import uk.ac.derby.ldi.CScharf.interpreter.ExceptionSemantic;
+import uk.ac.derby.ldi.CScharf.values.Value;
 import uk.ac.derby.ldi.CScharf.values.ValueAnonymousType;
 import uk.ac.derby.ldi.CScharf.values.ValueArray;
 import uk.ac.derby.ldi.CScharf.values.ValueBoolean;
@@ -12,7 +15,20 @@ import uk.ac.derby.ldi.CScharf.values.ValueString;
 /** Convenient runner for the CScharf interpreter. */
 
 public class CScharfUtil {
-	public static Class<?> getClassFromString(String type) {
+
+	static final HashMap<Class<?>, Value> defaultValues = new HashMap<Class<?>, Value>();
+	
+	static {
+		defaultValues.put(ValueInteger.class, new ValueInteger(0));
+		defaultValues.put(ValueRational.class, new ValueRational(0.0));
+		defaultValues.put(ValueBoolean.class, new ValueBoolean(false));
+		defaultValues.put(ValueString.class, new ValueString(""));
+		defaultValues.put(ValueAnonymousType.class, new ValueAnonymousType());
+		defaultValues.put(ValueFn.class, new ValueFn());
+		defaultValues.put(ValueArray.class, new ValueArray());
+	}
+	
+	public static final Class<?> getClassFromString(String type) {
 		switch(type) {
 		case "int":
 		case "short":
@@ -33,6 +49,10 @@ public class CScharfUtil {
 			return ValueArray.class;
 		default:
 			throw new ExceptionSemantic("Invalid type specified.");
+		}
 	}
+		
+	public static final <T> T getDefaultValueForClass(Class<?> _class) {
+		return (T)defaultValues.get(_class);
 	}
 }

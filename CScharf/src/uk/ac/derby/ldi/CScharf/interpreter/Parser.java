@@ -83,8 +83,10 @@ public class Parser implements CScharfVisitor {
 	// Function definition parameter list
 	public Object visit(ASTParmlist node, Object data) {
 		FunctionDefinition currentDefinition = (FunctionDefinition)data;
-		for (int i=0; i<node.jjtGetNumChildren(); i++)
-			currentDefinition.defineParameter(getTokenOfChild(node, i));
+		for (int i=0; i<node.jjtGetNumChildren(); i += 2) {
+			currentDefinition.defineParameter(getTokenOfChild(node, i), getTokenOfChild(node, i + 1));
+		}
+		
 		return data;
 	}
 	
@@ -149,9 +151,6 @@ public class Parser implements CScharfVisitor {
 		
 		//ClassInvocation newInvocation = (ClassInvocation)data;
 
-		
-		
-		
 		for (int i=0; i<node.jjtGetNumChildren(); i++)
 			newInvocation.setArgument(doChild(node, i));
 		newInvocation.checkArgumentCount();
@@ -235,7 +234,6 @@ public class Parser implements CScharfVisitor {
 		Display.Reference reference;
 		if (node.optimised == null) {
 			String name = node.tokenValue;
-
 			reference = scope.findReference(name);
 			if (reference == null)
 				throw new ExceptionSemantic("Variable or parameter " + name + " is undefined.");
@@ -245,10 +243,15 @@ public class Parser implements CScharfVisitor {
 		
 		Value value = reference.getValue();
 		
-		//If this is a member access case (i.e. obj.var)
+		//If this is a member access case or index access case (i.e. obj.var/arr[0])
 		if (node.jjtGetNumChildren() == 1) {
-			ValueAnonymousType obj = (ValueAnonymousType) value;
-			return obj.getVariableValue(getTokenOfChild(node, 0));
+			if (value.getClass() == ValueAnonymousType.class) {
+				ValueAnonymousType obj = (ValueAnonymousType) value;
+				return obj.getVariableValue(getTokenOfChild(node, 0));
+			} else {
+				ValueArray arr = (ValueArray) value;
+				return arr.getValue((int)(doChild(node, 0).longValue()));
+			}
 		}
 		
 		return value;
@@ -258,7 +261,7 @@ public class Parser implements CScharfVisitor {
 	public Object visit(ASTAssignment node, Object data) {
 		// Given that we could have anything from "const int val = 10;" to "val = 1;"
 		// We need to be able to distinguish between types of assignment and throw accurate exceptions
-
+		
 		if (node.jjtGetNumChildren() == 2) {
 			return untypedAssignment(node, data);
 		} else {
@@ -272,7 +275,8 @@ public class Parser implements CScharfVisitor {
 			String name = getTokenOfChild(node, 0);
 			reference = scope.findReference(name);
 			if (reference == null)
-				reference = scope.defineVariable(name);
+				throw new ExceptionSemantic("Variable " + name + " does not exist yet. Are you missing a declaration?");
+				//reference = scope.defineVariable(name);
 			node.optimised = reference;
 		} else
 			reference = (Display.Reference)node.optimised;
@@ -285,12 +289,20 @@ public class Parser implements CScharfVisitor {
 		
 		Value existingType = reference.getValue();
 		
-		if (!valToAssign.getClass().equals(existingType.getClass())) {
+		//System.out.println("Let's go. " + doChild((SimpleNode)node.jjtGetChild(0), 0).getClass());
+		
+		if (valToAssign.getClass().equals(existingType.getClass())) {
+			reference.setValue(valToAssign);
+		} else if (existingType.getClass() == ValueArray.class) {
+			Value val = doChild((SimpleNode)node.jjtGetChild(0), 0);
+			//System.out
+			if (val.getClass() == ValueInteger.class) {
+				((ValueArray) existingType).putValue((int)val.longValue(), valToAssign);
+			}	
+		} else {
 			throw new ExceptionSemantic("Cannot assign value of type: " + valToAssign.getClass() + " to variable of type: " + existingType.getClass() + ". Are you missing a cast?");
 		}
-				
-		reference.setValue(valToAssign);
-
+		
 		return data;
 	}
 
@@ -329,7 +341,7 @@ public class Parser implements CScharfVisitor {
 			valToAssign.setConst();
 		
 		reference.setValue(valToAssign);
-		
+
 		return data;
 	}
 
@@ -345,7 +357,7 @@ public class Parser implements CScharfVisitor {
 			reference = (Display.Reference)node.optimised;
 		
 		reference.setValue(doChild(node, 1));
-		
+
 		return data;
 	}
 	

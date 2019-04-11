@@ -4,11 +4,11 @@
 //TODO: Worst case: when invoking a function with a function as an argument, find the function getting called...
 // look at its param list, and add a function to the scope that has the same function name as the param.
 
-function p = fn(x, y) { return x + y; };
+function p = fn(int x, int y) { return x + y; };
 
 write p(124, 2);
 
-//function myop = fn(x, y) { return x(22) + y; };
+//function myop = fn(int x, int y) { return x(22) + y; };
 //write myop(fn(p) { return p * 4;}, 3);
 
 write p(204 - 14, 2);

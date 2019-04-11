@@ -1,22 +1,22 @@
-z = 2;
+int z = 2;
 
-fn zaz(a) {
+fn zaz(int a) {
    return a;
 }
 
-fn blah(p) {
-   q = 3;
-   fn zot(r) {
+fn blah(int p) {
+   int q = 3;
+   fn zot(int r) {
       return zaz(r + p + q + z);
    }
 
-   fn zog(n) {
+   fn zog(int n) {
       return zot(n + 2);
    }
 
    return zot(p) * zog(p);
 }
 
-v = 3;
+int v = 3;
 
 write blah(v);

@@ -1,5 +1,7 @@
-fn fib(n) {
-   if (n == 0 or n == 1) {
+fn fib(int n) {
+   int r = 0;
+	
+   if (n == 0 || n == 1) {
       r = n;
    } else {
       r = fib(n - 1) + fib(n - 2);
@@ -7,6 +9,6 @@ fn fib(n) {
    return r;
 }
 
-for (i = 0; i < 35; i = i + 1) {
+for (int i = 0; i < 35; i = i + 1) {
     write fib(i);
 }

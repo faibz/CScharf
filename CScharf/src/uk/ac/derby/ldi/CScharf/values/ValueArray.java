@@ -1,19 +1,27 @@
 package uk.ac.derby.ldi.CScharf.values;
 
-import java.util.HashMap;
 import java.util.UUID;
+import java.util.Vector;
 
 import uk.ac.derby.ldi.CScharf.CScharfUtil;
+import uk.ac.derby.ldi.CScharf.interpreter.ExceptionSemantic;
 
 public class ValueArray extends ValueAbstract {
 	private UUID id = UUID.randomUUID();
 	private int length = 0;
 	private Class<?> type;
-	private HashMap<Integer, Value> data = new HashMap<Integer, Value>();
+	private Vector<Value> data = new Vector<Value>();
 
+	public ValueArray() {}
+	
 	public ValueArray(String type, int length) {
+		System.out.println("Making new array of type: " + type + " with length: " + length);
 		this.type = CScharfUtil.getClassFromString(type);
 		this.length = length;
+		
+		for (int i = 0; i < length; ++i) {
+			data.add(i, CScharfUtil.getDefaultValueForClass(this.type));
+		}
 	}
 
 	public String getName() {
@@ -26,15 +34,18 @@ public class ValueArray extends ValueAbstract {
 	
 	public void putValue(int index, Value val) {
 		if(validIndex(index) && val.getClass().equals(type)) {
-			data.put(index, val);
+			data.add(index, val);
+		} else {
+			throw new ExceptionSemantic("Index: " + index + " is out of bounds of the array.");
 		}
 	}
 	
 	public Value getValue(int index) {
-		if(validIndex(index) && data.containsKey(index)) {
+		if(validIndex(index)) {
 			return data.get(index);
-		} else
-			return null;
+		} else {
+			throw new ExceptionSemantic("Index: " + index + " is out of bounds of the array.");
+		}
 	}
 
 	private boolean validIndex(int index) {

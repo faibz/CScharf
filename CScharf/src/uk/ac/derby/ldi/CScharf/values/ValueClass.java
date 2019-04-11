@@ -2,7 +2,6 @@ package uk.ac.derby.ldi.CScharf.values;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Vector;
 
 import uk.ac.derby.ldi.CScharf.interpreter.ExceptionSemantic;
 

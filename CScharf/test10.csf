@@ -1,16 +1,16 @@
-p = 3;
+int p = 3;
 
-fn blah(start, fin) {
+fn blah(int start, int fin) {
 
-	fn zot(x, y) {
-	   	fn zaz(r) {
+	fn zot(int x, int y) {
+	   	fn zaz(int r) {
 		   return p + x * r;
 		}
 
 		return x * y + zaz(y);
 	}
 
-	for (i=start; i<=fin; i=i+1) {
+	for (int i=start; i<=fin; i=i+1) {
 		write zot(i, p);
 	}
 

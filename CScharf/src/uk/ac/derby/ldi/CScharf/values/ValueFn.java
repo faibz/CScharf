@@ -1,12 +1,6 @@
 package uk.ac.derby.ldi.CScharf.values;
 
-import java.util.HashMap;
-import java.util.Vector;
-
 import uk.ac.derby.ldi.CScharf.interpreter.*;
-
-import uk.ac.derby.ldi.CScharf.interpreter.ExceptionSemantic;
-import uk.ac.derby.ldi.CScharf.parser.ast.SimpleNode;
 
 public class ValueFn extends ValueAbstract {
 	private FunctionDefinition funcDef = null;
@@ -23,6 +17,10 @@ public class ValueFn extends ValueAbstract {
 	
 	public void setFunctionDefinition(FunctionDefinition funcDef) {
 		this.funcDef = funcDef;
+	}
+	
+	public void invokeFunction() {
+		FunctionInvocation funcInvoke = new FunctionInvocation(this.funcDef);
 	}
 	
 //	public void setFunctionBody(SimpleNode node) {

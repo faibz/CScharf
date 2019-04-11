@@ -1,6 +1,6 @@
 // Test while loop
 
-p = 0;
+int p = 0;
 
 while(p < 10) {
 	write p;

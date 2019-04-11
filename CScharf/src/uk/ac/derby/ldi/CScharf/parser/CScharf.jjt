@@ -68,8 +68,8 @@ TOKEN [IGNORE_CASE] : /* RESERVED WORDS AND LITERALS */
 | < CLASS: "CLASS" >
 | < NEW: "NEW" >
 | < RETURN: "RETURN" >
-| < OR: "OR" >
-| < AND: "AND" >
+| < OR: "||" >
+| < AND: "&&" >
 | < NOT: "NOT" >
 | < TRUE: "TRUE" >
 | < FALSE: "FALSE" >
@@ -249,7 +249,7 @@ void block() #Block :
 void parmlist() #Parmlist :
 {}
 {
-					"(" [ identifier() ( "," identifier() )* ] ")"
+					"(" [ type() identifier() ( "," type() identifier() )* ] ")"
 }
 
 void fnbody() #FnBody :
@@ -292,7 +292,8 @@ void returnexpr() #ReturnExpression :
 void assignment() #Assignment :
 {}
 {
-	  				[[modifier()] type()] identifier() "=" expression()
+	  				//[[modifier()] type()] identifier() "=" expression()
+	  				[[modifier()] type()] dereference() "=" expression()
 }
 
 void modifier() #Modifier :
@@ -455,7 +456,7 @@ void identifier() #Identifier :
 void dereference() #Dereference :
 {Token t;}
 {
-	t = <IDENTIFIER> ["." identifier()] { jjtThis.tokenValue = t.image; }
+	t = <IDENTIFIER> [ "[" add_expression() "]" | "." identifier() ] { jjtThis.tokenValue = t.image; }
 }  
 
 void character() #Character :

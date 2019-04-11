@@ -5,7 +5,7 @@ import java.util.Vector;
 import uk.ac.derby.ldi.CScharf.values.Value;
 
 /** Function invocation context. */
-class FunctionInvocation implements Invocation {
+public class FunctionInvocation implements Invocation {
 
 	private FunctionDefinition function;
 	private int argumentCount = 0;
@@ -26,7 +26,7 @@ class FunctionInvocation implements Invocation {
 	}
 	
 	/** Ctor for user-defined function. */
-	FunctionInvocation(FunctionDefinition fndef) {
+	public FunctionInvocation(FunctionDefinition fndef) {
 		function = fndef;
 		slots = new Vector<Value>(function.getLocalCount());
 	}
@@ -40,14 +40,22 @@ class FunctionInvocation implements Invocation {
 	void setArgument(Value v) {
 		if (argumentCount >= function.getParameterCount())
 			throw new ExceptionSemantic("Function " + function.getSignature() + " expected " + function.getParameterCount() + " arguments but got " + (argumentCount + 1) + ".");
+		
 		// First slots are always arguments
+		Class<? extends Value> parameterType = function.getParameterType(argumentCount);
+		Class<? extends Value> argType = v.getClass();
+		
+		if (parameterType != argType) {
+			throw new ExceptionSemantic("Cannot assign value of type: " + v.getClass() + " to parameter of type: " + parameterType + ". Are you missing a cast?");
+		}
+		
 		setSlot(argumentCount++, v);
 	}
 	
 	/** Check argument count. */
 	void checkArgumentCount() {
 		if (argumentCount < function.getParameterCount())
-			throw new ExceptionSemantic("Function " + function.getSignature() + " expected " + function.getParameterCount() + " arguments but got " + (argumentCount + 1) + ".");		
+			throw new ExceptionSemantic("Function " + function.getSignature() + " expected " + function.getParameterCount() + " arguments but got " + argumentCount + ".");		
 	}
 	
 	/** Execute this invocation. */
