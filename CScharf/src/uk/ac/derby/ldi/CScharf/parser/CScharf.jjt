@@ -456,7 +456,7 @@ void identifier() #Identifier :
 void dereference() #Dereference :
 {Token t;}
 {
-	t = <IDENTIFIER> [ "[" add_expression() "]" | "." identifier() ] { jjtThis.tokenValue = t.image; }
+	t = <IDENTIFIER> ( "[" add_expression() "]" | "." identifier() )* { jjtThis.tokenValue = t.image; }
 }  
 
 void character() #Character :

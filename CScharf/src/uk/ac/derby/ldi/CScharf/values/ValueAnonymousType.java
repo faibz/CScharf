@@ -11,13 +11,16 @@ public class ValueAnonymousType extends ValueAbstract {
 	private Map<String, Value> variables = new HashMap<String, Value>();
 
 	public String getName() {
-		return "Dynamic type";
+		return "Anonymous type";
 	}
 
 	public int compare(Value v) {
 		return 0;
 	}
 	
+	/* Only called when initialising an object.
+	 * Calling this after initialisation is not supported.
+	 * Unsure if allowing for values to be re-set (like what is possible with arrays) will be supported. */
 	public void addValue(String name, Value value) {
 		variables.put(name, value);
 	}

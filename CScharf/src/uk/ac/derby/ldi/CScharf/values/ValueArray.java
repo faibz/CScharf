@@ -15,7 +15,6 @@ public class ValueArray extends ValueAbstract {
 	public ValueArray() {}
 	
 	public ValueArray(String type, int length) {
-		System.out.println("Making new array of type: " + type + " with length: " + length);
 		this.type = CScharfUtil.getClassFromString(type);
 		this.length = length;
 		

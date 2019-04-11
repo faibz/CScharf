@@ -123,6 +123,7 @@ public class Parser implements CScharfVisitor {
 	
 	// Function invocation in an expression
 	public Object visit(ASTFnInvoke node, Object data) {
+		//TODO: fn variable invocation
 		FunctionDefinition fndef;
 		if (node.optimised == null) { 
 			// Child 0 - identifier (fn name)
@@ -244,17 +245,49 @@ public class Parser implements CScharfVisitor {
 		Value value = reference.getValue();
 		
 		//If this is a member access case or index access case (i.e. obj.var/arr[0])
-		if (node.jjtGetNumChildren() == 1) {
-			if (value.getClass() == ValueAnonymousType.class) {
-				ValueAnonymousType obj = (ValueAnonymousType) value;
-				return obj.getVariableValue(getTokenOfChild(node, 0));
-			} else {
-				ValueArray arr = (ValueArray) value;
-				return arr.getValue((int)(doChild(node, 0).longValue()));
-			}
-		}
+		if (node.jjtGetNumChildren() >= 1) return processAccess(value, node);
 		
 		return value;
+	}
+	
+	private Value processAccess(Value value, ASTDereference node) {
+		if (value.getClass() == ValueAnonymousType.class) {
+			ValueAnonymousType obj = (ValueAnonymousType) value;
+			Value currentChild = obj.getVariableValue(getTokenOfChild(node, 0));
+			
+			for (int i = 1; i < node.jjtGetNumChildren(); ++i) {
+				if (currentChild.getClass() == ValueAnonymousType.class) {
+					currentChild = processAnonType(currentChild, node, i);
+				} else {
+					currentChild = processArray(currentChild, node, i);
+				}
+			}
+			
+			return currentChild;
+		} else {
+			
+			ValueArray arr = (ValueArray) value;
+			
+			Value currentChild = arr.getValue((int)(doChild(node, 0).longValue()));
+			
+			for (int i = 1; i < node.jjtGetNumChildren(); ++i) {
+				if (currentChild.getClass() == ValueAnonymousType.class) {
+					currentChild = processAnonType(currentChild, node, i);
+				} else {
+					currentChild = processArray(currentChild, node, i);
+				}
+			}
+			
+			return currentChild;
+		}
+	}
+	
+	private Value processAnonType(Value child, ASTDereference node, int index) {
+		return ((ValueAnonymousType) child).getVariableValue(getTokenOfChild(node, index));
+	}
+	
+	private Value processArray(Value child, ASTDereference node, int index) {
+		return ((ValueArray) child).getValue((int) doChild(node, index).longValue());
 	}
 	
 	// Execute an assignment statement.
@@ -339,6 +372,8 @@ public class Parser implements CScharfVisitor {
 		
 		if (childrenCount == 4 && getTokenOfChild(node, childrenCount - 4).equals("const"))
 			valToAssign.setConst();
+		
+		//System.out.println("Setting value of type: " + valToAssign.getClass());
 		
 		reference.setValue(valToAssign);
 
@@ -646,7 +681,7 @@ public class Parser implements CScharfVisitor {
 		
 		//Parameters
 		doChild(node, 0, funcDef);
-		scope.addFunction(funcDef);
+		//scope.addFunction(funcDef);
 		funcDef.setFunctionBody(getChild(node, 1));
 		
 		if (node.fnHasReturn)
