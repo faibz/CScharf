@@ -1,6 +1,6 @@
 int p5 = 10;
 
-fn test(int p1, int p2, int p3) {
+public int test(int p1, int p2, int p3) {
 	write p1;
 	write p2;
 	write p3;

@@ -1,16 +1,16 @@
 int z = 2;
 
-fn zaz(int a) {
+public int zaz(int a) {
    return a;
 }
 
-fn blah(int p) {
+public int blah(int p) {
    int q = 3;
-   fn zot(int r) {
+   public int zot(int r) {
       return zaz(r + p + q + z);
    }
 
-   fn zog(int n) {
+   public int zog(int n) {
       return zot(n + 2);
    }
 

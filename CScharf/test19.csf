@@ -1,13 +1,15 @@
-// Test object classes
-class Program {
+// Test classes
 
-	class Square {
-		fn Square() {
-			length = 5;
-		}
+write 10;
+
+class Square {
+	public Square(int len) {
+		length = len;
 	}
 	
-	fn main() {
-		bob = new Square();
+	int length = 0;
+	
+	private int PrintLength() {
+		write length;
 	}
 }

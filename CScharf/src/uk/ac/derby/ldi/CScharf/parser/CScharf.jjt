@@ -64,8 +64,8 @@ TOKEN [IGNORE_CASE] : /* RESERVED WORDS AND LITERALS */
 | < FOR: "FOR" >
 | < WHILE: "WHILE" >
 | < WRITE: "WRITE" >
-| < FN: "FN" >
 | < CLASS: "CLASS" >
+| < FUNCTION: "FUNCTION" >
 | < NEW: "NEW" >
 | < RETURN: "RETURN" >
 | < OR: "||" >
@@ -78,12 +78,17 @@ TOKEN [IGNORE_CASE] : /* RESERVED WORDS AND LITERALS */
 
 TOKEN : /* TYPES */
 {
-  < TYPE: "int" | "short" | "long" | "float" | "dec" | "bool" | "string" | "anon" | "function" | "array" >
+  < TYPE: "int" | "short" | "long" | "float" | "dec" | "bool" | "string" | "anon" | "func" | "array" | "void" >
 }
 
 TOKEN : /* TYPE MODIFIERS */
 {
-  < MODIFIER: "const" | "readonly" >
+  < TYPE_MODIFIER: "const" | "readonly" >
+}
+
+TOKEN : /* ACCESS MODIFIERS */
+{
+  < ACCESS_MODIFIER: "private" | "public" >
 }
 
 TOKEN : /* LITERALS */
@@ -261,7 +266,7 @@ void fnbody() #FnBody :
 void fndef() #FnDef :
 {}
 {
-					<FN> identifier() parmlist() "{" 
+					[<ACCESS_MODIFIER>] type() identifier() parmlist() "{" 
 						fnbody()
 						[ <RETURN> returnexpr() {jjtThis.fnHasReturn = true;} ";" ] 
 					"}"
@@ -269,17 +274,26 @@ void fndef() #FnDef :
 
 /* How do I pass the class name through for ensuring that the constructor stuff has the same name? */
 void classdef() #ClassDef :
-{}
+{Token t;}
 {
-					<CLASS> identifier() "{"
-						classbody()
-					"}"
+					[<ACCESS_MODIFIER>] <CLASS> t = <IDENTIFIER> "{"
+						classbody(t.image)
+					"}" { jjtThis.tokenValue = t.image; }
 }
 
-void classbody() #ClassBody :
+void constructor(String className) #ClassConstructor :
+{Token t;}
+{
+				  <ACCESS_MODIFIER> identifier() parmlist() "{"
+						fnbody()
+				  "}" { jjtThis.tokenValue = className; }
+}
+  
+
+void classbody(String className) #ClassBody :
 {}
 {
-  	( assignment() | fndef() | classdef() )*
+  constructor(className) ( assignment() ";" | fndef() | classdef() )*
 }
 
 
@@ -292,14 +306,13 @@ void returnexpr() #ReturnExpression :
 void assignment() #Assignment :
 {}
 {
-	  				//[[modifier()] type()] identifier() "=" expression()
 	  				[[modifier()] type()] dereference() "=" expression()
 }
 
 void modifier() #Modifier :
 {Token t;}
 {
-  t = <MODIFIER> { jjtThis.tokenValue = t.image; }
+  t = <TYPE_MODIFIER> { jjtThis.tokenValue = t.image; }
 }
   
 
@@ -478,12 +491,12 @@ void rational() #Rational :
 }
 
 void fn() #Fn :
-{Token t;}
+{}
 {
-	t = <FN> parmlist() "{"
+	<FUNCTION> parmlist() "{"
 		fnbody()
 		[ <RETURN> returnexpr() ";" {jjtThis.fnHasReturn = true;} ] 
-		"}" {jjtThis.tokenValue = t.image;}
+		"}"
 }
 
 void anon() #Anon :
@@ -503,20 +516,6 @@ void newObj() #NewObj :
 {
 	<NEW> (anon() | array()) //{ jjtThis.tokenValue = t.image; }
 }
-  
-  
-
-//void object() #Object :
-//{Token t;}
-//{
-//	t = <NEW> "{" objectBody() "}" { jjtThis.tokenValue = t.image;}
-//}
-//
-//void objectBody() #ObjectBody :
-//{}
-//{
-//					assignment() ("," assignment() )*
-//}
 
 //void classInvoke() #ClassInvoke :
 //{Token t;}

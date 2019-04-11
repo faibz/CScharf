@@ -2,12 +2,14 @@
 
 int p = 3;
 
-fn blah(int start, int fin, string printme) {
+public void blah(int start, int fin, string printme) {
 	for (int i=start; i<=fin; i=i+1)
 		write i;
 	write p + 2;
 	write printme;
 }
+
+//Switch between bottom two
 
 //blah(1, 10, "hello");
 blah(1, 10, 5);

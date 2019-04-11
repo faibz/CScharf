@@ -9,7 +9,7 @@ class Display {
 
 	private final int maximumFunctionNesting = 64;
 	private FunctionInvocation[] display = new FunctionInvocation[maximumFunctionNesting];
-	private ClassInvocation[] classDisplay = new ClassInvocation[maximumFunctionNesting];
+	//private ClassInvocation[] classDisplay = new ClassInvocation[maximumFunctionNesting];
 		
 	private int currentLevel;
 
@@ -40,7 +40,7 @@ class Display {
 		// root or 0th scope
 		currentLevel = 0;
 		display[currentLevel] = new FunctionInvocation(new FunctionDefinition("%main", currentLevel));
-		classDisplay[currentLevel] = new ClassInvocation(new ClassDefinition("%program", currentLevel));
+		//classDisplay[currentLevel] = new ClassInvocation(new ClassDefinition("%program", currentLevel));
 	}
 	
 	/** Execute a function in its scope, using a specified parser. */
@@ -90,39 +90,39 @@ class Display {
 		}
 		return null;
 	}
+//	
+//	/** Find a class.  Return null if it doesn't exist. */
+//	ClassDefinition findClass(String name) {
+//		int level = currentLevel;
+//		while (level >= 0) {
+//			ClassDefinition definition = classDisplay[level].findClass(name);
+//			if (definition != null)
+//				return definition;
+//			level--;
+//		}
+//		return null;
+//	}
 	
-	/** Find a class.  Return null if it doesn't exist. */
-	ClassDefinition findClass(String name) {
-		int level = currentLevel;
-		while (level >= 0) {
-			ClassDefinition definition = classDisplay[level].findClass(name);
-			if (definition != null)
-				return definition;
-			level--;
-		}
-		return null;
-	}
-	
-	/** Execute a class in its scope, using a specified parser. */
-	Value execute(ClassInvocation classInv, Parser p) {
-		System.out.println("ok");
-		int changeLevel = classInv.getLevel();
-		System.out.println("ok2");
-		ClassInvocation oldContext = classDisplay[changeLevel];
-		System.out.println("ok3");
-		int oldLevel = currentLevel;
-		classDisplay[changeLevel] = classInv;
-		currentLevel = changeLevel;
-		System.out.println("ok4");
-		Value v = classDisplay[currentLevel].execute(p);
-		System.out.println("ok5");
-		classDisplay[changeLevel] = oldContext;
-		System.out.println("ok6");
-		currentLevel = oldLevel;
-		System.out.println("ok7");
-		
-		return v;
-	}
+//	/** Execute a class in its scope, using a specified parser. */
+//	Value execute(ClassInvocation classInv, Parser p) {
+//		System.out.println("ok");
+//		int changeLevel = classInv.getLevel();
+//		System.out.println("ok2");
+//		ClassInvocation oldContext = classDisplay[changeLevel];
+//		System.out.println("ok3");
+//		int oldLevel = currentLevel;
+//		classDisplay[changeLevel] = classInv;
+//		currentLevel = changeLevel;
+//		System.out.println("ok4");
+//		Value v = classDisplay[currentLevel].execute(p);
+//		System.out.println("ok5");
+//		classDisplay[changeLevel] = oldContext;
+//		System.out.println("ok6");
+//		currentLevel = oldLevel;
+//		System.out.println("ok7");
+//		
+//		return v;
+//	}
 
 	/** Find a function in the current level.  Return null if it doesn't exist. */
 	FunctionDefinition findFunctionInCurrentLevel(String name) {
@@ -134,14 +134,14 @@ class Display {
 		display[currentLevel].addFunction(definition);
 	}
 	
-	/** Find a class in the current level.  Return null if it doesn't exist. */
-	ClassDefinition findClassInCurrentLevel(String name) {
-		return classDisplay[currentLevel].findClass(name);
-	}
-	
-	/** Add a class to the current level */
-	void addClass(ClassDefinition definition) {
-		classDisplay[currentLevel].addClass(definition);
-	}
+//	/** Find a class in the current level.  Return null if it doesn't exist. */
+//	ClassDefinition findClassInCurrentLevel(String name) {
+//		return classDisplay[currentLevel].findClass(name);
+//	}
+//	
+//	/** Add a class to the current level */
+//	void addClass(ClassDefinition definition) {
+//		classDisplay[currentLevel].addClass(definition);
+//	}
 	
 }

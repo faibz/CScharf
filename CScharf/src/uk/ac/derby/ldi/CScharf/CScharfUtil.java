@@ -43,7 +43,7 @@ public class CScharfUtil {
 			return ValueString.class;
 		case "anon":
 			return ValueAnonymousType.class;
-		case "function":
+		case "func":
 			return ValueFn.class;
 		case "array":
 			return ValueArray.class;

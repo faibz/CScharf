@@ -3,20 +3,26 @@ package uk.ac.derby.ldi.CScharf.values;
 import java.util.HashMap;
 import java.util.Map;
 
+import uk.ac.derby.ldi.CScharf.interpreter.ClassDefinition;
 import uk.ac.derby.ldi.CScharf.interpreter.ExceptionSemantic;
 
 public class ValueClass extends ValueAbstract {
-	//Can add more stuff e.g. param count, to string, etc.
-	private String name = "";
 	private Map<String, Value> variables = new HashMap<String, Value>();
-	//Map<String, FunctionDefinition> functions = new HashMap<String, FuntionDefinition>();
+	private ClassDefinition classDef = null;
 	
-	public ValueClass(String className)	{
-		name = className;
+	public ValueClass()	{
 	}
 	
 	public String getName() {
-		return name;
+		return "Class";
+	}
+	
+	public ClassDefinition getClassDefinition() {
+		return classDef;
+	}
+	
+	public void setClassDefinition(ClassDefinition classDef) {
+		this.classDef = classDef;
 	}
 
 	public int compare(Value v) {

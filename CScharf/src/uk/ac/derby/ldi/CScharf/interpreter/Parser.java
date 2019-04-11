@@ -57,23 +57,25 @@ public class Parser implements CScharfVisitor {
 
 	// Function definition
 	public Object visit(ASTFnDef node, Object data) {
+		//TODO: Enforce return type
+		
 		// Already defined?
 		if (node.optimised != null)
 			return data;
 		// Child 0 - identifier (fn name)
-		String fnname = getTokenOfChild(node, 0);
+		String fnname = getTokenOfChild(node, 1);
 		if (scope.findFunctionInCurrentLevel(fnname) != null)
 			throw new ExceptionSemantic("Function " + fnname + " already exists.");
 		FunctionDefinition currentFunctionDefinition = new FunctionDefinition(fnname, scope.getLevel() + 1);
 		// Child 1 - function definition parameter list
-		doChild(node, 1, currentFunctionDefinition);
+		doChild(node, 2, currentFunctionDefinition);
 		// Add to available functions
 		scope.addFunction(currentFunctionDefinition);
 		// Child 2 - function body
-		currentFunctionDefinition.setFunctionBody(getChild(node, 2));
+		currentFunctionDefinition.setFunctionBody(getChild(node, 3));
 		// Child 3 - optional return expression
 		if (node.fnHasReturn)
-			currentFunctionDefinition.setFunctionReturnExpression(getChild(node, 3));
+			currentFunctionDefinition.setFunctionReturnExpression(getChild(node, 4));
 		// Preserve this definition for future reference, and so we don't define
 		// it every time this node is processed.
 		node.optimised = currentFunctionDefinition;
@@ -123,14 +125,26 @@ public class Parser implements CScharfVisitor {
 	
 	// Function invocation in an expression
 	public Object visit(ASTFnInvoke node, Object data) {
-		//TODO: fn variable invocation
 		FunctionDefinition fndef;
 		if (node.optimised == null) { 
 			// Child 0 - identifier (fn name)
 			String fnname = getTokenOfChild(node, 0);
 			fndef = scope.findFunction(fnname);
-			if (fndef == null)
-				throw new ExceptionSemantic("Function " + fnname + " is undefined.");
+			if (fndef == null) {
+				Display.Reference ref = scope.findReference(fnname);
+				if (ref != null) {
+					Value val = ref.getValue();
+					
+					if (val.getClass() == ValueFn.class) {
+						fndef = ((ValueFn)val).getFunctionDefinition();
+					} else {
+						throw new ExceptionSemantic("Cannot invoke a value of type: " + val.getClass() + " like a function");
+					}
+				} else {
+					throw new ExceptionSemantic("Function " + fnname + " is undefined.");
+				}
+			}
+				
 			if (!fndef.hasReturn())
 				throw new ExceptionSemantic("Function " + fnname + " is being invoked in an expression but does not have a return value.");
 			// Save it for next time
@@ -517,34 +531,30 @@ public class Parser implements CScharfVisitor {
 		if (node.optimised != null)
 			return data;
 		
-		System.out.println("ASTClassDef");
+		System.out.println("Class name: " + node.tokenValue);
 		
-		String className = getTokenOfChild(node, 0); 
+		/* 
+		 * Notes:
+		 * 
+		 * Child 0: class body
+		 */
 		
-		ValueClass value = new ValueClass(className);
+		//class body
+		Value notSureToBeHonest = doChild(node, 0);
+
+//		if (scope.findClassInCurrentLevel(className) != null)
+//			throw new ExceptionSemantic("Class " + className + " already exists.");
 		
-		System.out.println("Made ValueClass " + className);
-		
-		if (scope.findClassInCurrentLevel(className) != null)
-			throw new ExceptionSemantic("Class " + className + " already exists.");
-		
-		ClassDefinition currentClassDefinition = new ClassDefinition(className, scope.getLevel() + 1);
-		
-		System.out.println("Created class definition");
+		ClassDefinition currentClassDefinition = new ClassDefinition(node.tokenValue, scope.getLevel() + 1);
 		
 		//TODO: this		
-		// Child 1 - function definition parameter list
 		//doChild(node, 1, currentFunctionDefinition);
 		
 		// Add to available classes
-		scope.addClass(currentClassDefinition);
-		
-		System.out.println("Added class to scope");
+		//scope.addClass(currentClassDefinition);
 		
 		// Child 2 - class body
 		currentClassDefinition.setClassBody(getChild(node, 1));
-		
-		System.out.println("Processed class body.");
 		
 		// Preserve this definition for future reference, and so we don't define
 		// it every time this node is processed.
@@ -565,17 +575,10 @@ public class Parser implements CScharfVisitor {
 //		
 		/*
 		 * TODO:
-		 * ADD TO AVAILABLE CLASSES SEE: scope.addFuntion(...) make addClass(...)?
-		 * 
-		 * Notes:
-		 * 
-		 * Child 0 - class name
-		 * Child 1...? - functions, variables, and ctor??
+		 * ADD TO AVAILABLE CLASSES SEE: scope.addFunction(...) make addClass(...)?
 		 */
 		
 		System.out.println("Finished ASTClassDef");
-		
-		node.optimised = value;
 		
 		return data;
 	}
@@ -584,96 +587,80 @@ public class Parser implements CScharfVisitor {
 		return doChildren(node, data);
 	}
 	
-	public Object visit(ASTClassInvoke node, Object data) {
-		/*
-		 * Check scope and node.optimised to see if class is available. Throw exception if not.
-		 * 
-		 * Notes:
-		 * 
-		 * Child 0 - class name
-		 * Child 1 - arg list
-		 */
+
+	public Object visit(ASTClassConstructor node, Object data) {
+		//TODO: Find the class in the scope, and add the currentFunctionDefinition to it.
 		
-		String className = getTokenOfChild(node, 0);
+		String suppliedClassName = getTokenOfChild(node, 0);
 		
-		ValueClass val = new ValueClass(className);
+		if(!suppliedClassName.equals(node.tokenValue))
+			throw new ExceptionSemantic("Constructor for: " + suppliedClassName + " is not valid in class: " + node.tokenValue + ". Are you missing a return type?");
 		
-		System.out.println("Creating object from class: " + className);
+		FunctionDefinition currentFunctionDefinition = new FunctionDefinition(node.tokenValue + "constructor", scope.getLevel() + 1);
+		// Child 1 - function definition parameter list
+		doChild(node, 1, currentFunctionDefinition);
+		// Add to available functions
 		
-		Display.Reference reference;
-		reference = scope.defineVariable(val.getName());
+		scope.addFunction(currentFunctionDefinition);
+		// Child 2 - function body
+		currentFunctionDefinition.setFunctionBody(getChild(node, 2));
 		
-		//node.optimised = reference;
-		
-		reference.setValue(val);
-				
-		ClassDefinition classDef;
-		if (node.optimised == null) { 
-			// Child 0 - identifier (fn name)
-			classDef = scope.findClass(className);
-			if (classDef == null)
-				throw new ExceptionSemantic("Class " + className + " is undefined.");
-			// Save it for next time
-			node.optimised = classDef;
-		} else {
-			classDef = (ClassDefinition)node.optimised;
-		}
-		
-		
-		
-		ClassInvocation classInv = new ClassInvocation(classDef);
-		
-//		// Child 1 - arglist
-//		FunctionInvocation fInv = new FunctionInvocation(new FunctionDefinition("temp", 0));
-//		doChild(node, 1, fInv);
-		
-		//FunctionInvocation plex = new FunctionInvocation(new FunctionDefinition("temp", 0));
-		
-		//doChild(node, 1, plex);
-		doChild(node, 1, classInv);
-		
-		System.out.println("Finished class init");
-		
-		// Execute
-		return scope.execute(classInv, this);
+		return data;
 	}
-		
-	public Object visit(ASTFn node, Object data) {	
-		/* 
-		 * Notes:
-		 * 
-		 * Child 0 - param list
-		 * Child 1 - fn body
-		 * Child 2 - ret expression
-		 */
-		
-//		ValueFn valFn = new ValueFn();
+	
+//	public Object visit(ASTClassInvoke node, Object data) {
+//		/*
+//		 * Check scope and node.optimised to see if class is available. Throw exception if not.
+//		 * 
+//		 * Notes:
+//		 * 
+//		 * Child 0 - class name
+//		 * Child 1 - arg list
+//		 */
 //		
-//		if (node.optimised == null)
-//			node.optimised = valFn;
-//		else
-//			return node.optimised;
+//		String className = getTokenOfChild(node, 0);
 //		
-//		//Param list
-//		//getTokenOfChild(node, 0);
-//		//doChild(node, 0, valFn);
+//		ValueClass val = new ValueClass(className);
 //		
-//		FunctionDefinition temp = new FunctionDefinition("temp", 0);
-//		doChild(node, 0, temp);
+//		System.out.println("Creating object from class: " + className);
 //		
-//		for (int i = 0; i < temp.getParameterCount(); ++i)
-//		{
-//			valFn.defineParameter(temp.getParameterName(i));
+//		Display.Reference reference;
+//		reference = scope.defineVariable(val.getName());
+//		
+//		//node.optimised = reference;
+//		
+//		reference.setValue(val);
+//				
+//		ClassDefinition classDef;
+//		if (node.optimised == null) { 
+//			// Child 0 - identifier (fn name)
+//			//classDef = scope.findClass(className);
+//			if (classDef == null)
+//				throw new ExceptionSemantic("Class " + className + " is undefined.");
+//			// Save it for next time
+//			node.optimised = classDef;
+//		} else {
+//			classDef = (ClassDefinition)node.optimised;
 //		}
 //		
-//		//func body
-//		valFn.setFunctionBody(getChild(node, 1));
+//		//ClassInvocation classInv = new ClassInvocation(classDef);
 //		
-//		if (node.fnHasReturn)
-//			valFn.setFunctionReturnExpression(getChild(node, 2));
-//				
-//		return node.optimised;
+////		// Child 1 - arglist
+////		FunctionInvocation fInv = new FunctionInvocation(new FunctionDefinition("temp", 0));
+////		doChild(node, 1, fInv);
+//		
+//		//FunctionInvocation plex = new FunctionInvocation(new FunctionDefinition("temp", 0));
+//		
+//		//doChild(node, 1, plex);
+//		//doChild(node, 1, classInv);
+//		
+//		System.out.println("Finished class init");
+//		
+//		// Execute
+//		return scope.execute(classInv, this);
+//	}
 		
+	public Object visit(ASTFn node, Object data) {	
 		ValueFn valueFunction = new ValueFn();
 		
 		String fnname = getTokenOfChild((SimpleNode) node.jjtGetParent(), 1);
@@ -681,7 +668,6 @@ public class Parser implements CScharfVisitor {
 		
 		//Parameters
 		doChild(node, 0, funcDef);
-		//scope.addFunction(funcDef);
 		funcDef.setFunctionBody(getChild(node, 1));
 		
 		if (node.fnHasReturn)
@@ -709,14 +695,7 @@ public class Parser implements CScharfVisitor {
 		return node.optimised;
 	}
 
-	public Object visit(ASTArray node, Object data) {
-		/*
-		 * Child 1 - Type of array
-		 * Child 2 - Length of array
-		 */
-		
-		//System.out.println("Making array of type " + getTokenOfChild(node, 0) + " with length " + getTokenOfChild(node, 1));
-				
+	public Object visit(ASTArray node, Object data) {	
 		ValueArray array = new ValueArray(getTokenOfChild(node, 0), Integer.parseInt(getTokenOfChild(node, 1)));
 		
 		node.optimised = array;
@@ -728,26 +707,4 @@ public class Parser implements CScharfVisitor {
 	public Object visit(ASTNewObj node, Object data) {
 		return doChild(node, 0);
 	}
-
-//	public Object visit(ASTObjectMemberAccessor node, Object data) {		
-//		Value val = new ValueObject();
-//		if (node.optimised != null)
-//			return node.optimised;
-//		
-//		Value hopefullyValueObject = doChild(node, 0);
-//		
-//		if (!(hopefullyValueObject instanceof ValueObject)) {
-//			throw new ExceptionSemantic("Cannot access member variable of non-object.");
-//		}
-//		
-//		ValueObject obj = (ValueObject) hopefullyValueObject;
-//		
-//		val = obj.getVariableValue(getTokenOfChild(node, 1));
-//		
-//		node.optimised = val;
-//		
-//		//System.out.println(val.toString());
-//		
-//		return node.optimised;
-//	}
 }

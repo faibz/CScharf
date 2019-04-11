@@ -2,21 +2,25 @@ package uk.ac.derby.ldi.CScharf.interpreter;
 
 import java.util.Vector;
 
+import uk.ac.derby.ldi.CScharf.CScharfUtil;
 import uk.ac.derby.ldi.CScharf.parser.ast.SimpleNode;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.io.Serializable;
 
 /** This class captures information about the class currently being defined. */
 
-class ClassDefinition implements Comparable<Object>, Serializable {
+public class ClassDefinition implements Comparable<Object>, Serializable {
 	private static final long serialVersionUID = 0;
 
 	private String name;
-	private String parmSignature = "";
-	private Vector<String> variables = new Vector<String>();
-	private HashMap<String, Integer> slots = new HashMap<String, Integer>();
+	private String varSignature = "";
+	private LinkedHashMap<String, Class> variables = new LinkedHashMap<String, Class>();
 	private HashMap<String, ClassDefinition> classes = new HashMap<String, ClassDefinition>();
+	
+	//Should I bother with this? Could just rummage around in the functions hashmap looking at signatures
+	private FunctionDefinition constructor = null;
 	private HashMap<String, FunctionDefinition> functions = new HashMap<String, FunctionDefinition>();
 	private SimpleNode ASTClassBody = null;
 	private int depth;
@@ -37,72 +41,43 @@ class ClassDefinition implements Comparable<Object>, Serializable {
 		return depth;
 	}
 	
-	/** Get the name of this function. */
+	/** Get the name of this class. */
 	String getName() {
 		return name;
 	}
 	
-	/** Set the function body of this function. */
+	/** Set the body of this class. */
 	void setClassBody(SimpleNode node) {
 		ASTClassBody = node;
 	}
 	
-	/** Get the function body of this function. */
+	/** Get the function body of this class. */
 	SimpleNode getClassBody() {
 		return ASTClassBody;
 	}
 		
-	/** Get the signature of this function. */
+	/** Get the signature of this class. */
 	String getSignature() {
-		return getName() + "(" + parmSignature + ")";
+		return getName() + "(" + varSignature + ")";
 	}
 		
-	/** Comparison operator.  Functions of the same name are the same. */
+	/** Comparison operator. Classes of the same name are the same. */
 	public int compareTo(Object o) {
 		return name.compareTo(((ClassDefinition)o).name);
 	}
 	
-	/** Get count of parameters. */
-	int getParameterCount() {
+	/** Get count of variables. */
+	int getVariableCount() {
 		return variables.size();
 	}
-	
-	/** Get the name of the ith parameter. */
-	String getParameterName(int i) {
-		return variables.get(i);
-	}
-	
+		
 	/** Define a variable. */
-	void defineVar(String name) {
-		if (variables.contains(name))
-			throw new ExceptionSemantic("Parameter " + name + " already exists in class " + getName());
-		variables.add(name);
-		parmSignature += ((parmSignature.length()==0) ? name : (", " + name));
-		defineVariable(name);
+	void defineVariable(String type, String name) {
+		if (variables.containsKey(name))
+			throw new ExceptionSemantic("Variable " + name + " already exists in class " + getName());
+		variables.put(name, CScharfUtil.getClassFromString(type));
+		varSignature += ((varSignature.length()==0) ? name : (", " + name));
 	}
-	
-	/** Get count of local variables and parameters. */
-	int getLocalCount() {
-		return slots.size();
-	}
-	
-	/** Get the storage slot number of a given variable or parm.  Return -1 if it doesn't exist. */
-	int getLocalSlotNumber(String name) {
-		Integer slot = slots.get(name);
-		if (slot == null)
-			return -1;
-		return slot.intValue();
-	}
-	
-	/** Define a variable.  Return its slot number. */
-	int defineVariable(String name) {
-		Integer slot = slots.get(name);
-		if (slot != null)
-			return slot.intValue();
-		int slotNumber = slots.size();
-		slots.put(name, Integer.valueOf(slotNumber));
-		return slotNumber;
-	}	
 	
 	/** Add an inner function definition. */
 	void addFunction(FunctionDefinition definition) {

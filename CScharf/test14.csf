@@ -1,4 +1,4 @@
-fn sum(int n) {
+public int sum(int n) {
    int p = 0;
    if (n > 0)
       	p = n + sum(n - 1);

@@ -1,9 +1,9 @@
 int p = 3;
 
-fn blah(int start, int fin) {
+public void blah(int start, int fin) {
 
-	fn zot(int x, int y) {
-	   	fn zaz(int r) {
+	public int zot(int x, int y) {
+	   	public int zaz(int r) {
 		   return p + x * r;
 		}
 
