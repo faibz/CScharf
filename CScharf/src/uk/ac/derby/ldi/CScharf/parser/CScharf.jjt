@@ -78,7 +78,7 @@ TOKEN [IGNORE_CASE] : /* RESERVED WORDS AND LITERALS */
 
 TOKEN : /* TYPES */
 {
-  < TYPE: "int" | "short" | "long" | "float" | "dec" | "bool" | "string" | "anon" | "func" | "array" | "class" | "void" >
+  < TYPE: "int" | "short" | "long" | "float" | "dec" | "bool" | "string" | "anon" | "func" | "array" | "instance" | "void" >
 }
 
 TOKEN : /* TYPE MODIFIERS */
@@ -518,7 +518,7 @@ void classInstance() #ClassInstance :
 void newObj() #NewObj :
 {}
 {
-	<NEW> (anon() | LOOKAHEAD(2) array() | classInstance())
+	<NEW> (anon() | array() | classInstance())
 }
 
 void bool() : 

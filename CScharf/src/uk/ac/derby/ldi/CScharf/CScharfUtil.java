@@ -49,7 +49,7 @@ public class CScharfUtil {
 			return ValueFn.class;
 		case "array":
 			return ValueArray.class;
-		case "class":
+		case "instance":
 			return ValueClass.class;
 		default:
 			throw new ExceptionSemantic("Invalid type specified.");

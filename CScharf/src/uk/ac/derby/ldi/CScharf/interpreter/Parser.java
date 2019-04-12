@@ -364,9 +364,7 @@ public class Parser implements CScharfVisitor {
 		 * childrenCount - 3 = type of variable
 		 * childrenCount - 4 = modifier
 		 */
-		
-		System.out.println("Type: " + getTokenOfChild(node, childrenCount - 2));
-		
+				
 		if (node.optimised == null) {
 			String name = getTokenOfChild(node, childrenCount - 2);
 			reference = scope.findReference(name);
@@ -613,6 +611,8 @@ public class Parser implements CScharfVisitor {
 		scope.addFunction(currentFunctionDefinition);
 		currentFunctionDefinition.setFunctionBody(getChild(node, 2));
 		
+		//currentFunctionDefinition.setFunctionReturnExpression(node);
+		
 		return data;
 	}
 	
@@ -638,59 +638,7 @@ public class Parser implements CScharfVisitor {
 		// Execute
 		return scope.execute(newInvocation, this);
 	}
-	
-//	public Object visit(ASTClassInvoke node, Object data) {
-//		/*
-//		 * Check scope and node.optimised to see if class is available. Throw exception if not.
-//		 * 
-//		 * Notes:
-//		 * 
-//		 * Child 0 - class name
-//		 * Child 1 - arg list
-//		 */
-//		
-//		String className = getTokenOfChild(node, 0);
-//		
-//		ValueClass val = new ValueClass(className);
-//		
-//		System.out.println("Creating object from class: " + className);
-//		
-//		Display.Reference reference;
-//		reference = scope.defineVariable(val.getName());
-//		
-//		//node.optimised = reference;
-//		
-//		reference.setValue(val);
-//				
-//		ClassDefinition classDef;
-//		if (node.optimised == null) { 
-//			// Child 0 - identifier (fn name)
-//			//classDef = scope.findClass(className);
-//			if (classDef == null)
-//				throw new ExceptionSemantic("Class " + className + " is undefined.");
-//			// Save it for next time
-//			node.optimised = classDef;
-//		} else {
-//			classDef = (ClassDefinition)node.optimised;
-//		}
-//		
-//		//ClassInvocation classInv = new ClassInvocation(classDef);
-//		
-////		// Child 1 - arglist
-////		FunctionInvocation fInv = new FunctionInvocation(new FunctionDefinition("temp", 0));
-////		doChild(node, 1, fInv);
-//		
-//		//FunctionInvocation plex = new FunctionInvocation(new FunctionDefinition("temp", 0));
-//		
-//		//doChild(node, 1, plex);
-//		//doChild(node, 1, classInv);
-//		
-//		System.out.println("Finished class init");
-//		
-//		// Execute
-//		return scope.execute(classInv, this);
-//	}
-		
+			
 	public Object visit(ASTFn node, Object data) {	
 		ValueFn valueFunction = new ValueFn();
 		
