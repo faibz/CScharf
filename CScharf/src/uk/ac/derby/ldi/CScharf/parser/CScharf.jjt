@@ -78,7 +78,7 @@ TOKEN [IGNORE_CASE] : /* RESERVED WORDS AND LITERALS */
 
 TOKEN : /* TYPES */
 {
-  < TYPE: "int" | "short" | "long" | "float" | "dec" | "bool" | "string" | "anon" | "func" | "array" | "void" >
+  < TYPE: "int" | "short" | "long" | "float" | "dec" | "bool" | "string" | "anon" | "func" | "array" | "class" | "void" >
 }
 
 TOKEN : /* TYPE MODIFIERS */
@@ -272,7 +272,6 @@ void fndef() #FnDef :
 					"}"
 }
 
-/* How do I pass the class name through for ensuring that the constructor stuff has the same name? */
 void classdef() #ClassDef :
 {Token t;}
 {
@@ -293,7 +292,7 @@ void constructor(String className) #ClassConstructor :
 void classbody(String className) #ClassBody :
 {}
 {
-  constructor(className) ( assignment() ";" | fndef() | classdef() )*
+  constructor(className) (assignment() ";" | fndef() | classdef() )*
 }
 
 
@@ -457,7 +456,6 @@ void literal() :
 							| bool()
 							| fn()
 							| newObj()
-//							| classInvoke()
 }
 
 void identifier() #Identifier :
@@ -511,17 +509,17 @@ void array() #Array :
   	type() "[" integer() "]"
 }
 
+void classInstance() #ClassInstance :
+{}
+{
+	identifier() arglist()
+}
+
 void newObj() #NewObj :
 {}
 {
-	<NEW> (anon() | array()) //{ jjtThis.tokenValue = t.image; }
+	<NEW> (anon() | LOOKAHEAD(2) array() | classInstance())
 }
-
-//void classInvoke() #ClassInvoke :
-//{Token t;}
-//{
-//	t = <NEW> identifier() arglist() {jjtThis.tokenValue = t.image;}
-//}
 
 void bool() : 
 {} 

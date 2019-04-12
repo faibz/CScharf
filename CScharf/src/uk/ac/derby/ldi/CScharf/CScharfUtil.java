@@ -7,6 +7,7 @@ import uk.ac.derby.ldi.CScharf.values.Value;
 import uk.ac.derby.ldi.CScharf.values.ValueAnonymousType;
 import uk.ac.derby.ldi.CScharf.values.ValueArray;
 import uk.ac.derby.ldi.CScharf.values.ValueBoolean;
+import uk.ac.derby.ldi.CScharf.values.ValueClass;
 import uk.ac.derby.ldi.CScharf.values.ValueFn;
 import uk.ac.derby.ldi.CScharf.values.ValueInteger;
 import uk.ac.derby.ldi.CScharf.values.ValueRational;
@@ -26,6 +27,7 @@ public class CScharfUtil {
 		defaultValues.put(ValueAnonymousType.class, new ValueAnonymousType());
 		defaultValues.put(ValueFn.class, new ValueFn());
 		defaultValues.put(ValueArray.class, new ValueArray());
+		defaultValues.put(ValueClass.class, new ValueClass());
 	}
 	
 	public static final Class<?> getClassFromString(String type) {
@@ -47,6 +49,8 @@ public class CScharfUtil {
 			return ValueFn.class;
 		case "array":
 			return ValueArray.class;
+		case "class":
+			return ValueClass.class;
 		default:
 			throw new ExceptionSemantic("Invalid type specified.");
 		}

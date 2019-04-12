@@ -4,12 +4,13 @@ write 10;
 
 class Square {
 	public Square(int len) {
-		length = len;
+		write "hello";
+        //length = len;
 	}
-	
-	int length = 0;
 	
 	private int PrintLength() {
-		write length;
+		write 20;
 	}
 }
+
+class cc = new Square(10);

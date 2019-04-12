@@ -365,6 +365,8 @@ public class Parser implements CScharfVisitor {
 		 * childrenCount - 4 = modifier
 		 */
 		
+		System.out.println("Type: " + getTokenOfChild(node, childrenCount - 2));
+		
 		if (node.optimised == null) {
 			String name = getTokenOfChild(node, childrenCount - 2);
 			reference = scope.findReference(name);
@@ -542,8 +544,10 @@ public class Parser implements CScharfVisitor {
 		//class body
 		Value notSureToBeHonest = doChild(node, 0);
 
-//		if (scope.findClassInCurrentLevel(className) != null)
-//			throw new ExceptionSemantic("Class " + className + " already exists.");
+		if (scope.findClassInCurrentLevel(node.tokenValue) != null) {
+			throw new ExceptionSemantic("Class: " + node.tokenValue + " already exists.");
+		}
+			
 		
 		ClassDefinition currentClassDefinition = new ClassDefinition(node.tokenValue, scope.getLevel() + 1);
 		
@@ -551,10 +555,14 @@ public class Parser implements CScharfVisitor {
 		//doChild(node, 1, currentFunctionDefinition);
 		
 		// Add to available classes
-		//scope.addClass(currentClassDefinition);
+		scope.addClass(currentClassDefinition);
+		
+		System.out.println("Class added to scope");
 		
 		// Child 2 - class body
-		currentClassDefinition.setClassBody(getChild(node, 1));
+		currentClassDefinition.setClassBody(getChild(node, 0));
+		
+		System.out.println("Class body set");
 		
 		// Preserve this definition for future reference, and so we don't define
 		// it every time this node is processed.
@@ -596,16 +604,39 @@ public class Parser implements CScharfVisitor {
 		if(!suppliedClassName.equals(node.tokenValue))
 			throw new ExceptionSemantic("Constructor for: " + suppliedClassName + " is not valid in class: " + node.tokenValue + ". Are you missing a return type?");
 		
-		FunctionDefinition currentFunctionDefinition = new FunctionDefinition(node.tokenValue + "constructor", scope.getLevel() + 1);
-		// Child 1 - function definition parameter list
+		FunctionDefinition currentFunctionDefinition = new FunctionDefinition(node.tokenValue + "Constructor", scope.getLevel() + 1);
 		doChild(node, 1, currentFunctionDefinition);
-		// Add to available functions
+		
+		//System.out.println("Adding constructor to valid functions");
+		//System.out.println("Function name: " + currentFunctionDefinition.getName() + " param count: " + currentFunctionDefinition.getParameterCount() + " param name: " + currentFunctionDefinition.getParameterName(0));
 		
 		scope.addFunction(currentFunctionDefinition);
-		// Child 2 - function body
 		currentFunctionDefinition.setFunctionBody(getChild(node, 2));
 		
 		return data;
+	}
+	
+	public Object visit(ASTClassInstance node, Object data) {
+		FunctionDefinition fndef;
+		if (node.optimised == null) { 
+			// Child 0 - identifier (fn name)
+			String className = getTokenOfChild(node, 0);
+			String constructorName = className + "Constructor";
+			fndef = scope.findFunction(constructorName);
+			if (fndef == null) {
+					throw new ExceptionSemantic("Cannot find compatible constructor for class:  " + className + ".");
+				}
+			// Save it for next time
+			node.optimised = fndef;
+		} else {
+			fndef = (FunctionDefinition)node.optimised;
+		}
+		
+		FunctionInvocation newInvocation = new FunctionInvocation(fndef);
+		// Child 1 - arglist
+		doChild(node, 1, newInvocation);
+		// Execute
+		return scope.execute(newInvocation, this);
 	}
 	
 //	public Object visit(ASTClassInvoke node, Object data) {

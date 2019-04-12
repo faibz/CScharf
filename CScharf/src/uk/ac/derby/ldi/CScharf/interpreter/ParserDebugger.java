@@ -307,4 +307,10 @@ public class ParserDebugger implements CScharfVisitor {
 		dump(node, data);
 		return data;
 	}
+
+	@Override
+	public Object visit(ASTClassConstructor node, Object data) {
+		dump(node, data);
+		return data;
+	}
 }
