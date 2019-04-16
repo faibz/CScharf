@@ -13,6 +13,10 @@ public class ValueClass extends ValueAbstract {
 	public ValueClass()	{
 	}
 	
+	public ValueClass(ClassDefinition classDef) {
+		//TODO: Set everything up lol
+	}
+	
 	public String getName() {
 		return "Class";
 	}

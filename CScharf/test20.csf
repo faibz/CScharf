@@ -2,9 +2,12 @@
 
 anon bob = new { a = 24, b = 211, car = "box", dogs = true, fox = 62 };
 
-anon chiefOne = new { box = new { c = new { car = 242 } }, a = 23 };
+anon chiefOne = new { box = new { c = new { car = 242 } }, a = 23, blob = function(int x, int y) { return x + y; } };
+
 write chiefOne;
-write chiefOne.box.c.car;
+write chiefOne.blob(10, 2);
+
+int hello = chiefOne.box.c.car;
 
 write 10;
 

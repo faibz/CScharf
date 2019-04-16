@@ -281,7 +281,7 @@ void classdef() #ClassDef :
 }
 
 void constructor(String className) #ClassConstructor :
-{Token t;}
+{}
 {
 				  <ACCESS_MODIFIER> identifier() parmlist() "{"
 						fnbody()
@@ -292,7 +292,7 @@ void constructor(String className) #ClassConstructor :
 void classbody(String className) #ClassBody :
 {}
 {
-  constructor(className) (assignment() ";" | fndef() | classdef() )*
+  constructor(className) (assignment() ";" | fndef() | classdef() )* { jjtThis.tokenValue = className; }
 }
 
 
@@ -444,7 +444,8 @@ void primary_expression() :
 void fn_invoke() #FnInvoke :
 {}
 {
-							identifier() arglist()
+							dereference() arglist()
+							//identifier() arglist()
 }
 
 void literal() :
@@ -467,8 +468,8 @@ void identifier() #Identifier :
 void dereference() #Dereference :
 {Token t;}
 {
-	t = <IDENTIFIER> ( "[" add_expression() "]" | "." identifier() )* { jjtThis.tokenValue = t.image; }
-}  
+	t = <IDENTIFIER> ("[" add_expression() "]" | "." identifier())* { jjtThis.tokenValue = t.image; }
+}
 
 void character() #Character :
 {Token t;}

@@ -16,7 +16,7 @@ public class ClassDefinition implements Comparable<Object>, Serializable {
 
 	private String name;
 	private String varSignature = "";
-	private LinkedHashMap<String, Class> variables = new LinkedHashMap<String, Class>();
+	private LinkedHashMap<String, ClassVariable> variables = new LinkedHashMap<String, ClassVariable>();
 	private HashMap<String, ClassDefinition> classes = new HashMap<String, ClassDefinition>();
 	
 	//Should I bother with this? Could just rummage around in the functions hashmap looking at signatures
@@ -46,7 +46,10 @@ public class ClassDefinition implements Comparable<Object>, Serializable {
 		return name;
 	}
 	
-	/** Set the body of this class. */
+	/** Set the body of this class.
+	 * child 0 - constructor
+	 * child 1-x - assignment/fndef/classdef
+	 *  */
 	void setClassBody(SimpleNode node) {
 		ASTClassBody = node;
 	}
@@ -55,7 +58,7 @@ public class ClassDefinition implements Comparable<Object>, Serializable {
 	SimpleNode getClassBody() {
 		return ASTClassBody;
 	}
-		
+
 	/** Get the signature of this class. */
 	String getSignature() {
 		return getName() + "(" + varSignature + ")";
@@ -72,16 +75,22 @@ public class ClassDefinition implements Comparable<Object>, Serializable {
 	}
 		
 	/** Define a variable. */
-	void defineVariable(String type, String name) {
+	void defineVariable(String type, String name, boolean constant, boolean priv) {
 		if (variables.containsKey(name))
 			throw new ExceptionSemantic("Variable " + name + " already exists in class " + getName());
-		variables.put(name, CScharfUtil.getClassFromString(type));
+		ClassVariable classVar = new ClassVariable(constant, priv, CScharfUtil.getClassFromString(type));
+		//System.out.println("Added: " + name + "|" + classVar.toString());
+		variables.put(name, classVar);
 		varSignature += ((varSignature.length()==0) ? name : (", " + name));
 	}
 	
 	/** Add an inner function definition. */
 	void addFunction(FunctionDefinition definition) {
 		functions.put(definition.getName(), definition);
+	}
+	
+	void addConstructor(FunctionDefinition definition) {
+		constructor = definition;
 	}
 	
 	/** Find an inner function definition.  Return null if it doesn't exist. */

@@ -7,9 +7,14 @@ class Square {
 		write "hello";
 	}
 	
+	int flex = 1242424;
+	
 	private int PrintLength() {
 		write 20;
 	}
 }
+
+write 12;
+write flex;
 
 instance cc = new Square();

@@ -11,5 +11,7 @@ public void blah(int start, int fin, string printme) {
 
 //Switch between bottom two
 
-//blah(1, 10, "hello");
-blah(1, 10, 5);
+blah(1, 10, "hello");
+//blah(1, 10, 5);
+
+write 1;
