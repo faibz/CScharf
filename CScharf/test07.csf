@@ -1,13 +1,13 @@
 int p5 = 10;
 
 public int test(int p1, int p2, int p3) {
-	write p1;
-	write p2;
-	write p3;
+	write(p1);
+	write(p2);
+	write(p3);
 	int p4 = 2;
 	return p1 * p2 * p3 * p4 * p5;
 }
 
-write test(3, 4, 5);
+write(test(3, 4, 5));
 
 test(3, 4, 5);

@@ -19,3 +19,4 @@ java -classpath ./bin CScharf < test18.csf
 java -classpath ./bin CScharf < test19.csf
 java -classpath ./bin CScharf < test20.csf
 java -classpath ./bin CScharf < test21.csf
+java -classpath ./bin CScharf < test22.csf

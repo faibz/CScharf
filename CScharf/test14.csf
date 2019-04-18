@@ -7,4 +7,4 @@ public int sum(int n) {
    return p;
 }
 
-write sum(5);
+write(sum(5));

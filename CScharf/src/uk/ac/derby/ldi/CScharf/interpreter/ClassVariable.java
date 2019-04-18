@@ -21,6 +21,14 @@ public class ClassVariable {
 		this.value = defaultValue;
 	}
 	
+	//copy constructor
+	public ClassVariable(ClassVariable val) {
+		this.constant = val.constant;
+		this.priv = val.priv;
+		this.type = val.type;
+		this.value = val.value;
+	}
+
 	public Value getValue() {
 		return value;
 	}

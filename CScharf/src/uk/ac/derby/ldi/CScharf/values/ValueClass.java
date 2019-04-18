@@ -4,10 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import com.rits.cloning.Cloner;
-
 import uk.ac.derby.ldi.CScharf.interpreter.ClassDefinition;
 import uk.ac.derby.ldi.CScharf.interpreter.ClassVariable;
 import uk.ac.derby.ldi.CScharf.interpreter.ExceptionSemantic;
@@ -15,51 +11,41 @@ import uk.ac.derby.ldi.CScharf.interpreter.FunctionDefinition;
 
 public class ValueClass extends ValueAbstract implements ValueContainer {
 	private UUID id = UUID.randomUUID();
-	private Map<String, ClassVariable> variables = null;
-	private Map<String, FunctionDefinition> functions = null;
-	private Map<String, ClassDefinition> classes = null;
+	private Map<String, ClassVariable> variables = new HashMap<String, ClassVariable>();
+	private Map<String, FunctionDefinition> functions = new HashMap<String, FunctionDefinition>();
+	private Map<String, ClassDefinition> classes = new HashMap<String, ClassDefinition>();
 	
 	private ClassDefinition classDefinition = null;
-	
-	//private Cloner cloner = new Cloner();
-	
+		
 	public ValueClass()	{}
 	
 	public ValueClass(ClassDefinition classDef) {
 		classDefinition = classDef;
 		
-		processVariables(classDef.getVariables());
-		processFunctions(classDef.getFunctions());
-		processClasses(classDef.getClasses());
+		processVariables(classDef.getVariablesCopy());
+		processFunctions(classDef.getFunctionsCopy());
+		processClasses(classDef.getClassesCopy());
 	}
-
+	
 	private void processVariables(HashMap<String, ClassVariable> variables) {
-		System.out.println("hello?");
-		//this.variables = cloner.deepClone(variables);
-		if (variables == null || variables.isEmpty()) return;
-		Gson gson = new Gson();
-		String jsonString = gson.toJson(variables);
-		java.lang.reflect.Type type = new TypeToken<HashMap<String, ClassVariable>>(){}.getType();
-		this.variables = gson.fromJson(jsonString, type);
+		this.variables = variables;
 	}
+	
+	//These process* methods make deep copies of the hashmaps so as to not refer to the same object references
+//	private void processVariables(HashMap<String, ClassVariable> variables) {
+//		for(Map.Entry<String, ClassVariable> entry : variables.entrySet()) {
+//			this.variables.put(entry.getKey(), new ClassVariable(entry.getValue()));
+//		}
+//	}
 
 	private void processFunctions(HashMap<String, FunctionDefinition> functions) {
-		//this.functions = cloner.deepClone(functions);
-//		if (functions == null || functions.isEmpty()) return;
-//		
-//		Gson gson = new Gson();
-//		String jsonString = gson.toJson(functions);
-//		java.lang.reflect.Type type = new TypeToken<HashMap<String, FunctionDefinition>>(){}.getType();
-//		this.functions = gson.fromJson(jsonString, type);
+		this.functions = functions;
 	}
 	
 	private void processClasses(HashMap<String, ClassDefinition> classes) {
-		//this.classes = new Cloner().deepClone(classes);
-//		if (classes == null || classes.isEmpty()) return;
-//		Gson gson = new Gson();
-//		String jsonString = gson.toJson(classes);
-//		java.lang.reflect.Type type = new TypeToken<HashMap<String, ClassDefinition>>(){}.getType();
-//		this.classes = gson.fromJson(jsonString, type);
+		for(Map.Entry<String, ClassDefinition> entry : classes.entrySet()) {
+			this.classes.put(entry.getKey(), new ClassDefinition(entry.getValue()));
+		}
 	}
 
 	public String getName() {

@@ -42,8 +42,8 @@ public class FunctionInvocation implements Invocation {
 			throw new ExceptionSemantic("Function " + function.getSignature() + " expected " + function.getParameterCount() + " arguments but got " + (argumentCount + 1) + ".");
 		
 		// First slots are always arguments
-		Class<? extends Value> parameterType = function.getParameterType(argumentCount);
-		Class<? extends Value> argType = v.getClass();
+		Class<?> parameterType = function.getParameterType(argumentCount);
+		Class<?> argType = v.getClass();
 		
 		if (parameterType != argType) {
 			throw new ExceptionSemantic("Cannot assign value of type: " + v.getClass() + " to parameter of type: " + parameterType + ". Are you missing a cast?");

@@ -8,6 +8,7 @@ import uk.ac.derby.ldi.CScharf.values.Value;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.io.Serializable;
 
 /** This class captures information about the class currently being defined. */
@@ -17,7 +18,7 @@ public class ClassDefinition implements Comparable<Object>, Serializable {
 
 	private String name;
 	private String varSignature = "";
-	private LinkedHashMap<String, ClassVariable> variables = new LinkedHashMap<String, ClassVariable>();
+	private HashMap<String, ClassVariable> variables = new HashMap<String, ClassVariable>();
 	private HashMap<String, FunctionDefinition> functions = new HashMap<String, FunctionDefinition>();
 	private HashMap<String, ClassDefinition> classes = new HashMap<String, ClassDefinition>();
 	
@@ -32,6 +33,15 @@ public class ClassDefinition implements Comparable<Object>, Serializable {
 		depth = level;
 	}
 	
+	//copy constructor
+	public ClassDefinition(ClassDefinition value) {
+		this.name = value.getName();
+		this.varSignature = value.getSignature();
+		this.variables = value.getVariablesCopy();
+		this.functions = value.getFunctionsCopy();
+		this.classes = value.getClassesCopy();
+	}
+
 	/** Get the depth of this definition.
 	 * 0 - root or main scope
 	 * 1 - definition inside root or main scope
@@ -57,6 +67,36 @@ public class ClassDefinition implements Comparable<Object>, Serializable {
 	
 	public HashMap<String, ClassDefinition> getClasses() {
 		return classes;
+	}
+	
+	public HashMap<String, ClassVariable> getVariablesCopy() {
+		HashMap<String, ClassVariable> copy = new HashMap<String, ClassVariable>();
+		
+		for(Map.Entry<String, ClassVariable> entry : variables.entrySet()) {
+			copy.put(entry.getKey(), new ClassVariable(entry.getValue()));
+		}
+		
+		return copy;
+	}
+	
+	public HashMap<String, FunctionDefinition> getFunctionsCopy() {
+		HashMap<String, FunctionDefinition> copy = new HashMap<String, FunctionDefinition>();
+		
+		for(Map.Entry<String, FunctionDefinition> entry : functions.entrySet()) {
+			copy.put(entry.getKey(), new FunctionDefinition(entry.getValue()));
+		}
+		
+		return copy;
+	}
+	
+	public HashMap<String, ClassDefinition> getClassesCopy() {
+		HashMap<String, ClassDefinition> copy = new HashMap<String, ClassDefinition>();
+		
+		for(Map.Entry<String, ClassDefinition> entry : classes.entrySet()) {
+			copy.put(entry.getKey(), new ClassDefinition(entry.getValue()));
+		}
+		
+		return copy;
 	}
 	
 	/** Set the body of this class.

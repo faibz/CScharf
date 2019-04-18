@@ -2,8 +2,8 @@ int p = 3;
 
 public void blah(int start, int fin) {
 	for (int i=start; i<=fin; i=i+1)
-		write i;
-	write p + 2;
+		write(i);
+	write(p + 2);
 }
 
 blah(5, 10);

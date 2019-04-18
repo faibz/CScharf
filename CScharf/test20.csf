@@ -4,24 +4,24 @@ anon bob = new { a = 24, b = 211, car = "box", dogs = true, fox = 62 };
 
 anon chiefOne = new { box = new { c = new { car = 242 } }, a = 23, blob = function(int x, int y) { return x + y; } };
 
-write chiefOne;
-write chiefOne.blob(10, 2);
+write(chiefOne);
+write(chiefOne.blob(10, 2));
 
 int hello = chiefOne.box.c.car;
 
-write 10;
+write(10);
 
-write bob.a;
-write bob.car;
+write(bob.a);
+write(bob.car);
 
 //i = "fox";
 
 string chief = "foxes";
-write chief;
+write(chief);
 chief = "stringer";
 
 array arrayOne = new anon[5];
 anon arraySlotOne = new { arraySlotOneArray = new int[5] };
 arrayOne[1] = arraySlotOne;
 
-write arrayOne[1].arraySlotOneArray[2];
+write(arrayOne[1].arraySlotOneArray[2]);

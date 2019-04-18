@@ -5,10 +5,10 @@
 // look at its param list, and add a function to the scope that has the same function name as the param.
 
 func myop = function(func x, int y) { return x(22) + y; };
-write myop(function(int p) { return p * 4;}, 3);
+write(myop(function(int p) { return p * 4;}, 3);
 
 func singleNested = function(func a, func b) {
 	return a() + b();
 };
 
-write singleNested(function() { return 10; }, function() { return 10; });
+write(singleNested(function() { return 10; }, function() { return 10; }));

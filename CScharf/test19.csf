@@ -1,10 +1,10 @@
 // Test classes
 
-write 10;
+write(10);
 
 class Square {
 	public Square() {
-		write "In constructor";
+		write("In constructor");
 	}
 	
 	int flex = 1242424;
@@ -14,43 +14,27 @@ class Square {
 	}
 }
 
-write 12;
+write(12);
 
 instance cc = new Square();
 
-//write cc.PrintLength();
-write cc.flex;
+//write(cc.PrintLength());
+write(cc.flex);
 
 instance cc2 = new Square();
 
-
-write "cc:";
-write cc;
-write "cc2";
-write cc2;
-
 cc2.flex = 100;
 
-write "cc:";
-write cc;
-write "cc2";
-write cc2;
-
-write "cc.flex:";
-write cc.flex;
-write "cc2.flex";
-write cc2.flex;
+write("cc.flex:");
+write(cc.flex);
+write("cc2.flex");
+write(cc2.flex);
 
 cc.flex = 69;
 
-write "cc.flex:";
-write cc.flex;
-write "cc2.flex";
-write cc2.flex;
+write("cc.flex:");
+write(cc.flex);
+write("cc2.flex");
+write(cc2.flex);
 
-write "cc:";
-write cc;
-write "cc2";
-write cc2;
-
-write "fin";
+write("fin");

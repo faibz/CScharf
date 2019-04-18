@@ -261,7 +261,7 @@ public class Parser implements CScharfVisitor {
 		return data;
 	}
 	
-	// Execute the WRITE statement
+	// Execute the write statement
 	public Object visit(ASTWrite node, Object data) {
 		System.out.println(doChild(node, 0));
 		return data;

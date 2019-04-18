@@ -17,7 +17,7 @@ public class FunctionDefinition implements Comparable<Object>, Serializable {
 
 	private String name;
 	private String parmSignature = "";
-	private LinkedHashMap<String, Class> parameters = new LinkedHashMap<String, Class>();
+	private HashMap<String, Class<?>> parameters = new HashMap<String, Class<?>>();
 	private HashMap<String, Integer> slots = new HashMap<String, Integer>();
 	private HashMap<String, FunctionDefinition> functions = new HashMap<String, FunctionDefinition>();
 	private SimpleNode ASTFunctionBody = null;
@@ -30,6 +30,18 @@ public class FunctionDefinition implements Comparable<Object>, Serializable {
 		depth = level;
 	}
 	
+	//copy constructor
+	public FunctionDefinition(FunctionDefinition value) {
+		this.name = value.getName();
+		this.parmSignature = value.parmSignature;
+		this.parameters = value.parameters;
+		this.slots = value.slots;
+		this.functions = value.functions;		
+		this.ASTFunctionBody = value.ASTFunctionBody;
+		this.ASTFunctionReturnExpression = value.ASTFunctionReturnExpression;
+		this.depth = value.depth;
+	}
+
 	/** Get the depth of this definition.
 	 * 0 - root or main scope
 	 * 1 - definition inside root or main scope
@@ -90,8 +102,8 @@ public class FunctionDefinition implements Comparable<Object>, Serializable {
 		return (String)parameters.keySet().toArray()[i];
 	}
 	
-	Class getParameterType(int i) {
-		return (Class)parameters.values().toArray()[i];
+	Class<?> getParameterType(int i) {
+		return (Class<?>)parameters.values().toArray()[i];
 	}
 	
 	/** Define a parameter. */

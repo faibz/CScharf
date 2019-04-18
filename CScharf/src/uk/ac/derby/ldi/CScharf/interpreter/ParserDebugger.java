@@ -124,7 +124,7 @@ public class ParserDebugger implements CScharfVisitor {
 		return data;
 	}
 	
-	// Execute the WRITE statement
+	// Execute the write statement
 	public Object visit(ASTWrite node, Object data) {
 		dump(node, data);
 		return data;

@@ -4,9 +4,9 @@ int p = 3;
 
 public void blah(int start, int fin, string printme) {
 	for (int i=start; i<=fin; i=i+1)
-		write i;
-	write p + 2;
-	write printme;
+		write(i);
+	write(p + 2);
+	write(printme);
 }
 
 //Switch between bottom two
@@ -14,4 +14,4 @@ public void blah(int start, int fin, string printme) {
 blah(1, 10, "hello");
 //blah(1, 10, 5);
 
-write 1;
+write(1);
