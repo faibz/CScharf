@@ -361,7 +361,6 @@ public class Parser implements CScharfVisitor {
 		if (valToAssign.getClass().equals(existingType.getClass())) {
 			reference.setValue(valToAssign);
 		} else if (existingType.getClass() == ValueArray.class) {
-			SimpleNode test = (SimpleNode)node.jjtGetChild(0);
 			Value val = doChild((SimpleNode)node.jjtGetChild(0), 0);
 			if (val.getClass() == ValueInteger.class) {
 				((ValueArray) existingType).putValue((int)val.longValue(), valToAssign);
@@ -400,7 +399,7 @@ public class Parser implements CScharfVisitor {
 			reference = (Display.Reference)node.optimised;
 		
 		Value valToAssign = doChild(node, childrenCount - 1);
-		Class specifiedType = CScharfUtil.getClassFromString(getTokenOfChild(node, childrenCount - 3));
+		Class<?> specifiedType = CScharfUtil.getClassFromString(getTokenOfChild(node, childrenCount - 3));
 		
 		if (!valToAssign.getClass().equals(specifiedType)) {
 			throw new ExceptionSemantic("Cannot assign value of type: " + valToAssign.getClass() + " to variable of type: " + specifiedType.getClass() + ". Are you missing a cast?");

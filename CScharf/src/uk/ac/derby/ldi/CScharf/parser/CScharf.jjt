@@ -234,7 +234,7 @@ void statement() #Statement :
 {}
 {
 				 	LOOKAHEAD(2) assignment() ";"
-				|	fndef()
+				|	LOOKAHEAD(2) fndef()
 				|	block()
 				|   classdef()
 				|	ifstatement()	

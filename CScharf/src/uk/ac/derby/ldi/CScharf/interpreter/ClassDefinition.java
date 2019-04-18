@@ -1,13 +1,10 @@
 package uk.ac.derby.ldi.CScharf.interpreter;
 
-import java.util.Vector;
-
 import uk.ac.derby.ldi.CScharf.CScharfUtil;
 import uk.ac.derby.ldi.CScharf.parser.ast.SimpleNode;
 import uk.ac.derby.ldi.CScharf.values.Value;
 
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.io.Serializable;
 

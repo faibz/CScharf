@@ -102,27 +102,6 @@ class Display {
 		}
 		return null;
 	}
-	
-//	/** Execute a class in its scope, using a specified parser. */
-//	Value execute(ClassInvocation classInv, Parser p) {
-//		System.out.println("ok");
-//		int changeLevel = classInv.getLevel();
-//		System.out.println("ok2");
-//		ClassInvocation oldContext = classDisplay[changeLevel];
-//		System.out.println("ok3");
-//		int oldLevel = currentLevel;
-//		classDisplay[changeLevel] = classInv;
-//		currentLevel = changeLevel;
-//		System.out.println("ok4");
-//		Value v = classDisplay[currentLevel].execute(p);
-//		System.out.println("ok5");
-//		classDisplay[changeLevel] = oldContext;
-//		System.out.println("ok6");
-//		currentLevel = oldLevel;
-//		System.out.println("ok7");
-//		
-//		return v;
-//	}
 
 	/** Find a function in the current level.  Return null if it doesn't exist. */
 	FunctionDefinition findFunctionInCurrentLevel(String name) {

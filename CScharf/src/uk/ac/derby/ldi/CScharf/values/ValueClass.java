@@ -31,21 +31,12 @@ public class ValueClass extends ValueAbstract implements ValueContainer {
 		this.variables = variables;
 	}
 	
-	//These process* methods make deep copies of the hashmaps so as to not refer to the same object references
-//	private void processVariables(HashMap<String, ClassVariable> variables) {
-//		for(Map.Entry<String, ClassVariable> entry : variables.entrySet()) {
-//			this.variables.put(entry.getKey(), new ClassVariable(entry.getValue()));
-//		}
-//	}
-
 	private void processFunctions(HashMap<String, FunctionDefinition> functions) {
 		this.functions = functions;
 	}
 	
 	private void processClasses(HashMap<String, ClassDefinition> classes) {
-		for(Map.Entry<String, ClassDefinition> entry : classes.entrySet()) {
-			this.classes.put(entry.getKey(), new ClassDefinition(entry.getValue()));
-		}
+		this.classes = classes;
 	}
 
 	public String getName() {
@@ -83,8 +74,6 @@ public class ValueClass extends ValueAbstract implements ValueContainer {
 	
 	public String toString() {
 		//TODO put var data in here too
-		
-		System.out.println("Flex val: " + variables.get("flex").getValue().longValue());
 		
 		return id.toString();
 	}

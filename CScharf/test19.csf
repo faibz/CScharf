@@ -5,6 +5,7 @@ write(10);
 class Square {
 	public Square() {
 		write("In constructor");
+		flex = 10;
 	}
 	
 	int flex = 1242424;
@@ -19,22 +20,5 @@ write(12);
 instance cc = new Square();
 
 //write(cc.PrintLength());
-write(cc.flex);
 
-instance cc2 = new Square();
-
-cc2.flex = 100;
-
-write("cc.flex:");
-write(cc.flex);
-write("cc2.flex");
-write(cc2.flex);
-
-cc.flex = 69;
-
-write("cc.flex:");
-write(cc.flex);
-write("cc2.flex");
-write(cc2.flex);
-
-write("fin");
+write(10);

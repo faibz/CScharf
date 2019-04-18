@@ -4,15 +4,13 @@ import uk.ac.derby.ldi.CScharf.CScharfUtil;
 import uk.ac.derby.ldi.CScharf.parser.ast.SimpleNode;
 
 import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.io.Serializable;
 
 /** This class captures information about the function currently being defined.
  * 
  * @author dave
  *
  */
-public class FunctionDefinition implements Comparable<Object>, Serializable {
+public class FunctionDefinition implements Comparable<Object> {
 	private static final long serialVersionUID = 0;
 
 	private String name;
