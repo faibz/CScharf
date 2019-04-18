@@ -28,6 +28,8 @@ public class ValueArray extends ValueAbstract {
 	}
 
 	public int compare(Value v) {
+		//TODO: compare all values
+		
 		return 0;
 	}
 	
@@ -35,7 +37,7 @@ public class ValueArray extends ValueAbstract {
 		if(validIndex(index) && val.getClass().equals(type)) {
 			data.add(index, val);
 		} else {
-			throw new ExceptionSemantic("Index: " + index + " is out of bounds of the array.");
+			throw new ExceptionSemantic("Index '" + index + "' is out of bounds of the array.");
 		}
 	}
 	
@@ -43,11 +45,15 @@ public class ValueArray extends ValueAbstract {
 		if(validIndex(index)) {
 			return data.get(index);
 		} else {
-			throw new ExceptionSemantic("Index: " + index + " is out of bounds of the array.");
+			throw new ExceptionSemantic("Index '" + index + "' is out of bounds of the array.");
 		}
 	}
 
 	private boolean validIndex(int index) {
 		return index >= 0 && index < length;
+	}
+	
+	public String toString() {
+		return id.toString();
 	}
 }

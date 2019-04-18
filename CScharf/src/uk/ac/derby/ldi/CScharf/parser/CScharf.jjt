@@ -444,8 +444,8 @@ void primary_expression() :
 void fn_invoke() #FnInvoke :
 {}
 {
-							dereference() arglist()
-							//identifier() arglist()
+							//dereference() arglist()
+							identifier() arglist()
 }
 
 void literal() :

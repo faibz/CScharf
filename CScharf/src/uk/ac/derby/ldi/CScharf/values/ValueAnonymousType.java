@@ -6,7 +6,7 @@ import java.util.UUID;
 
 import uk.ac.derby.ldi.CScharf.interpreter.ExceptionSemantic;
 
-public class ValueAnonymousType extends ValueAbstract {
+public class ValueAnonymousType extends ValueAbstract implements ValueContainer {
 	private UUID id = UUID.randomUUID();
 	private Map<String, Value> variables = new HashMap<String, Value>();
 
@@ -25,7 +25,7 @@ public class ValueAnonymousType extends ValueAbstract {
 		variables.put(name, value);
 	}
 	
-	public Value getVariableValue(String name) {
+	public Value getVariable(String name) {
 		if (variables.containsKey(name)) {
 			return variables.get(name);
 		}

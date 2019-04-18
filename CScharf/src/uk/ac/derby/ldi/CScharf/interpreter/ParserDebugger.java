@@ -278,11 +278,6 @@ public class ParserDebugger implements CScharfVisitor {
 		return data;
 	}
 	
-	public Object visit(ASTClassInvoke node, Object data) {
-		dump(node, data);
-		return data;
-	}
-
 	public Object visit(ASTAnon node, Object data) {
 		dump(node, data);
 		return data;
@@ -308,8 +303,12 @@ public class ParserDebugger implements CScharfVisitor {
 		return data;
 	}
 
-	@Override
 	public Object visit(ASTClassConstructor node, Object data) {
+		dump(node, data);
+		return data;
+	}
+
+	public Object visit(ASTClassInstance node, Object data) {
 		dump(node, data);
 		return data;
 	}

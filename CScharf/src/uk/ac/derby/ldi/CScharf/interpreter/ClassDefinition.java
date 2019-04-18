@@ -4,6 +4,7 @@ import java.util.Vector;
 
 import uk.ac.derby.ldi.CScharf.CScharfUtil;
 import uk.ac.derby.ldi.CScharf.parser.ast.SimpleNode;
+import uk.ac.derby.ldi.CScharf.values.Value;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -17,11 +18,11 @@ public class ClassDefinition implements Comparable<Object>, Serializable {
 	private String name;
 	private String varSignature = "";
 	private LinkedHashMap<String, ClassVariable> variables = new LinkedHashMap<String, ClassVariable>();
+	private HashMap<String, FunctionDefinition> functions = new HashMap<String, FunctionDefinition>();
 	private HashMap<String, ClassDefinition> classes = new HashMap<String, ClassDefinition>();
 	
 	//Should I bother with this? Could just rummage around in the functions hashmap looking at signatures
 	private FunctionDefinition constructor = null;
-	private HashMap<String, FunctionDefinition> functions = new HashMap<String, FunctionDefinition>();
 	private SimpleNode ASTClassBody = null;
 	private int depth;
 	
@@ -42,8 +43,20 @@ public class ClassDefinition implements Comparable<Object>, Serializable {
 	}
 	
 	/** Get the name of this class. */
-	String getName() {
+	public String getName() {
 		return name;
+	}
+	
+	public HashMap<String, ClassVariable> getVariables() {
+		return variables;
+	}
+	
+	public HashMap<String, FunctionDefinition> getFunctions() {
+		return functions;
+	}
+	
+	public HashMap<String, ClassDefinition> getClasses() {
+		return classes;
 	}
 	
 	/** Set the body of this class.
@@ -75,11 +88,10 @@ public class ClassDefinition implements Comparable<Object>, Serializable {
 	}
 		
 	/** Define a variable. */
-	void defineVariable(String type, String name, boolean constant, boolean priv) {
+	void defineVariable(String type, String name, boolean constant, boolean priv, Value defaultValue) {
 		if (variables.containsKey(name))
 			throw new ExceptionSemantic("Variable " + name + " already exists in class " + getName());
-		ClassVariable classVar = new ClassVariable(constant, priv, CScharfUtil.getClassFromString(type));
-		//System.out.println("Added: " + name + "|" + classVar.toString());
+		ClassVariable classVar = new ClassVariable(constant, priv, CScharfUtil.getClassFromString(type), defaultValue);
 		variables.put(name, classVar);
 		varSignature += ((varSignature.length()==0) ? name : (", " + name));
 	}
