@@ -67,7 +67,7 @@ public class ClassDefinition implements Comparable<Object>, Serializable {
 	}
 	
 	public HashMap<String, ClassVariable> getVariablesCopy() {
-		HashMap<String, ClassVariable> copy = new HashMap<String, ClassVariable>();
+		var copy = new HashMap<String, ClassVariable>();
 		
 		for(Map.Entry<String, ClassVariable> entry : variables.entrySet()) {
 			copy.put(entry.getKey(), new ClassVariable(entry.getValue()));
@@ -77,7 +77,7 @@ public class ClassDefinition implements Comparable<Object>, Serializable {
 	}
 	
 	public HashMap<String, FunctionDefinition> getFunctionsCopy() {
-		HashMap<String, FunctionDefinition> copy = new HashMap<String, FunctionDefinition>();
+		var copy = new HashMap<String, FunctionDefinition>();
 		
 		for(Map.Entry<String, FunctionDefinition> entry : functions.entrySet()) {
 			copy.put(entry.getKey(), new FunctionDefinition(entry.getValue()));
@@ -87,7 +87,7 @@ public class ClassDefinition implements Comparable<Object>, Serializable {
 	}
 	
 	public HashMap<String, ClassDefinition> getClassesCopy() {
-		HashMap<String, ClassDefinition> copy = new HashMap<String, ClassDefinition>();
+		var copy = new HashMap<String, ClassDefinition>();
 		
 		for(Map.Entry<String, ClassDefinition> entry : classes.entrySet()) {
 			copy.put(entry.getKey(), new ClassDefinition(entry.getValue()));

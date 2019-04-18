@@ -38,7 +38,7 @@ public class ValueAnonymousType extends ValueAbstract implements ValueContainer 
 	}
 	
 	public String toString() {
-		String memberStrings = "";
+		var memberStrings = "";
 				
 		for(Map.Entry<String, Value> variable: variables.entrySet()) {
 			memberStrings = memberStrings.concat(variable.getKey() + "=" + variable.getValue() + ",");

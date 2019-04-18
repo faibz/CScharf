@@ -63,10 +63,10 @@ public class Parser implements CScharfVisitor {
 		if (node.optimised != null)
 			return data;
 		// Child 0 - identifier (fn name)
-		String fnname = getTokenOfChild(node, 1);
+		var fnname = getTokenOfChild(node, 1);
 		if (scope.findFunctionInCurrentLevel(fnname) != null)
 			throw new ExceptionSemantic("Function " + fnname + " already exists.");
-		FunctionDefinition currentFunctionDefinition = new FunctionDefinition(fnname, scope.getLevel() + 1);
+		var currentFunctionDefinition = new FunctionDefinition(fnname, scope.getLevel() + 1);
 		// Child 1 - function definition parameter list
 		doChild(node, 2, currentFunctionDefinition);
 		// Add to available functions
@@ -84,7 +84,7 @@ public class Parser implements CScharfVisitor {
 		
 	// Function definition parameter list
 	public Object visit(ASTParmlist node, Object data) {
-		FunctionDefinition currentDefinition = (FunctionDefinition)data;
+		var currentDefinition = (FunctionDefinition)data;
 		for (int i=0; i<node.jjtGetNumChildren(); i += 2) {
 			currentDefinition.defineParameter(getTokenOfChild(node, i), getTokenOfChild(node, i + 1));
 		}
@@ -107,10 +107,10 @@ public class Parser implements CScharfVisitor {
 		FunctionDefinition fndef;
 		if (node.optimised == null) { 
 			// Child 0 - identifier (fn name)
-			String fnname = getTokenOfChild(node, 0);
+			var fnname = getTokenOfChild(node, 0);
 			fndef = scope.findFunction(fnname);
 			if (fndef == null) {
-				Display.Reference ref = scope.findReference(fnname);
+				var ref = scope.findReference(fnname);
 				if (ref != null) {
 					Value val = ref.getValue();
 					
@@ -128,7 +128,7 @@ public class Parser implements CScharfVisitor {
 			node.optimised = fndef;
 		} else
 			fndef = (FunctionDefinition)node.optimised;
-		FunctionInvocation newInvocation = new FunctionInvocation(fndef);
+		var newInvocation = new FunctionInvocation(fndef);
 		// Child 1 - arglist
 		doChild(node, 1, newInvocation);
 		// Execute
@@ -142,7 +142,7 @@ public class Parser implements CScharfVisitor {
 		
 		if (node.optimised == null) { 
 			// Child 0 - identifier (fn name)
-			String fnname = getTokenOfChild(node, 0);
+			var fnname = getTokenOfChild(node, 0);
 			fndef = scope.findFunction(fnname);
 						
 			if (fndef == null) {
@@ -151,7 +151,7 @@ public class Parser implements CScharfVisitor {
 					Value val = ref.getValue();
 					
 					if (val instanceof ValueClass) {
-						ClassDefinition classDef = ((ValueClass) val).getClassDefinition(); //fnname actually classname here
+						var classDef = ((ValueClass) val).getClassDefinition(); //fnname actually classname here
 						fndef = classDef.findFunction(getTokenOfChild((SimpleNode)node.jjtGetChild(0), 0));
 						fnname = fndef.getName();
 					} else {					
@@ -178,7 +178,7 @@ public class Parser implements CScharfVisitor {
 			fndef = (FunctionDefinition)node.optimised;
 		}
 		
-		FunctionInvocation newInvocation = new FunctionInvocation(fndef);
+		var newInvocation = new FunctionInvocation(fndef);
 		// Child 1 - arglist
 		doChild(node, 1, newInvocation);
 		// Execute
@@ -187,7 +187,7 @@ public class Parser implements CScharfVisitor {
 		
 	// Function invocation argument list.
 	public Object visit(ASTArgList node, Object data) {
-		FunctionInvocation newInvocation = (FunctionInvocation)data;
+		var newInvocation = (FunctionInvocation)data;
 		
 		for (int i=0; i<node.jjtGetNumChildren(); i++)
 			newInvocation.setArgument(doChild(node, i));
@@ -198,7 +198,7 @@ public class Parser implements CScharfVisitor {
 	// Execute an IF 
 	public Object visit(ASTIfStatement node, Object data) {
 		// evaluate boolean expression
-		Value hopefullyValueBoolean = doChild(node, 0);
+		var hopefullyValueBoolean = doChild(node, 0);
 		if (!(hopefullyValueBoolean instanceof ValueBoolean))
 			throw new ExceptionSemantic("The test expression of an if statement must be boolean.");
 		if (((ValueBoolean)hopefullyValueBoolean).booleanValue())
@@ -214,7 +214,7 @@ public class Parser implements CScharfVisitor {
 		doChild(node, 0);
 		while (true) {
 			// evaluate loop test
-			Value hopefullyValueBoolean = doChild(node, 1);
+			var hopefullyValueBoolean = doChild(node, 1);
 			if (!(hopefullyValueBoolean instanceof ValueBoolean))
 				throw new ExceptionSemantic("The test expression of a for loop must be boolean.");
 			if (!((ValueBoolean)hopefullyValueBoolean).booleanValue())
@@ -230,7 +230,7 @@ public class Parser implements CScharfVisitor {
 	// Execute a WHILE loop
 	public Object visit(ASTWhileLoop node, Object data) {
 		while (true) {
-			Value hopefullyValueBoolean = doChild(node, 0);
+			var hopefullyValueBoolean = doChild(node, 0);
 			
 			if (!(hopefullyValueBoolean instanceof ValueBoolean))
 				throw new ExceptionSemantic("The test expression of a while loop must be boolean.");
@@ -279,7 +279,7 @@ public class Parser implements CScharfVisitor {
 		} else
 			reference = (Display.Reference)node.optimised;
 		
-		Value value = reference.getValue();
+		var value = reference.getValue();
 		
 		//If this is a member access case or index access case (i.e. obj.var/arr[0])
 		if (node.jjtGetNumChildren() >= 1) value = processAccess(value, node);
@@ -289,8 +289,8 @@ public class Parser implements CScharfVisitor {
 	
 	private Value processAccess(Value value, ASTDereference node) {
 		if (value instanceof ValueContainer) {
-			ValueContainer container = (ValueContainer) value;
-			Value currentChild = container.getVariable(getTokenOfChild(node, 0));
+			var container = (ValueContainer) value;
+			var currentChild = container.getVariable(getTokenOfChild(node, 0));
 			
 			for (int i = 1; i < node.jjtGetNumChildren(); ++i) {
 				if (currentChild instanceof ValueContainer) {
@@ -302,9 +302,9 @@ public class Parser implements CScharfVisitor {
 			
 			return currentChild;
 		} else {
-			ValueArray arr = (ValueArray) value;
+			var arr = (ValueArray) value;
 			
-			Value currentChild = arr.getValue((int)(doChild(node, 0).longValue()));
+			var currentChild = arr.getValue((int)(doChild(node, 0).longValue()));
 			
 			for (int i = 1; i < node.jjtGetNumChildren(); ++i) {
 				if (currentChild instanceof ValueContainer) {
@@ -341,7 +341,7 @@ public class Parser implements CScharfVisitor {
 	private Object untypedAssignment(ASTAssignment node, Object data) {
 		Display.Reference reference;
 		if (node.optimised == null) {
-			String name = getTokenOfChild(node, 0);
+			var name = getTokenOfChild(node, 0);
 			reference = scope.findReference(name);
 			if (reference == null)
 				throw new ExceptionSemantic("Variable " + name + " does not exist yet. Are you missing a declaration?");
@@ -350,18 +350,18 @@ public class Parser implements CScharfVisitor {
 		} else
 			reference = (Display.Reference)node.optimised;
 		
-		Value valToAssign = doChild(node, 1);
+		var valToAssign = doChild(node, 1);
 		
 		if (reference == null) {
 			throw new ExceptionSemantic("Variable: " + getTokenOfChild(node, 0) + " does not exist in the current context.");
 		}
 		
-		Value existingType = reference.getValue();
+		var existingType = reference.getValue();
 		
 		if (valToAssign.getClass().equals(existingType.getClass())) {
 			reference.setValue(valToAssign);
 		} else if (existingType.getClass() == ValueArray.class) {
-			Value val = doChild((SimpleNode)node.jjtGetChild(0), 0);
+			var val = doChild((SimpleNode)node.jjtGetChild(0), 0);
 			if (val.getClass() == ValueInteger.class) {
 				((ValueArray) existingType).putValue((int)val.longValue(), valToAssign);
 			}	
@@ -377,7 +377,7 @@ public class Parser implements CScharfVisitor {
 	private Object typedAssignment(ASTAssignment node, Object data) {
 		Display.Reference reference;
 		
-		int childrenCount = node.jjtGetNumChildren();
+		var childrenCount = node.jjtGetNumChildren();
 		
 		/*
 		 * childrenCount - 1 = value to assign
@@ -387,7 +387,7 @@ public class Parser implements CScharfVisitor {
 		 */
 				
 		if (node.optimised == null) {
-			String name = getTokenOfChild(node, childrenCount - 2);
+			var name = getTokenOfChild(node, childrenCount - 2);
 			reference = scope.findReference(name);
 			if (reference == null) {
 				reference = scope.defineVariable(name);
@@ -398,8 +398,8 @@ public class Parser implements CScharfVisitor {
 		} else
 			reference = (Display.Reference)node.optimised;
 		
-		Value valToAssign = doChild(node, childrenCount - 1);
-		Class<?> specifiedType = CScharfUtil.getClassFromString(getTokenOfChild(node, childrenCount - 3));
+		var valToAssign = doChild(node, childrenCount - 1);
+		var specifiedType = CScharfUtil.getClassFromString(getTokenOfChild(node, childrenCount - 3));
 		
 		if (!valToAssign.getClass().equals(specifiedType)) {
 			throw new ExceptionSemantic("Cannot assign value of type: " + valToAssign.getClass() + " to variable of type: " + specifiedType.getClass() + ". Are you missing a cast?");
@@ -562,7 +562,7 @@ public class Parser implements CScharfVisitor {
 		 * Child 0: class body
 		 */
 		
-		ClassDefinition currentClassDefinition = new ClassDefinition(node.tokenValue, scope.getLevel() + 1);
+		var currentClassDefinition = new ClassDefinition(node.tokenValue, scope.getLevel() + 1);
 		scope.addClass(currentClassDefinition);
 		
 		doChild(node, 0);
@@ -579,9 +579,9 @@ public class Parser implements CScharfVisitor {
 		//Constructor
 		doChild(node, 0);
 		
-		ClassDefinition classDef = scope.findClass(node.tokenValue); 
+		var classDef = scope.findClass(node.tokenValue); 
 		
-		for(int i = 1; i < node.jjtGetNumChildren(); ++i) {
+		for(var i = 1; i < node.jjtGetNumChildren(); ++i) {
 			SimpleNode classBodyChildNode = getChild(node, i);
 			
 			if (classBodyChildNode instanceof ASTAssignment) {
@@ -595,18 +595,18 @@ public class Parser implements CScharfVisitor {
 				
 				//TODO: allow multiple modifiers e.g. public const
 				
-				int childrenCount = classBodyChildNode.jjtGetNumChildren();
+				var childrenCount = classBodyChildNode.jjtGetNumChildren();
 				
 				classDef.defineVariable(getTokenOfChild(classBodyChildNode, childrenCount - 3), getTokenOfChild(classBodyChildNode, childrenCount - 2), false, false, doChild(classBodyChildNode, childrenCount - 1));
 			} else if (classBodyChildNode instanceof ASTFnDef) {
-				FunctionDefinition functionDefinition = new FunctionDefinition(getTokenOfChild(classBodyChildNode, 1), scope.getLevel() + 1);
+				var functionDefinition = new FunctionDefinition(getTokenOfChild(classBodyChildNode, 1), scope.getLevel() + 1);
 				doChild(classBodyChildNode, 2, functionDefinition);
 				functionDefinition.setFunctionBody(getChild(classBodyChildNode, 3));
 				if (classBodyChildNode.fnHasReturn)
 					functionDefinition.setFunctionReturnExpression(getChild(classBodyChildNode, 4));
 				classDef.addFunction(functionDefinition);
 			} else if (classBodyChildNode instanceof ASTClassDef) {
-				ClassDefinition classDefinition = new ClassDefinition(classBodyChildNode.tokenValue, scope.getLevel() + 2); //TODO: +1 or +2?
+				var classDefinition = new ClassDefinition(classBodyChildNode.tokenValue, scope.getLevel() + 2); //TODO: +1 or +2?
 				doChild(classBodyChildNode, 0);
 				classDefinition.setClassBody(getChild(classBodyChildNode, 0));
 				classDef.addClass(classDefinition);
@@ -617,21 +617,18 @@ public class Parser implements CScharfVisitor {
 	}
 	
 	public Object visit(ASTClassConstructor node, Object data) {		
-		String suppliedClassName = getTokenOfChild(node, 0);
+		var suppliedClassName = getTokenOfChild(node, 0);
 		
 		if(!suppliedClassName.equals(node.tokenValue))
 			throw new ExceptionSemantic("Constructor for: " + suppliedClassName + " is not valid in class: " + node.tokenValue + ". Are you missing a return type?");
 		
-		FunctionDefinition currentFunctionDefinition = new FunctionDefinition(node.tokenValue + "Constructor", scope.getLevel() + 1);
+		var currentFunctionDefinition = new FunctionDefinition(node.tokenValue + "Constructor", scope.getLevel() + 1);
 		doChild(node, 1, currentFunctionDefinition);
 				
-		//System.out.println("Adding constructor to valid functions");
-		//System.out.println("Function name: " + currentFunctionDefinition.getName() + " param count: " + currentFunctionDefinition.getParameterCount() + " param name: " + currentFunctionDefinition.getParameterName(0));
-		
 		scope.addFunction(currentFunctionDefinition);
 		currentFunctionDefinition.setFunctionBody(getChild(node, 2));
 		
-		ClassDefinition shouldExist = scope.findClass(suppliedClassName);
+		var shouldExist = scope.findClass(suppliedClassName);
 		
 		shouldExist.addConstructor(currentFunctionDefinition);
 		
@@ -645,8 +642,8 @@ public class Parser implements CScharfVisitor {
 		ValueClass valClass = null;
 		if (node.optimised == null) { 
 			// Child 0 - identifier (fn name)
-			String className = getTokenOfChild(node, 0);
-			String constructorName = className + "Constructor";
+			var className = getTokenOfChild(node, 0);
+			var constructorName = className + "Constructor";
 			
 			valClass = new ValueClass(scope.findClass(className));
 			
@@ -660,7 +657,7 @@ public class Parser implements CScharfVisitor {
 			fndef = (FunctionDefinition)node.optimised;
 		}
 		
-		FunctionInvocation newInvocation = new FunctionInvocation(fndef);
+		var newInvocation = new FunctionInvocation(fndef);
 		// Child 1 - arglist
 		doChild(node, 1, newInvocation);
 		// Execute
@@ -681,10 +678,10 @@ public class Parser implements CScharfVisitor {
 	}
 			
 	public Object visit(ASTFn node, Object data) {	
-		ValueFn valueFunction = new ValueFn();
+		var valueFunction = new ValueFn();
 		
-		String fnname = getTokenOfChild((SimpleNode) node.jjtGetParent(), 1);
-		FunctionDefinition funcDef = new FunctionDefinition(fnname, scope.getLevel() + 1);
+		var fnname = getTokenOfChild((SimpleNode) node.jjtGetParent(), 1);
+		var funcDef = new FunctionDefinition(fnname, scope.getLevel() + 1);
 		
 		//Parameters
 		doChild(node, 0, funcDef);
@@ -708,7 +705,7 @@ public class Parser implements CScharfVisitor {
 		int children = node.jjtGetNumChildren();
 		
 		for(int i = 0; i < children; ++i) {
-			SimpleNode assignmentNode = getChild(node, i);
+			var assignmentNode = getChild(node, i);
 			obj.addValue(getTokenOfChild(assignmentNode, 0), doChild(assignmentNode, 1));
 		}
 				
@@ -716,7 +713,7 @@ public class Parser implements CScharfVisitor {
 	}
 
 	public Object visit(ASTArray node, Object data) {	
-		ValueArray array = new ValueArray(getTokenOfChild(node, 0), Integer.parseInt(getTokenOfChild(node, 1)));
+		var array = new ValueArray(getTokenOfChild(node, 0), Integer.parseInt(getTokenOfChild(node, 1)));
 		
 		node.optimised = array;
 		
