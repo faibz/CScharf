@@ -36,7 +36,6 @@ public class ValueArray extends ValueAbstract {
 	public void putValue(int index, Value val) {		
 		if(validIndex(index)) {
 			if (val.getClass().equals(type)) {
-				System.out.println("Putting value " + val + " at index " + index);
 				data.add(index, val);
 			} else {
 				throw new ExceptionSemantic("Cannot assign value of " + val.getClass() + " to array of type " + type);
