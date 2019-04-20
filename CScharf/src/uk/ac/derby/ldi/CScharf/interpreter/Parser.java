@@ -406,6 +406,7 @@ public class Parser implements CScharfVisitor {
 			throw new ExceptionSemantic("Cannot assign value of type: " + valToAssign.getClass() + " to variable of type: " + existingType.getClass() + ". Are you missing a cast?");
 		}
 		
+		return data;
 	}
 
 	private Object typedAssignment(ASTAssignment node, Object data) {
