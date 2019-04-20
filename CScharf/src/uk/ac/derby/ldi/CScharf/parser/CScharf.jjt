@@ -292,7 +292,7 @@ void constructor(String className) #ClassConstructor :
 void classbody(String className) #ClassBody :
 {}
 {
-  constructor(className) (assignment() ";" | fndef() | classdef() )* { jjtThis.tokenValue = className; }
+  constructor(className) (LOOKAHEAD(3) assignment() ";" | LOOKAHEAD(2) fndef() | classdef() )* { jjtThis.tokenValue = className; }
 }
 
 
@@ -361,7 +361,7 @@ void quit() :
 void call() #Call :
 {}
 {
-					identifier() arglist() ";"
+					dereference() arglist() ";"
 }
 
 void arglist() #ArgList :
@@ -437,7 +437,7 @@ void primary_expression() :
 {
                               literal()
                             | LOOKAHEAD(2) fn_invoke()
-                            | dereference()
+                            |  dereference()
                             | "(" expression() ")"
 }
 
@@ -452,7 +452,7 @@ void literal() :
 {}
 {
 							integer()
-                            | character()							  	
+                            | character()
 							| rational()
 							| bool()
 							| fn()

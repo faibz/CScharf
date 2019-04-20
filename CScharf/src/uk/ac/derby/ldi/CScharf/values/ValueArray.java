@@ -33,11 +33,16 @@ public class ValueArray extends ValueAbstract {
 		return 0;
 	}
 	
-	public void putValue(int index, Value val) {
-		if(validIndex(index) && val.getClass().equals(type)) {
-			data.add(index, val);
+	public void putValue(int index, Value val) {		
+		if(validIndex(index)) {
+			if (val.getClass().equals(type)) {
+				System.out.println("Putting value " + val + " at index " + index);
+				data.add(index, val);
+			} else {
+				throw new ExceptionSemantic("Cannot assign value of " + val.getClass() + " to array of type " + type);
+			}
 		} else {
-			throw new ExceptionSemantic("Index '" + index + "' is out of bounds of the array.");
+			throw new ExceptionSemantic("Index '" + index + "' is out of bounds of the array. Array length is: " + length);
 		}
 	}
 	
@@ -45,7 +50,7 @@ public class ValueArray extends ValueAbstract {
 		if(validIndex(index)) {
 			return data.get(index);
 		} else {
-			throw new ExceptionSemantic("Index '" + index + "' is out of bounds of the array.");
+			throw new ExceptionSemantic("Index '" + index + "' is out of bounds of the array. Array length is: " + length);
 		}
 	}
 

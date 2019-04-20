@@ -2,10 +2,11 @@
 
 anon bob = new { a = 24, b = 211, car = "box", dogs = true, fox = 62 };
 
-anon chiefOne = new { box = new { c = new { car = 242 } }, a = 23, blob = function(int x, int y) { return x + y; } };
+anon chiefOne = new { box = new { c = new { car = 242 } }, a = 23, blob = function(int x, int y) { write(x + y); } };
 
 write(chiefOne);
-write(chiefOne.blob(10, 2));
+write(chiefOne.box.c.car);
+//chiefOne.blob(10, 2);
 
 int hello = chiefOne.box.c.car;
 
@@ -23,5 +24,6 @@ chief = "stringer";
 array arrayOne = new anon[5];
 anon arraySlotOne = new { arraySlotOneArray = new int[5] };
 arrayOne[1] = arraySlotOne;
+arrayOne[1].arraySlotOneArray[2] = 20;
 
 write(arrayOne[1].arraySlotOneArray[2]);

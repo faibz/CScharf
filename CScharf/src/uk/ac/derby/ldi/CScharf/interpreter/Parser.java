@@ -114,10 +114,20 @@ public class Parser implements CScharfVisitor {
 				if (ref != null) {
 					Value val = ref.getValue();
 					
-					if (val.getClass() == ValueFn.class) {
-						fndef = ((ValueFn)val).getFunctionDefinition();
-					} else {
-						throw new ExceptionSemantic("Cannot invoke a value of type: " + val.getClass() + " like a function");
+					if (val instanceof ValueClass) {
+						var classDef = ((ValueClass) val).getClassDefinition(); //fnname actually classname here
+						fndef = classDef.findFunction(getTokenOfChild((SimpleNode)node.jjtGetChild(0), 0));
+						fnname = fndef.getName();
+					} else {					
+						if (node.jjtGetChild(0).jjtGetNumChildren() >= 1) { //alt: if (val instanceof ValueContainer)
+							val = doChild(node, 0);
+						}
+						
+						if (val.getClass() == ValueFn.class) {
+							fndef = ((ValueFn)val).getFunctionDefinition();
+						} else {
+							throw new ExceptionSemantic("Cannot invoke a value of type: " + val.getClass() + " like a function.");
+						}
 					}
 				} else {
 					throw new ExceptionSemantic("Function " + fnname + " is undefined.");
@@ -294,9 +304,9 @@ public class Parser implements CScharfVisitor {
 			
 			for (int i = 1; i < node.jjtGetNumChildren(); ++i) {
 				if (currentChild instanceof ValueContainer) {
-					currentChild = processContainerType(currentChild, node, i);
+					currentChild = processContainerGet(currentChild, node, i);
 				} else {
-					currentChild = processArray(currentChild, node, i);
+					currentChild = processArrayGet(currentChild, node, i);
 				}
 			}
 			
@@ -308,22 +318,50 @@ public class Parser implements CScharfVisitor {
 			
 			for (int i = 1; i < node.jjtGetNumChildren(); ++i) {
 				if (currentChild instanceof ValueContainer) {
-					currentChild = processContainerType(currentChild, node, i);
+					currentChild = processContainerGet(currentChild, node, i);
 				} else {
-					currentChild = processArray(currentChild, node, i);
+					currentChild = processArrayGet(currentChild, node, i);
 				}
 			}
 			
 			return currentChild;
 		}
 	}
-	
-	private Value processContainerType(Value child, ASTDereference node, int index) {
+		
+	private Value processContainerGet(Value child, ASTDereference node, int index) {
 		return ((ValueContainer) child).getVariable(getTokenOfChild(node, index));
 	}
 	
-	private Value processArray(Value child, ASTDereference node, int index) {
+	private Value processArrayGet(Value child, ASTDereference node, int index) {
 		return ((ValueArray) child).getValue((int) doChild(node, index).longValue());
+	}
+	
+	private void processPut(Value container, Value valToAssign, ASTDereference node) {
+		int childCount = node.jjtGetNumChildren();
+		
+		Value currentChild = container;
+		
+		for (int i = 0; i < childCount - 1; ++i) {
+			if (currentChild instanceof ValueContainer) {
+				currentChild = processContainerGet(currentChild, node, i);
+			} else {
+				currentChild = processArrayGet(currentChild, node, i);
+			}
+		}
+		
+		if (currentChild instanceof ValueClass) {
+			processClassPut(currentChild, valToAssign, node, childCount - 1);
+		} else if (currentChild instanceof ValueArray) {
+			processArrayPut(currentChild, valToAssign, node, childCount - 1);
+		}
+	}
+	
+	private void processClassPut(Value valClass, Value valueToAssign, ASTDereference node, int index) {
+		((ValueClass) valClass).setVariable(getTokenOfChild(node, index), valueToAssign);
+	}
+	
+	private void processArrayPut(Value valArray, Value valueToAssign, ASTDereference node, int index) {
+		((ValueArray) valArray).putValue((int) doChild(node, index).longValue(), valueToAssign);
 	}
 	
 	// Execute an assignment statement.
@@ -360,18 +398,14 @@ public class Parser implements CScharfVisitor {
 		
 		if (valToAssign.getClass().equals(existingType.getClass())) {
 			reference.setValue(valToAssign);
-		} else if (existingType.getClass() == ValueArray.class) {
-			var val = doChild((SimpleNode)node.jjtGetChild(0), 0);
-			if (val.getClass() == ValueInteger.class) {
-				((ValueArray) existingType).putValue((int)val.longValue(), valToAssign);
-			}	
-		} else if (existingType.getClass() == ValueClass.class) {
-			((ValueClass) existingType).setVariable(getTokenOfChild((SimpleNode)node.jjtGetChild(0), 0), valToAssign);
+		} else if (existingType.getClass() == ValueArray.class || existingType.getClass() == ValueContainer.class) {
+			if (node.jjtGetChild(0).jjtGetNumChildren() >= 1) {
+				processPut(existingType, valToAssign, (ASTDereference) node.jjtGetChild(0));
+			}
 		} else {
 			throw new ExceptionSemantic("Cannot assign value of type: " + valToAssign.getClass() + " to variable of type: " + existingType.getClass() + ". Are you missing a cast?");
 		}
 		
-		return data;
 	}
 
 	private Object typedAssignment(ASTAssignment node, Object data) {
