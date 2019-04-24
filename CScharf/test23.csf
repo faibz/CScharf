@@ -1,0 +1,29 @@
+public class Node
+{
+	public Node() 
+	{
+	}
+	
+	int val = -1;
+	instance next = new Node();
+}
+
+instance node = new Node();
+node.val = 10;
+
+write(node.val);
+
+for(int i = 0; i < 4; i = i + 1)
+{
+	node.next = new Node();
+	
+	write(node.next.val);
+	
+	node.next.val = 10;
+	
+	write(node.val);
+	
+	node = node.next;
+	
+	write(node);
+}
