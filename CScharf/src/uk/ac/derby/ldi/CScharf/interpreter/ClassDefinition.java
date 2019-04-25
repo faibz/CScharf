@@ -128,9 +128,17 @@ public class ClassDefinition implements Comparable<Object>, Serializable {
 	void defineVariable(String type, String name, boolean constant, boolean priv, Value defaultValue) {
 		if (variables.containsKey(name))
 			throw new ExceptionSemantic("Variable " + name + " already exists in class " + getName());
-		ClassVariable classVar = new ClassVariable(constant, priv, CScharfUtil.getClassFromString(type), defaultValue);
+		var classVar = new ClassVariable(constant, priv, CScharfUtil.getClassFromString(type), defaultValue);
 		variables.put(name, classVar);
-		varSignature += ((varSignature.length()==0) ? name : (", " + name));
+		varSignature += ((varSignature.length() == 0) ? name : (", " + name));
+	}
+	
+	void declareVariable(String type, String name, boolean constant, boolean priv) {
+		if (variables.containsKey(name))
+			throw new ExceptionSemantic("Variable " + name + " already exists in class " + getName());
+		
+		var classVar = new ClassVariable(constant, priv, CScharfUtil.getClassFromString(type));
+		variables.put(name, classVar);
 	}
 	
 	/** Add an inner function definition. */

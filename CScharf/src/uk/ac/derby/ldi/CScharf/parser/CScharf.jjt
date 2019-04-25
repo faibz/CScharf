@@ -234,6 +234,7 @@ void statement() #Statement :
 {}
 {
 				 	LOOKAHEAD(2) assignment() ";"
+				|   variable_declaration()
 				|	LOOKAHEAD(2) fndef()
 				|	block()
 				|   classdef()
@@ -292,7 +293,7 @@ void constructor(String className) #ClassConstructor :
 void classbody(String className) #ClassBody :
 {}
 {
-  constructor(className) (LOOKAHEAD(3) assignment() ";" | LOOKAHEAD(2) fndef() | classdef() )* { jjtThis.tokenValue = className; }
+  constructor(className) (LOOKAHEAD(3) assignment() ";" | variable_declaration() | LOOKAHEAD(2) fndef() | classdef() )* { jjtThis.tokenValue = className; }
 }
 
 
@@ -307,6 +308,13 @@ void assignment() #Assignment :
 {
 	  				[[modifier()] type()] dereference() "=" expression()
 }
+
+void variable_declaration() #VariableDeclaration :
+{}
+{
+					[modifier()] type() identifier() ";"
+}
+  
 
 void modifier() #Modifier :
 {Token t;}
@@ -444,8 +452,8 @@ void primary_expression() :
 void fn_invoke() #FnInvoke :
 {}
 {
-							//dereference() arglist()
-							identifier() arglist()
+							dereference() arglist()
+							//identifier() arglist()
 }
 
 void literal() :

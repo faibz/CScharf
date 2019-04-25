@@ -59,7 +59,7 @@ public class ValueClass extends ValueAbstract implements ValueContainer {
 		if (!variables.containsKey(name)) {
 			throw new ExceptionSemantic("Variable " + name + " does not exist in class " + getName() + ".");
 		}
-		
+
 		variables.get(name).setValue(value);
 	}
 	

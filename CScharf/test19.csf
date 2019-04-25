@@ -2,23 +2,24 @@
 
 write(10);
 
-class Square {
-	public Square() {
+class Rectangle {
+	public Rectangle() {
 		write("In constructor");
-		flex = 10;
+		//flex = 10;
 	}
 	
-	int flex = 1242424;
+	int length = 12;
+	int width = 8;
 	
-	public int PrintLength() {
-		return 20;
+	public int GetArea() {
+		return length * width;
 	}
 }
 
 write(12);
 
-instance cc = new Square();
+instance cc = new Rectangle();
 
-//write(cc.PrintLength());
+write(cc.GetArea());
 
 write(10);

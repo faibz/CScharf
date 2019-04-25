@@ -1,5 +1,6 @@
 package uk.ac.derby.ldi.CScharf.interpreter;
 
+import uk.ac.derby.ldi.CScharf.CScharfUtil;
 import uk.ac.derby.ldi.CScharf.values.Value;
 
 public class ClassVariable {
@@ -12,6 +13,7 @@ public class ClassVariable {
 		this.constant = constant;
 		this.priv = priv;
 		this.type = type;
+		this.value = CScharfUtil.getDefaultValueForClass(type);
 	}
 	
 	public ClassVariable(boolean constant, boolean priv, Class<?> type, Value defaultValue) {
