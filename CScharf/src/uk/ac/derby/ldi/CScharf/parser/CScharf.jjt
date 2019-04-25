@@ -88,7 +88,7 @@ TOKEN : /* TYPE MODIFIERS */
 
 TOKEN : /* ACCESS MODIFIERS */
 {
-  < ACCESS_MODIFIER: "private" | "public" >
+  < ACCESS_MODIFIER: "public" >
 }
 
 TOKEN : /* LITERALS */
@@ -267,7 +267,7 @@ void fnbody() #FnBody :
 void fndef() #FnDef :
 {}
 {
-					[<ACCESS_MODIFIER>] type() identifier() parmlist() "{" 
+					<ACCESS_MODIFIER> type() identifier() parmlist() "{" 
 						fnbody()
 						[ <RETURN> returnexpr() {jjtThis.fnHasReturn = true;} ";" ] 
 					"}"
@@ -276,7 +276,7 @@ void fndef() #FnDef :
 void classdef() #ClassDef :
 {Token t;}
 {
-					[<ACCESS_MODIFIER>] <CLASS> t = <IDENTIFIER> "{"
+					<ACCESS_MODIFIER> <CLASS> t = <IDENTIFIER> "{"
 						classbody(t.image)
 					"}" { jjtThis.tokenValue = t.image; }
 }

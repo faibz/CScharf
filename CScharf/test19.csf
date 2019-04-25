@@ -2,7 +2,7 @@
 
 write(10);
 
-class Rectangle {
+public class Rectangle {
 	public Rectangle() {
 		write("In constructor");
 		//flex = 10;
@@ -10,6 +10,12 @@ class Rectangle {
 	
 	int length = 12;
 	int width = 8;
+	
+	public int SetLength(int newLen) {
+		length = newLen;
+		
+		return -1;
+	}
 	
 	public int GetArea() {
 		return length * width;
@@ -20,6 +26,9 @@ write(12);
 
 instance cc = new Rectangle();
 
-write(cc.GetArea());
+write(cc.SetLength(10));
+//write(cc.length);
+
+//write(cc.GetArea());
 
 write(10);

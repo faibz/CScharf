@@ -4,6 +4,7 @@ import uk.ac.derby.ldi.CScharf.CScharfUtil;
 import uk.ac.derby.ldi.CScharf.parser.ast.SimpleNode;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 /** This class captures information about the function currently being defined.
  * 
@@ -15,7 +16,7 @@ public class FunctionDefinition implements Comparable<Object> {
 
 	private String name;
 	private String parmSignature = "";
-	private HashMap<String, Class<?>> parameters = new HashMap<String, Class<?>>();
+	private HashMap<String, Class<?>> parameters = new LinkedHashMap<String, Class<?>>();
 	private HashMap<String, Integer> slots = new HashMap<String, Integer>();
 	private HashMap<String, FunctionDefinition> functions = new HashMap<String, FunctionDefinition>();
 	private SimpleNode ASTFunctionBody = null;

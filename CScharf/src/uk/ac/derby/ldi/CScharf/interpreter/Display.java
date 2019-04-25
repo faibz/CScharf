@@ -122,5 +122,4 @@ class Display {
 	void addClass(ClassDefinition definition) {
 		classDisplay[currentLevel].addClass(definition);
 	}
-	
 }

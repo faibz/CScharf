@@ -46,6 +46,7 @@ public class FunctionInvocation implements Invocation {
 		Class<?> argType = v.getClass();
 		
 		if (parameterType != argType) {
+			System.out.println("Arg count: " + argumentCount);
 			throw new ExceptionSemantic("Cannot assign value of type: " + v.getClass() + " to parameter of type: " + parameterType + ". Are you missing a cast?");
 		}
 		
@@ -60,6 +61,7 @@ public class FunctionInvocation implements Invocation {
 	
 	/** Execute this invocation. */
 	Value execute(Parser parser) {
+		System.out.println("Executing function " + function.getName());
 		parser.doChildren(function.getFunctionBody(), null);
 		if (function.hasReturn())
 			return parser.doChild(function.getFunctionReturnExpression(), 0);

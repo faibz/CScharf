@@ -282,16 +282,35 @@ public class Parser implements CScharfVisitor {
 		Display.Reference reference;
 		if (node.optimised == null) {
 			String name = node.tokenValue;
-			System.out.println("NAME " + name);
 			reference = scope.findReference(name);
-			System.out.println("At scope level" + scope.getLevel());
 			if (reference == null) {
 				var currentNode = node.jjtGetParent();
 				for (int i = 0; i < 6; ++i) {
 					System.out.println(currentNode);
+					
+					if (currentNode instanceof ASTClassBody/* || currentNode instanceof ASTFnBody*/) {
+						for (int j = 0; j < currentNode.jjtGetNumChildren(); ++j) {
+							var childNode = currentNode.jjtGetChild(j);
+							if (childNode instanceof ASTAssignment || childNode instanceof ASTVariableDeclaration) {
+								for (int k = 0; k < childNode.jjtGetNumChildren(); ++k) {
+									var furtherChildNode = childNode.jjtGetChild(k);
+									
+									if (((SimpleNode)furtherChildNode).tokenValue.equals(name)) {
+										//TODO: Check for full assignment. len = 10 will not suffice
+										
+										//var finalNode = (SimpleNode)furtherChildNode;
+										
+										//System.out.println("found something");
+										return new ValueInteger(-1);
+									}
+								}
+							}
+						}
+					}
+					
 					currentNode = currentNode.jjtGetParent();
 				}
-				//Fails to find variable in class. Try to find instance calling from, and search inside instance for variables.
+				
 				throw new ExceptionSemantic("Variable or parameter " + name + " is undefined.");
 			}
 				
@@ -417,8 +436,37 @@ public class Parser implements CScharfVisitor {
 		if (node.optimised == null) {
 			var name = getTokenOfChild(node, 0);
 			reference = scope.findReference(name);
-			if (reference == null)
+			if (reference == null) {
+				var currentNode = node.jjtGetParent();
+				for (int i = 0; i < 6; ++i) {
+					System.out.println(currentNode);
+					
+					if (currentNode instanceof ASTClassBody/* || currentNode instanceof ASTFnBody*/) {
+						for (int j = 0; j < currentNode.jjtGetNumChildren(); ++j) {
+							var childNode = currentNode.jjtGetChild(j);
+							if (childNode instanceof ASTAssignment || childNode instanceof ASTVariableDeclaration) {
+								for (int k = 0; k < childNode.jjtGetNumChildren(); ++k) {
+									var furtherChildNode = childNode.jjtGetChild(k);
+									
+									if (((SimpleNode)furtherChildNode).tokenValue.equals(name)) {
+										//TODO: Check for full assignment. len = 10 will not suffice
+										
+										//var finalNode = (SimpleNode)furtherChildNode;
+										
+										//System.out.println("found something");
+										return new ValueInteger(-1);
+									}
+								}
+							}
+						}
+					}
+					
+					currentNode = currentNode.jjtGetParent();
+				}
+				
 				throw new ExceptionSemantic("Variable " + name + " does not exist yet. Are you missing a declaration?");
+			}
+
 			node.optimised = reference;
 		} else
 			reference = (Display.Reference)node.optimised;

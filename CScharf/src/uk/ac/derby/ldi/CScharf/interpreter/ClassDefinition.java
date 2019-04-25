@@ -165,4 +165,7 @@ public class ClassDefinition implements Comparable<Object>, Serializable {
 		return classes.get(name);
 	}
 
+	ClassVariable findVariable(String name) {
+		return variables.get(name);
+	}
 }
