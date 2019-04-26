@@ -113,54 +113,7 @@ public class Parser implements CScharfVisitor {
 			// Child 0 - identifier (fn name)
 			var fnname = getTokenOfChild(node, 0);
 			fndef = scope.findFunction(fnname);
-			if (fndef == null) {
-				var ref = scope.findReference(fnname);
-				if (ref != null) {
-					Value val = ref.getValue();
-					
-					if (val instanceof ValueClass) {
-						var classDef = ((ValueClass) val).getClassDefinition(); //fnname actually classname here
-						fndef = classDef.findFunction(getTokenOfChild((SimpleNode)node.jjtGetChild(0), 0));
-						fnname = fndef.getName();
-					} else {					
-						if (node.jjtGetChild(0).jjtGetNumChildren() >= 1) { //alt: if (val instanceof ValueContainer)
-							val = doChild(node, 0);
-						}
-						
-						if (val.getClass() == ValueFn.class) {
-							fndef = ((ValueFn)val).getFunctionDefinition();
-						} else {
-							throw new ExceptionSemantic("Cannot invoke a value of type: " + val.getClass() + " like a function.");
-						}
-					}
-				} else {
-					throw new ExceptionSemantic("Function " + fnname + " is undefined.");
-				}
-			}
 			
-			// Save it for next time
-			node.optimised = fndef;
-		} else
-			fndef = (FunctionDefinition)node.optimised;
-		var newInvocation = new FunctionInvocation(fndef);
-		// Child 1 - arglist
-		doChild(node, 1, newInvocation);
-		// Execute
-		scope.execute(newInvocation, this);
-		return data;
-	}
-	
-	// Function invocation in an expression
-	public Object visit(ASTFnInvoke node, Object data) {
-		int stackLength = openValueClasses.size();
-		
-		FunctionDefinition fndef;
-		
-		if (node.optimised == null) { 
-			// Child 0 - identifier (fn name)
-			var fnname = getTokenOfChild(node, 0);
-			fndef = scope.findFunction(fnname);
-						
 			if (fndef == null) {
 				Display.Reference ref = scope.findReference(fnname);
 				if (ref != null) {
@@ -176,7 +129,7 @@ public class Parser implements CScharfVisitor {
 							fndef = classDef.findFunction(getTokenOfChild((SimpleNode) node.jjtGetChild(0), node.jjtGetChild(0).jjtGetNumChildren() - 1));
 							fnname = fndef.getName();
 						} else {
-							if (node.jjtGetChild(0).jjtGetNumChildren() >= 1) { //alt: if (val instanceof ValueContainer)
+							if (node.jjtGetChild(0).jjtGetNumChildren() >= 1) {
 								val = doChild(node, 0);
 							}
 							
@@ -232,39 +185,110 @@ public class Parser implements CScharfVisitor {
 						} 
 					}
 					
-//					for (var valClass : openValueClasses) {
-//						var classDef = valClass.getClassDefinition();
-//						
-//						if (classDef != null) {
-//							if (classDef.findFunction(fnname) != null) {
-//								fndef = classDef.findFunction(fnname);
-//							} else {
-//								var variable = valClass.getVariable(fnname);
-//								if (variable != null && variable instanceof ValueClass) {
-//									openValClass = findValueClass(node.jjtGetChild(0), (ValueClass) variable);
-//										
-//									var classDefinition = openValClass.getClassDefinition();
-//
-//									if (classDefinition != null) {
-//										fndef = classDefinition.findFunction(getTokenOfChild((SimpleNode) node.jjtGetChild(0), node.jjtGetChild(0).jjtGetNumChildren() - 1));
-//										fnname = fndef.getName();
-//									} else {
-//										if (node.jjtGetChild(0).jjtGetNumChildren() >= 1) {
-//											variable = doChild(node, 0);
-//										}
-//										
-//										if (variable.getClass() == ValueFn.class) {
-//											fndef = ((ValueFn)variable).getFunctionDefinition();
-//										} else {
-//											throw new ExceptionSemantic("Cannot invoke a value of type: " + variable.getClass() + " like a function.");
-//										}
-//									}
-//								}
-//							}
-//						} 
-//					}
+					openValueClasses.push(openValClass);
+					
+					if (fndef == null) {
+						throw new ExceptionSemantic("Function " + fnname + " is undefined.");
+					}
+				}
+			}
+			
+			// Save it for next time
+			node.optimised = fndef;
+		} else
+			fndef = (FunctionDefinition)node.optimised;
+		var newInvocation = new FunctionInvocation(fndef);
+		// Child 1 - arglist
+		doChild(node, 1, newInvocation);
+		// Execute
+		scope.execute(newInvocation, this);
+		return data;
+	}
+	
+	// Function invocation in an expression
+	public Object visit(ASTFnInvoke node, Object data) {
+		int stackLength = openValueClasses.size();
+		
+		FunctionDefinition fndef;
+		
+		if (node.optimised == null) { 
+			// Child 0 - identifier (fn name)
+			var fnname = getTokenOfChild(node, 0);
+			fndef = scope.findFunction(fnname);
+						
+			if (fndef == null) {
+				Display.Reference ref = scope.findReference(fnname);
+				if (ref != null) {
+					Value val = ref.getValue();
+					
+					if (val instanceof ValueClass) {
+						var valClass = findValueClass(node.jjtGetChild(0), (ValueClass) val);
+						openValueClasses.push(valClass);
+						
+						var classDef = valClass.getClassDefinition();
+
+						if (classDef != null) {
+							fndef = classDef.findFunction(getTokenOfChild((SimpleNode) node.jjtGetChild(0), node.jjtGetChild(0).jjtGetNumChildren() - 1));
+							fnname = fndef.getName();
+						} else {
+							if (node.jjtGetChild(0).jjtGetNumChildren() >= 1) {
+								val = doChild(node, 0);
+							}
+							
+							if (val.getClass() == ValueFn.class) {
+								fndef = ((ValueFn)val).getFunctionDefinition();
+							} else {
+								throw new ExceptionSemantic("Cannot invoke a value of type: " + val.getClass() + " like a function.");
+							}
+						}
+					} else {					
+						if (node.jjtGetChild(0).jjtGetNumChildren() >= 1) {
+							val = doChild(node, 0);
+						}
+						
+						if (val.getClass() == ValueFn.class) {
+							fndef = ((ValueFn)val).getFunctionDefinition();
+						} else {
+							throw new ExceptionSemantic("Cannot invoke a value of type: " + val.getClass() + " like a function.");
+						}
+					}
+				} else {
+					ValueClass openValClass = null;
+					
+					for (var i = openValueClasses.size() - 1; i >= 0; --i) {
+						var classDef = openValueClasses.elementAt(i).getClassDefinition();
+						
+						if (classDef != null) {
+							if (classDef.findFunction(fnname) != null) {
+								fndef = classDef.findFunction(fnname);
+							} else {
+								var variable = openValueClasses.elementAt(i).getVariable(fnname);
+								if (variable != null && variable instanceof ValueClass) {
+									openValClass = findValueClass(node.jjtGetChild(0), (ValueClass) variable);
+										
+									var classDefinition = openValClass.getClassDefinition();
+	
+									if (classDefinition != null) {
+										fndef = classDefinition.findFunction(getTokenOfChild((SimpleNode) node.jjtGetChild(0), node.jjtGetChild(0).jjtGetNumChildren() - 1));
+										fnname = fndef.getName();
+									} else {
+										if (node.jjtGetChild(0).jjtGetNumChildren() >= 1) {
+											variable = doChild(node, 0);
+										}
+										
+										if (variable.getClass() == ValueFn.class) {
+											fndef = ((ValueFn)variable).getFunctionDefinition();
+										} else {
+											throw new ExceptionSemantic("Cannot invoke a value of type: " + variable.getClass() + " like a function.");
+										}
+									}
+								}
+							}
+						} 
+					}
 					
 					openValueClasses.push(openValClass);
+					
 					if (fndef == null) {
 						throw new ExceptionSemantic("Function " + fnname + " is undefined.");
 					}
