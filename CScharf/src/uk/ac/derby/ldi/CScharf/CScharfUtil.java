@@ -32,28 +32,37 @@ public class CScharfUtil {
 	
 	public static final Class<?> getClassFromString(String type) {
 		switch(type) {
-		case "int":
-		case "short":
-		case "long":
-			return ValueInteger.class;
-		case "float":
-		case "dec":
-			return ValueRational.class;
-		case "bool":
-			return ValueBoolean.class;
-		case "string":
-			return ValueString.class;
-		case "anon":
-			return ValueAnonymousType.class;
-		case "func":
-			return ValueFn.class;
-		case "array":
-			return ValueArray.class;
-		case "instance":
-			return ValueClass.class;
-		default:
-			throw new ExceptionSemantic("Invalid type specified.");
+			case "int":
+				return ValueInteger.class;
+			case "float":
+				return ValueRational.class;
+			case "bool":
+				return ValueBoolean.class;
+			case "string":
+				return ValueString.class;
+			case "anon":
+				return ValueAnonymousType.class;
+			case "func":
+				return ValueFn.class;
+			case "array":
+				return ValueArray.class;
+			case "instance":
+				return ValueClass.class;
+			default:
+				throw new ExceptionSemantic("Invalid type specified.");
 		}
+	}
+	
+	public static final String getStringFromClass(Class<?> type) {
+		if (type.equals(ValueInteger.class)) return "int";
+		else if (type.equals(ValueRational.class)) return "float";
+		else if (type.equals(ValueBoolean.class)) return "bool";
+		else if (type.equals(ValueString.class)) return "string";
+		else if (type.equals(ValueAnonymousType.class)) return "anon";
+		else if (type.equals(ValueFn.class)) return "func";
+		else if (type.equals(ValueArray.class)) return "array";
+		else if (type.equals(ValueClass.class)) return "instance";
+		else throw new ExceptionSemantic("Could not resolve value to a type.");
 	}
 		
 	public static final <T> T getDefaultValueForClass(Class<?> _class) {

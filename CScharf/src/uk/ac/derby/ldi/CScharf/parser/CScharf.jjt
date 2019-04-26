@@ -78,7 +78,7 @@ TOKEN [IGNORE_CASE] : /* RESERVED WORDS AND LITERALS */
 
 TOKEN : /* TYPES */
 {
-  < TYPE: "int" | "short" | "long" | "float" | "dec" | "bool" | "string" | "anon" | "func" | "array" | "instance" | "void" >
+  < TYPE: "int" | "float" | "bool" | "string" | "anon" | "func" | "array" | "instance" | "void" >
 }
 
 TOKEN : /* TYPE MODIFIERS */

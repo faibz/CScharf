@@ -61,7 +61,6 @@ public class FunctionInvocation implements Invocation {
 	
 	/** Execute this invocation. */
 	Value execute(Parser parser) {
-		System.out.println("Executing function " + function.getName());
 		parser.doChildren(function.getFunctionBody(), null);
 		if (function.hasReturn())
 			return parser.doChild(function.getFunctionReturnExpression(), 0);

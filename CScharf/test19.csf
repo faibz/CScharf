@@ -1,17 +1,17 @@
 // Test classes
 
-write(10);
-
 public class Rectangle {
-	public Rectangle() {
-		write("In constructor");
-		//flex = 10;
+	public Rectangle(int len, int wid) {
+		length = len;
+		width = wid;
 	}
 	
 	int length = 12;
 	int width = 8;
+	instance innerRect;
 	
 	public int SetLength(int newLen) {
+		write("Setting length to: " + newLen);
 		length = newLen;
 		
 		return -1;
@@ -20,15 +20,21 @@ public class Rectangle {
 	public int GetArea() {
 		return length * width;
 	}
+	
+	public int DeepFunctionCall() {
+		write(innerRect.GetArea());
+		
+		return -1;
+	}
 }
 
-write(12);
+instance cc = new Rectangle(10, 5);
+cc.innerRect = new Rectangle(10, 6);
+write(cc.DeepFunctionCall());
+//write(cc.SetLength(10));
+//write("Top rectangle " + cc.GetArea());
+//write("Inner rectangle " + cc.innerRect.GetArea());
+//write(cc.innerRect.SetLength(5));
 
-instance cc = new Rectangle();
-
-write(cc.SetLength(10));
 //write(cc.length);
-
 //write(cc.GetArea());
-
-write(10);

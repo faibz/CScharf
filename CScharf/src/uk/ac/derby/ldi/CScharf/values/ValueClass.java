@@ -70,6 +70,14 @@ public class ValueClass extends ValueAbstract implements ValueContainer {
 		
 		return variables.get(name).getValue();
 	}
+	
+//	public FunctionDefinition getFunction(String name) {
+//		if (!functions.containsKey(name)) {
+//			throw new ExceptionSemantic("Function " + name + " does not exist in class " + getName() + ".");
+//		}
+//		
+//		return functions.get(name);
+//	}
 		
 	
 	public String toString() {

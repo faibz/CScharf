@@ -1,5 +1,8 @@
 package uk.ac.derby.ldi.CScharf.interpreter;
 
+import java.util.Stack;
+import java.util.Vector;
+
 import uk.ac.derby.ldi.CScharf.CScharfUtil;
 import uk.ac.derby.ldi.CScharf.parser.ast.*;
 import uk.ac.derby.ldi.CScharf.values.*;
@@ -7,6 +10,7 @@ import uk.ac.derby.ldi.CScharf.values.*;
 public class Parser implements CScharfVisitor {	
 	// Scope display handler
 	private Display scope = new Display();
+	private Stack<ValueClass> openValueClasses = new Stack<ValueClass>();
 	
 	// Get the ith child of a given node.
 	private static SimpleNode getChild(SimpleNode node, int childIndex) {
@@ -148,6 +152,8 @@ public class Parser implements CScharfVisitor {
 	
 	// Function invocation in an expression
 	public Object visit(ASTFnInvoke node, Object data) {
+		int stackLength = openValueClasses.size();
+		
 		FunctionDefinition fndef;
 		
 		if (node.optimised == null) { 
@@ -161,9 +167,25 @@ public class Parser implements CScharfVisitor {
 					Value val = ref.getValue();
 					
 					if (val instanceof ValueClass) {
-						var classDef = ((ValueClass) val).getClassDefinition(); //fnname actually classname here
-						fndef = classDef.findFunction(getTokenOfChild((SimpleNode)node.jjtGetChild(0), 0));
-						fnname = fndef.getName();
+						var valClass = findValueClass(node.jjtGetChild(0), (ValueClass) val);
+						openValueClasses.push(valClass);
+						
+						var classDef = valClass.getClassDefinition();
+
+						if (classDef != null) {
+							fndef = classDef.findFunction(getTokenOfChild((SimpleNode) node.jjtGetChild(0), node.jjtGetChild(0).jjtGetNumChildren() - 1));
+							fnname = fndef.getName();
+						} else {
+							if (node.jjtGetChild(0).jjtGetNumChildren() >= 1) { //alt: if (val instanceof ValueContainer)
+								val = doChild(node, 0);
+							}
+							
+							if (val.getClass() == ValueFn.class) {
+								fndef = ((ValueFn)val).getFunctionDefinition();
+							} else {
+								throw new ExceptionSemantic("Cannot invoke a value of type: " + val.getClass() + " like a function.");
+							}
+						}
 					} else {					
 						if (node.jjtGetChild(0).jjtGetNumChildren() >= 1) { //alt: if (val instanceof ValueContainer)
 							val = doChild(node, 0);
@@ -176,10 +198,79 @@ public class Parser implements CScharfVisitor {
 						}
 					}
 				} else {
-					throw new ExceptionSemantic("Function " + fnname + " is undefined.");
+					ValueClass openValClass = null;
+					
+					for (var i = openValueClasses.size() - 1; i >= 0; --i) {
+						var classDef = openValueClasses.elementAt(i).getClassDefinition();
+						
+						if (classDef != null) {
+							if (classDef.findFunction(fnname) != null) {
+								fndef = classDef.findFunction(fnname);
+							} else {
+								var variable = openValueClasses.elementAt(i).getVariable(fnname);
+								if (variable != null && variable instanceof ValueClass) {
+									openValClass = findValueClass(node.jjtGetChild(0), (ValueClass) variable);
+										
+									var classDefinition = openValClass.getClassDefinition();
+	
+									if (classDefinition != null) {
+										fndef = classDefinition.findFunction(getTokenOfChild((SimpleNode) node.jjtGetChild(0), node.jjtGetChild(0).jjtGetNumChildren() - 1));
+										fnname = fndef.getName();
+									} else {
+										if (node.jjtGetChild(0).jjtGetNumChildren() >= 1) {
+											variable = doChild(node, 0);
+										}
+										
+										if (variable.getClass() == ValueFn.class) {
+											fndef = ((ValueFn)variable).getFunctionDefinition();
+										} else {
+											throw new ExceptionSemantic("Cannot invoke a value of type: " + variable.getClass() + " like a function.");
+										}
+									}
+								}
+							}
+						} 
+					}
+					
+//					for (var valClass : openValueClasses) {
+//						var classDef = valClass.getClassDefinition();
+//						
+//						if (classDef != null) {
+//							if (classDef.findFunction(fnname) != null) {
+//								fndef = classDef.findFunction(fnname);
+//							} else {
+//								var variable = valClass.getVariable(fnname);
+//								if (variable != null && variable instanceof ValueClass) {
+//									openValClass = findValueClass(node.jjtGetChild(0), (ValueClass) variable);
+//										
+//									var classDefinition = openValClass.getClassDefinition();
+//
+//									if (classDefinition != null) {
+//										fndef = classDefinition.findFunction(getTokenOfChild((SimpleNode) node.jjtGetChild(0), node.jjtGetChild(0).jjtGetNumChildren() - 1));
+//										fnname = fndef.getName();
+//									} else {
+//										if (node.jjtGetChild(0).jjtGetNumChildren() >= 1) {
+//											variable = doChild(node, 0);
+//										}
+//										
+//										if (variable.getClass() == ValueFn.class) {
+//											fndef = ((ValueFn)variable).getFunctionDefinition();
+//										} else {
+//											throw new ExceptionSemantic("Cannot invoke a value of type: " + variable.getClass() + " like a function.");
+//										}
+//									}
+//								}
+//							}
+//						} 
+//					}
+					
+					openValueClasses.push(openValClass);
+					if (fndef == null) {
+						throw new ExceptionSemantic("Function " + fnname + " is undefined.");
+					}
 				}
 			}
-				
+			
 			if (!fndef.hasReturn())
 				throw new ExceptionSemantic("Function " + fnname + " is being invoked in an expression but does not have a return value.");
 			// Save it for next time
@@ -187,12 +278,18 @@ public class Parser implements CScharfVisitor {
 		} else {
 			fndef = (FunctionDefinition)node.optimised;
 		}
-		
+				
 		var newInvocation = new FunctionInvocation(fndef);
 		// Child 1 - arglist
 		doChild(node, 1, newInvocation);
 		// Execute
-		return scope.execute(newInvocation, this);
+		
+		var executionResult = scope.execute(newInvocation, this);
+		
+		if (openValueClasses.size() > stackLength)
+			openValueClasses.pop();
+		
+		return executionResult;
 	}
 		
 	// Function invocation argument list.
@@ -283,34 +380,14 @@ public class Parser implements CScharfVisitor {
 		if (node.optimised == null) {
 			String name = node.tokenValue;
 			reference = scope.findReference(name);
-			if (reference == null) {
-				var currentNode = node.jjtGetParent();
-				for (int i = 0; i < 6; ++i) {
-					System.out.println(currentNode);
-					
-					if (currentNode instanceof ASTClassBody/* || currentNode instanceof ASTFnBody*/) {
-						for (int j = 0; j < currentNode.jjtGetNumChildren(); ++j) {
-							var childNode = currentNode.jjtGetChild(j);
-							if (childNode instanceof ASTAssignment || childNode instanceof ASTVariableDeclaration) {
-								for (int k = 0; k < childNode.jjtGetNumChildren(); ++k) {
-									var furtherChildNode = childNode.jjtGetChild(k);
-									
-									if (((SimpleNode)furtherChildNode).tokenValue.equals(name)) {
-										//TODO: Check for full assignment. len = 10 will not suffice
-										
-										//var finalNode = (SimpleNode)furtherChildNode;
-										
-										//System.out.println("found something");
-										return new ValueInteger(-1);
-									}
-								}
-							}
-						}
+			if (reference == null) {				
+				for(var i = openValueClasses.size() - 1; i >= 0 ; --i) {
+					var value = openValueClasses.elementAt(i).getVariable(name);
+					if(value != null) {
+						return value;
 					}
-					
-					currentNode = currentNode.jjtGetParent();
 				}
-				
+
 				throw new ExceptionSemantic("Variable or parameter " + name + " is undefined.");
 			}
 				
@@ -326,12 +403,34 @@ public class Parser implements CScharfVisitor {
 		return value;
 	}
 	
+	private ValueClass findValueClass(Node node, ValueClass container) {
+		var derefNode = (ASTDereference) node;
+		
+		int childCount = node.jjtGetNumChildren();
+		
+		Value currentChild = container;
+		
+		for (int i = 0; i < childCount - 1; ++i) {
+			if (currentChild instanceof ValueContainer) {
+				currentChild = processContainerGet(currentChild, derefNode, i);
+			} else {
+				currentChild = processArrayGet(currentChild, derefNode, i);
+			}
+		}
+		
+		if (currentChild instanceof ValueClass) {
+			return ((ValueClass) currentChild);
+		}
+		
+		return null;
+	}
+	
 	private Value processAccess(Value value, ASTDereference node) {
 		if (value instanceof ValueContainer) {
 			var container = (ValueContainer) value;
 			var currentChild = container.getVariable(getTokenOfChild(node, 0));
 			
-			for (int i = 1; i < node.jjtGetNumChildren(); ++i) {
+			for (var i = 1; i < node.jjtGetNumChildren(); ++i) {
 				if (currentChild instanceof ValueContainer) {
 					currentChild = processContainerGet(currentChild, node, i);
 				} else {
@@ -345,7 +444,7 @@ public class Parser implements CScharfVisitor {
 			
 			var currentChild = arr.getValue((int)(doChild(node, 0).longValue()));
 			
-			for (int i = 1; i < node.jjtGetNumChildren(); ++i) {
+			for (var i = 1; i < node.jjtGetNumChildren(); ++i) {
 				if (currentChild instanceof ValueContainer) {
 					currentChild = processContainerGet(currentChild, node, i);
 				} else {
@@ -366,12 +465,11 @@ public class Parser implements CScharfVisitor {
 	}
 	
 	private void processPut(Value container, Value valToAssign, ASTDereference node) {
-		//System.out.println("Process put start");
 		int childCount = node.jjtGetNumChildren();
 		
 		Value currentChild = container;
 		
-		for (int i = 0; i < childCount - 1; ++i) {
+		for (var i = 0; i < childCount - 1; ++i) {
 			if (currentChild instanceof ValueContainer) {
 				currentChild = processContainerGet(currentChild, node, i);
 			} else {
@@ -433,38 +531,26 @@ public class Parser implements CScharfVisitor {
 	
 	private Object untypedAssignment(ASTAssignment node, Object data) {
 		Display.Reference reference;
+		ValueClass owningClass = null;
+		Value existingValue = null;
+		boolean classMember = false;
+		
 		if (node.optimised == null) {
 			var name = getTokenOfChild(node, 0);
 			reference = scope.findReference(name);
 			if (reference == null) {
-				var currentNode = node.jjtGetParent();
-				for (int i = 0; i < 6; ++i) {
-					System.out.println(currentNode);
-					
-					if (currentNode instanceof ASTClassBody/* || currentNode instanceof ASTFnBody*/) {
-						for (int j = 0; j < currentNode.jjtGetNumChildren(); ++j) {
-							var childNode = currentNode.jjtGetChild(j);
-							if (childNode instanceof ASTAssignment || childNode instanceof ASTVariableDeclaration) {
-								for (int k = 0; k < childNode.jjtGetNumChildren(); ++k) {
-									var furtherChildNode = childNode.jjtGetChild(k);
-									
-									if (((SimpleNode)furtherChildNode).tokenValue.equals(name)) {
-										//TODO: Check for full assignment. len = 10 will not suffice
-										
-										//var finalNode = (SimpleNode)furtherChildNode;
-										
-										//System.out.println("found something");
-										return new ValueInteger(-1);
-									}
-								}
-							}
-						}
+				
+				for(var valClass : openValueClasses) {
+					var value = valClass.getVariable(name);
+					if (value != null) {
+						 existingValue = value;
+						 owningClass = valClass;
+						 classMember = true;
 					}
-					
-					currentNode = currentNode.jjtGetParent();
 				}
 				
-				throw new ExceptionSemantic("Variable " + name + " does not exist yet. Are you missing a declaration?");
+				if (existingValue == null)
+					throw new ExceptionSemantic("Variable " + name + " does not exist yet. Are you missing a declaration?");
 			}
 
 			node.optimised = reference;
@@ -473,18 +559,22 @@ public class Parser implements CScharfVisitor {
 		
 		var valToAssign = doChild(node, 1);
 		
-		if (reference == null) {
-			throw new ExceptionSemantic("Variable: " + getTokenOfChild(node, 0) + " does not exist in the current context.");
+		if (reference == null && existingValue == null) {
+			throw new ExceptionSemantic("Variable " + getTokenOfChild(node, 0) + " does not exist in the current context.");
 		}
 		
-		var existingType = reference.getValue();
+		if (existingValue == null)
+			existingValue = reference.getValue();
 		
-		if (valToAssign.getClass().equals(existingType.getClass()) && node.jjtGetChild(0).jjtGetNumChildren() <= 0) {
-			reference.setValue(valToAssign);
-		} else if (existingType.getClass() == ValueArray.class || existingType instanceof ValueContainer) {
-			processPut(existingType, valToAssign, (ASTDereference) node.jjtGetChild(0));
+		if (valToAssign.getClass().equals(existingValue.getClass()) && node.jjtGetChild(0).jjtGetNumChildren() <= 0) {
+			if (classMember) 
+				owningClass.setVariable(getTokenOfChild(node, 0), valToAssign);
+			else
+				reference.setValue(valToAssign);
+		} else if (existingValue.getClass() == ValueArray.class || existingValue instanceof ValueContainer) {
+			processPut(existingValue, valToAssign, (ASTDereference) node.jjtGetChild(0));
 		} else {
-			throw new ExceptionSemantic("Cannot assign value of type: " + valToAssign.getClass() + " to variable of type: " + existingType.getClass() + ". Are you missing a cast?");
+			throw new ExceptionSemantic("Cannot assign value of type: " + valToAssign.getClass() + " to variable of type: " + existingValue.getClass() + ". Are you missing a cast?");
 		}
 		
 		return data;
@@ -672,12 +762,6 @@ public class Parser implements CScharfVisitor {
 			throw new ExceptionSemantic("Class: " + node.tokenValue + " already exists.");
 		}
 		
-		/* 
-		 * Notes:
-		 * 
-		 * Child 0: class body
-		 */
-		
 		var currentClassDefinition = new ClassDefinition(node.tokenValue, scope.getLevel() + 1);
 		scope.addClass(currentClassDefinition);
 		
@@ -736,23 +820,29 @@ public class Parser implements CScharfVisitor {
 		return data;
 	}
 	
-	public Object visit(ASTClassConstructor node, Object data) {		
+	public Object visit(ASTClassConstructor node, Object data) {
 		var suppliedClassName = getTokenOfChild(node, 0);
 		
 		if(!suppliedClassName.equals(node.tokenValue))
 			throw new ExceptionSemantic("Constructor for: " + suppliedClassName + " is not valid in class: " + node.tokenValue + ". Are you missing a return type?");
 		
-		var currentFunctionDefinition = new FunctionDefinition(node.tokenValue + "Constructor", scope.getLevel() + 1);
+		var constructorName = node.tokenValue + " Constructor(";
+		var parmListNode = node.jjtGetChild(1);
+		
+		for (var i = 0; i < parmListNode.jjtGetNumChildren(); i += 2) {
+			constructorName = constructorName + getTokenOfChild((SimpleNode) parmListNode, i) + ",";			
+		}
+
+		constructorName = constructorName.substring(0, constructorName.length() - 1) + ")";
+		
+		var currentFunctionDefinition = new FunctionDefinition(constructorName, scope.getLevel() + 1);
 		doChild(node, 1, currentFunctionDefinition);
 				
 		scope.addFunction(currentFunctionDefinition);
 		currentFunctionDefinition.setFunctionBody(getChild(node, 2));
 		
-		var shouldExist = scope.findClass(suppliedClassName);
-		
-		shouldExist.addConstructor(currentFunctionDefinition);
-		
-		//currentFunctionDefinition.setFunctionReturnExpression(node);
+		var classDef = scope.findClass(suppliedClassName);
+		classDef.addConstructor(currentFunctionDefinition);
 		
 		return data;
 	}
@@ -760,12 +850,24 @@ public class Parser implements CScharfVisitor {
 	public Object visit(ASTClassInstance node, Object data) {
 		FunctionDefinition fndef;
 		ValueClass valClass = null;
-
+		
 		// Child 0 - identifier (fn name)
 		var className = getTokenOfChild(node, 0);
-		var constructorName = className + "Constructor";
+		var constructorName = className + " Constructor(";
+		
+		var argListNode = node.jjtGetChild(1);
+		
+		for (var i = 0; i < argListNode.jjtGetNumChildren(); ++i) {
+			var val = doChild((SimpleNode)argListNode, i);
+			constructorName = constructorName + CScharfUtil.getStringFromClass(val.getClass()) + ",";
+		}
+		
+		constructorName = constructorName.substring(0, constructorName.length() - 1) + ")";
 		
 		valClass = new ValueClass(scope.findClass(className));
+		
+		//This allows the constructor to modify the value class variables
+		openValueClasses.push(valClass);
 		
 		fndef = scope.findFunction(constructorName);
 		
@@ -775,20 +877,11 @@ public class Parser implements CScharfVisitor {
 
 		var newInvocation = new FunctionInvocation(fndef);
 		// Child 1 - arglist
-		doChild(node, 1, newInvocation);
-		// Execute
-		
-		//TODO: Either make the constructor function return a ValueClass or don't return scope.execute and return valClass from earlier
-		
-		/*
-		 * 
-		 * VERY WIP
-		 * 
-		 * Original: return scope.execute(newInvocation, this);
-		 * 
-		 */
+		doChild(node, 1, newInvocation);		
 		
 		scope.execute(newInvocation, this);
+		
+		openValueClasses.pop();
 		
 		return valClass;
 	}
