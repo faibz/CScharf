@@ -853,7 +853,7 @@ public class Parser implements CScharfVisitor {
 				if (classBodyChildNode.fnHasReturn) {
 					functionDefinition.setFunctionReturnExpression(getChild(classBodyChildNode, 4));
 				}
-					
+				
 				classDef.addFunction(functionDefinition);
 			} else if (classBodyChildNode instanceof ASTClassDef) {
 				var classDefinition = new ClassDefinition(classBodyChildNode.tokenValue, scope.getLevel() + 1);
@@ -935,9 +935,7 @@ public class Parser implements CScharfVisitor {
 		var interfaceDefinition = new InterfaceDefinition();
 				
 		interfaceDefinition.setName(node.tokenValue);
-		
-		System.out.println("Creating new interface: " + interfaceDefinition.getName());
-		
+			
 		var functionCount = node.jjtGetNumChildren() / 3;
 		
 		for (var i = 0; i < functionCount; ++i) {
