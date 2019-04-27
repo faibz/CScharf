@@ -22,6 +22,7 @@ public class FunctionDefinition implements Comparable<Object> {
 	private SimpleNode ASTFunctionBody = null;
 	private SimpleNode ASTFunctionReturnExpression = null;
 	private int depth;
+	private Class<?> returnType = null;
 	
 	/** Ctor for function definition. */
 	FunctionDefinition(String functionName, int level) {
@@ -39,6 +40,7 @@ public class FunctionDefinition implements Comparable<Object> {
 		this.ASTFunctionBody = value.ASTFunctionBody;
 		this.ASTFunctionReturnExpression = value.ASTFunctionReturnExpression;
 		this.depth = value.depth;
+		this.returnType = value.returnType;
 	}
 
 	/** Get the depth of this definition.
@@ -148,4 +150,11 @@ public class FunctionDefinition implements Comparable<Object> {
 		return functions.get(name);
 	}
 
+	void setReturnType(Class<?> returnType) {
+		this.returnType = returnType;
+	}
+	
+	Class<?> getReturnType() {
+		return returnType;
+	}
 }

@@ -1,6 +1,10 @@
-// Test classes
+// Test classes, interfaces, and inheritance
 
-public class Rectangle {
+public interface Shape {
+	int GetArea();
+}
+
+public class Rectangle : Shape {
 	public Rectangle(int len, int wid) {
 		length = len;
 		width = wid;
@@ -17,24 +21,42 @@ public class Rectangle {
 		return -1;
 	}
 	
+	public int SetWidth(int newWid) {
+		write("Setting width to: " + newWid);
+		width = newWid;
+		
+		return -1;
+	}
+	
+	public int SetInnerRect(instance rect) {
+		innerRect = rect;
+		
+		return -1;
+	}
+	
 	public int GetArea() {
 		return length * width;
 	}
 	
-	public int DeepFunctionCall() {
-		write(innerRect.GetArea());
-		
-		return -1;
+	public int GetInnerRectArea() {
+		return innerRect.GetArea();
 	}
 }
 
-instance cc = new Rectangle(10, 5);
-cc.innerRect = new Rectangle(10, 6);
-write(cc.DeepFunctionCall());
-//write(cc.SetLength(10));
-//write("Top rectangle " + cc.GetArea());
-//write("Inner rectangle " + cc.innerRect.GetArea());
-//write(cc.innerRect.SetLength(5));
+instance rect = new Rectangle(10, 5);
+write(rect.SetInnerRect(new Rectangle(12, 6)));
 
-//write(cc.length);
-//write(cc.GetArea());
+write("Main rectangle area: " + rect.GetArea()); //Tests that calls work at various levels
+write("Inner rectangle area: " + rect.GetInnerRectArea());
+write("Inner rectangle area: " + rect.innerRect.GetArea());
+
+//rect.innerRect.SetLength(15);
+
+write(rect.SetWidth(2));
+write(rect.innerRect.SetLength(20));
+
+write("Main rectangle area: " + rect.GetArea()); //Tests that only one class instance affected
+write("Inner rectangle " + rect.innerRect.GetArea());
+
+//write(rect.length);
+//write(rect.GetArea());

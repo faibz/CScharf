@@ -1,5 +1,7 @@
 package uk.ac.derby.ldi.CScharf.interpreter;
 
+import java.util.Vector;
+
 import uk.ac.derby.ldi.CScharf.values.Value;
 
 /** A display manages run-time access to variable and parameter scope where
@@ -10,6 +12,7 @@ class Display {
 	private final int maximumFunctionNesting = 64;
 	private FunctionInvocation[] display = new FunctionInvocation[maximumFunctionNesting];
 	private ClassDefinition[] classDisplay = new ClassDefinition[maximumFunctionNesting];
+	private Vector<InterfaceDefinition> interfaces = new Vector<InterfaceDefinition>();
 		
 	private int currentLevel;
 
@@ -121,5 +124,17 @@ class Display {
 	/** Add a class to the current level */
 	void addClass(ClassDefinition definition) {
 		classDisplay[currentLevel].addClass(definition);
+	}
+	
+	void addInterface(InterfaceDefinition definition) {
+		interfaces.add(definition);
+	}
+	
+	InterfaceDefinition findInterface(String name) {
+		for(var def : interfaces) {
+			if (def.getName().equals(name)) return def;
+		}
+		
+		return null;
 	}
 }

@@ -786,17 +786,53 @@ public class Parser implements CScharfVisitor {
 			throw new ExceptionSemantic("Class: " + node.tokenValue + " already exists.");
 		}
 		
-		var currentClassDefinition = new ClassDefinition(node.tokenValue, scope.getLevel() + 1);
-		scope.addClass(currentClassDefinition);
+		var classDefinition = new ClassDefinition(node.tokenValue, scope.getLevel() + 1);
+		scope.addClass(classDefinition);
+				
+		doChild(node, node.jjtGetNumChildren() - 1);
+		classDefinition.setClassBody(getChild(node, 0));
 		
-		doChild(node, 0);
-		currentClassDefinition.setClassBody(getChild(node, 0));
+		verifyInheritance(node, classDefinition);
 		
 		// Preserve this definition for future reference, and so we don't define
 		// it every time this node is processed.
-		node.optimised = currentClassDefinition;
+		node.optimised = classDefinition;
 		
 		return data;
+	}
+	
+	private void verifyInheritance(ASTClassDef node, ClassDefinition classDefinition) {
+		Vector<InterfaceDefinition> interfacesToInheritFrom = new Vector<InterfaceDefinition>();
+		
+		for (var i = 0; i < node.jjtGetNumChildren() - 1; ++i) {
+			var intDef = scope.findInterface(getTokenOfChild(node, i));
+			
+			if (intDef == null) throw new ExceptionSemantic("Interface " + getTokenOfChild(node, i) + " does not exist.");
+			
+			interfacesToInheritFrom.add(intDef);
+		}
+		
+		var functionsInClass = classDefinition.getFunctionsCopy();
+		
+
+		
+		for (var intDef : interfacesToInheritFrom) {
+			//TODO check if there's a match for each in functionsInClass
+			
+			boolean interfaceImplemented = false;
+			
+			for (var intFunc : intDef.getFunctions()) {
+				for (var funcDef : functionsInClass.values()) {
+					if(funcDef.getName().equals(intDef.getName()) && funcDef.getReturnType() == intDef.get) {
+						interfaceImplemented = true;
+					}
+				}
+				
+				if (!interfaceImplemented) throw new ExceptionSemantic("Class " + classDefinition.getName() + " does not implement interface " + intDef.getName() + ".");
+			}
+			
+
+		}
 	}
 	
 	public Object visit(ASTClassBody node, Object data) {
@@ -823,7 +859,6 @@ public class Parser implements CScharfVisitor {
 				
 				classDef.defineVariable(getTokenOfChild(classBodyChildNode, childrenCount - 3), getTokenOfChild(classBodyChildNode, childrenCount - 2), false, false, doChild(classBodyChildNode, childrenCount - 1));
 			} else if (classBodyChildNode instanceof ASTVariableDeclaration) {
-				
 				var childrenCount = classBodyChildNode.jjtGetNumChildren();
 				classDef.declareVariable(getTokenOfChild(classBodyChildNode, childrenCount - 2), getTokenOfChild(classBodyChildNode, childrenCount - 1), false, false);
 			} else if (classBodyChildNode instanceof ASTFnDef) {
@@ -834,7 +869,7 @@ public class Parser implements CScharfVisitor {
 					functionDefinition.setFunctionReturnExpression(getChild(classBodyChildNode, 4));
 				classDef.addFunction(functionDefinition);
 			} else if (classBodyChildNode instanceof ASTClassDef) {
-				var classDefinition = new ClassDefinition(classBodyChildNode.tokenValue, scope.getLevel() + 2); //TODO: +1 or +2?
+				var classDefinition = new ClassDefinition(classBodyChildNode.tokenValue, scope.getLevel() + 1); //TODO: +1 or +2?
 				doChild(classBodyChildNode, 0);
 				classDefinition.setClassBody(getChild(classBodyChildNode, 0));
 				classDef.addClass(classDefinition);
@@ -908,6 +943,44 @@ public class Parser implements CScharfVisitor {
 		openValueClasses.pop();
 		
 		return valClass;
+	}
+	
+	// Adds interface to scope
+	public Object visit(ASTInterfaceDef node, Object data) {
+		var interfaceDefinition = new InterfaceDefinition();
+				
+		interfaceDefinition.setName(node.tokenValue);
+		
+		System.out.println("Creating new interface: " + interfaceDefinition.getName());
+		
+		var functionCount = node.jjtGetNumChildren() / 3;
+		
+		for (var i = 0; i < functionCount; ++i) {
+			var interfaceFunc = new InterfaceFunction();
+			
+			interfaceFunc.setReturnType(CScharfUtil.getClassFromString(getTokenOfChild(node, i)));
+			interfaceFunc.setName(getTokenOfChild(node, i + 1));
+			
+			var parmListNode = (SimpleNode) node.jjtGetChild(i + 2);
+			
+			for (var j = 0; j < parmListNode.jjtGetNumChildren(); j += 2) {
+				interfaceFunc.addParam(CScharfUtil.getClassFromString(getTokenOfChild(parmListNode, j)));
+			}
+			
+			interfaceDefinition.addFunction(interfaceFunc);
+		}
+		
+//		for (var func : interfaceDefinition.getFunctions()) {
+//			System.out.println(func.getName());
+//			System.out.println(func.getReturnType());
+//			System.out.println(func.getParamTypes());
+//		}
+//		
+//		System.out.println(interfaceDefinition.getFunctions().size());
+		
+		scope.addInterface(interfaceDefinition);
+		
+		return data;
 	}
 			
 	public Object visit(ASTFn node, Object data) {	

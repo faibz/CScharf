@@ -66,6 +66,7 @@ TOKEN [IGNORE_CASE] : /* RESERVED WORDS AND LITERALS */
 | < WRITE: "WRITE" >
 | < CLASS: "CLASS" >
 | < FUNCTION: "FUNCTION" >
+| < INTERFACE: "INTERFACE" >
 | < NEW: "NEW" >
 | < RETURN: "RETURN" >
 | < OR: "||" >
@@ -234,16 +235,17 @@ void statement() #Statement :
 {}
 {
 				 	LOOKAHEAD(2) assignment() ";"
-				|   variable_declaration()
+				|   variable_declaration() ";"
 				|	LOOKAHEAD(2) fndef()
 				|	block()
-				|   classdef()
+				|   LOOKAHEAD(2) classdef()
+				|   interfacedef()
 				|	ifstatement()	
 				|	forloop()
 				|   whileloop()
-				|	write()
-				|	call()
-				| 	quit()
+				|	write() ";"
+				|	call() ";"
+				| 	quit() ";"
 }
 
 void block() #Block :
@@ -276,7 +278,7 @@ void fndef() #FnDef :
 void classdef() #ClassDef :
 {Token t;}
 {
-					<ACCESS_MODIFIER> <CLASS> t = <IDENTIFIER> "{"
+					<ACCESS_MODIFIER> <CLASS> t = <IDENTIFIER> [<COLON> identifier() ("," identifier())*] "{"
 						classbody(t.image)
 					"}" { jjtThis.tokenValue = t.image; }
 }
@@ -293,9 +295,16 @@ void constructor(String className) #ClassConstructor :
 void classbody(String className) #ClassBody :
 {}
 {
-  constructor(className) (LOOKAHEAD(3) assignment() ";" | variable_declaration() | LOOKAHEAD(2) fndef() | classdef() )* { jjtThis.tokenValue = className; }
+  constructor(className) (LOOKAHEAD(3) assignment() ";" | variable_declaration() ";" | LOOKAHEAD(2) fndef() | classdef() )* { jjtThis.tokenValue = className; }
 }
 
+void interfacedef() #InterfaceDef :
+{Token t;}
+{
+  					<ACCESS_MODIFIER> <INTERFACE> t = <IDENTIFIER> "{"
+  						(type() identifier() parmlist() ";")*
+  					"}" { jjtThis.tokenValue = t.image; }
+}  
 
 void returnexpr() #ReturnExpression :
 {}
@@ -312,7 +321,7 @@ void assignment() #Assignment :
 void variable_declaration() #VariableDeclaration :
 {}
 {
-					[modifier()] type() identifier() ";"
+					[modifier()] type() identifier()
 }
   
 
@@ -357,19 +366,19 @@ void whileloop() #WhileLoop :
 void write() :
 {}
 {
-					<WRITE> expression() #Write(1) ";"
+					<WRITE> expression() #Write(1)
 }
 
 void quit() :
 {}
 {
-					<QUIT> #Quit ";"
+					<QUIT> #Quit
 }
   
 void call() #Call :
 {}
 {
-					dereference() arglist() ";"
+					dereference() arglist()
 }
 
 void arglist() #ArgList :
