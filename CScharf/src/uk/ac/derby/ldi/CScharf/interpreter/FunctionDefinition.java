@@ -5,6 +5,7 @@ import uk.ac.derby.ldi.CScharf.parser.ast.SimpleNode;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Vector;
 
 /** This class captures information about the function currently being defined.
  * 
@@ -105,6 +106,10 @@ public class FunctionDefinition implements Comparable<Object> {
 	
 	Class<?> getParameterType(int i) {
 		return (Class<?>)parameters.values().toArray()[i];
+	}
+	
+	Vector<Class<?>> getParameterTypes() {
+		return new Vector<Class<?>>(parameters.values());
 	}
 	
 	/** Define a parameter. */

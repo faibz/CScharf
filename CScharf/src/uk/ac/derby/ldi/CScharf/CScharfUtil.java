@@ -48,6 +48,8 @@ public class CScharfUtil {
 				return ValueArray.class;
 			case "instance":
 				return ValueClass.class;
+			case "void":
+				return null;
 			default:
 				throw new ExceptionSemantic("Invalid type specified.");
 		}
@@ -65,7 +67,7 @@ public class CScharfUtil {
 		else throw new ExceptionSemantic("Could not resolve value to a type.");
 	}
 		
-	public static final <T> T getDefaultValueForClass(Class<?> _class) {
-		return (T)defaultValues.get(_class);
+	public static final Value getDefaultValueForClass(Class<?> type) {
+		return defaultValues.get(type);
 	}
 }

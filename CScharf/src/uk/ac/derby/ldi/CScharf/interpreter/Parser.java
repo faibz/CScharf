@@ -61,27 +61,23 @@ public class Parser implements CScharfVisitor {
 
 	// Function definition
 	public Object visit(ASTFnDef node, Object data) {
-		//TODO: Enforce return type
-		
-		// Already defined?
 		if (node.optimised != null)
 			return data;
-		// Child 0 - identifier (fn name)
+		
 		var fnname = getTokenOfChild(node, 1);
 		if (scope.findFunctionInCurrentLevel(fnname) != null)
 			throw new ExceptionSemantic("Function " + fnname + " already exists.");
+		
 		var currentFunctionDefinition = new FunctionDefinition(fnname, scope.getLevel() + 1);
-		// Child 1 - function definition parameter list
+		currentFunctionDefinition.setReturnType(CScharfUtil.getClassFromString(getTokenOfChild(node, 0)));
+		
 		doChild(node, 2, currentFunctionDefinition);
-		// Add to available functions
 		scope.addFunction(currentFunctionDefinition);
-		// Child 2 - function body
 		currentFunctionDefinition.setFunctionBody(getChild(node, 3));
-		// Child 3 - optional return expression
-		if (node.fnHasReturn)
+		if (node.fnHasReturn) {
 			currentFunctionDefinition.setFunctionReturnExpression(getChild(node, 4));
-		// Preserve this definition for future reference, and so we don't define
-		// it every time this node is processed.
+		}
+			
 		node.optimised = currentFunctionDefinition;
 		return data;
 	}
@@ -312,6 +308,9 @@ public class Parser implements CScharfVisitor {
 		
 		if (openValueClasses.size() > stackLength)
 			openValueClasses.pop();
+				
+		if (fndef.getReturnType() != executionResult.getClass())
+			throw new ExceptionSemantic("Cannot return value of type " + executionResult.getClass() + " from a function with a return type of " + fndef.getReturnType());
 		
 		return executionResult;
 	}
@@ -519,11 +518,9 @@ public class Parser implements CScharfVisitor {
 	// Execute a declaration statement.
 	public Object visit(ASTVariableDeclaration node, Object data) {
 		int childrenCount = node.jjtGetNumChildren();
-	
-		Display.Reference reference;
 		
 		var name = getTokenOfChild(node, 0);
-		reference = scope.findReference(name);
+		Display.Reference reference = scope.findReference(name);
 		if (reference != null)
 			throw new ExceptionSemantic("Variable " + name + " already exists.");
 		else
@@ -534,9 +531,7 @@ public class Parser implements CScharfVisitor {
 		}
 		
 		var specifiedType = CScharfUtil.getClassFromString(getTokenOfChild(node, childrenCount - 2));
-		Value val = CScharfUtil.getDefaultValueForClass(specifiedType);
-		
-		reference.setValue(val);
+		reference.setValue(CScharfUtil.getDefaultValueForClass(specifiedType));
 		
 		return data;
 	}
@@ -637,8 +632,6 @@ public class Parser implements CScharfVisitor {
 		
 		if (childrenCount == 4 && getTokenOfChild(node, childrenCount - 4).equals("const"))
 			valToAssign.setConst();
-		
-		//System.out.println("Setting value of type: " + valToAssign.getClass());
 		
 		reference.setValue(valToAssign);
 
@@ -794,8 +787,6 @@ public class Parser implements CScharfVisitor {
 		
 		verifyInheritance(node, classDefinition);
 		
-		// Preserve this definition for future reference, and so we don't define
-		// it every time this node is processed.
 		node.optimised = classDefinition;
 		
 		return data;
@@ -814,29 +805,22 @@ public class Parser implements CScharfVisitor {
 		
 		var functionsInClass = classDefinition.getFunctionsCopy();
 		
-
-		
 		for (var intDef : interfacesToInheritFrom) {
-			//TODO check if there's a match for each in functionsInClass
-			
-			boolean interfaceImplemented = false;
-			
 			for (var intFunc : intDef.getFunctions()) {
+				boolean matchFound = false;
+				
 				for (var funcDef : functionsInClass.values()) {
-					if(funcDef.getName().equals(intDef.getName()) && funcDef.getReturnType() == intDef.get) {
-						interfaceImplemented = true;
+					if(funcDef.getName().equals(intFunc.getName()) && funcDef.getReturnType() == funcDef.getReturnType() && funcDef.getParameterTypes().equals(intFunc.getParamTypes())) {
+						matchFound = true;
 					}
 				}
 				
-				if (!interfaceImplemented) throw new ExceptionSemantic("Class " + classDefinition.getName() + " does not implement interface " + intDef.getName() + ".");
+				if (!matchFound) throw new ExceptionSemantic("Class " + classDefinition.getName() + " does not implement interface " + intDef.getName() + "'s " + intFunc.getName() + " function.");
 			}
-			
-
 		}
 	}
 	
 	public Object visit(ASTClassBody node, Object data) {
-		//Constructor
 		doChild(node, 0);
 		
 		var classDef = scope.findClass(node.tokenValue); 
@@ -863,13 +847,16 @@ public class Parser implements CScharfVisitor {
 				classDef.declareVariable(getTokenOfChild(classBodyChildNode, childrenCount - 2), getTokenOfChild(classBodyChildNode, childrenCount - 1), false, false);
 			} else if (classBodyChildNode instanceof ASTFnDef) {
 				var functionDefinition = new FunctionDefinition(getTokenOfChild(classBodyChildNode, 1), scope.getLevel() + 1);
+				functionDefinition.setReturnType(CScharfUtil.getClassFromString(getTokenOfChild(classBodyChildNode, 0)));
 				doChild(classBodyChildNode, 2, functionDefinition);
 				functionDefinition.setFunctionBody(getChild(classBodyChildNode, 3));
-				if (classBodyChildNode.fnHasReturn)
+				if (classBodyChildNode.fnHasReturn) {
 					functionDefinition.setFunctionReturnExpression(getChild(classBodyChildNode, 4));
+				}
+					
 				classDef.addFunction(functionDefinition);
 			} else if (classBodyChildNode instanceof ASTClassDef) {
-				var classDefinition = new ClassDefinition(classBodyChildNode.tokenValue, scope.getLevel() + 1); //TODO: +1 or +2?
+				var classDefinition = new ClassDefinition(classBodyChildNode.tokenValue, scope.getLevel() + 1);
 				doChild(classBodyChildNode, 0);
 				classDefinition.setClassBody(getChild(classBodyChildNode, 0));
 				classDef.addClass(classDefinition);
@@ -910,7 +897,6 @@ public class Parser implements CScharfVisitor {
 		FunctionDefinition fndef;
 		ValueClass valClass = null;
 		
-		// Child 0 - identifier (fn name)
 		var className = getTokenOfChild(node, 0);
 		var constructorName = className + " Constructor(";
 		
@@ -935,7 +921,6 @@ public class Parser implements CScharfVisitor {
 		}
 
 		var newInvocation = new FunctionInvocation(fndef);
-		// Child 1 - arglist
 		doChild(node, 1, newInvocation);		
 		
 		scope.execute(newInvocation, this);
@@ -969,15 +954,7 @@ public class Parser implements CScharfVisitor {
 			
 			interfaceDefinition.addFunction(interfaceFunc);
 		}
-		
-//		for (var func : interfaceDefinition.getFunctions()) {
-//			System.out.println(func.getName());
-//			System.out.println(func.getReturnType());
-//			System.out.println(func.getParamTypes());
-//		}
-//		
-//		System.out.println(interfaceDefinition.getFunctions().size());
-		
+				
 		scope.addInterface(interfaceDefinition);
 		
 		return data;
@@ -989,7 +966,6 @@ public class Parser implements CScharfVisitor {
 		var fnname = getTokenOfChild((SimpleNode) node.jjtGetParent(), 1);
 		var funcDef = new FunctionDefinition(fnname, scope.getLevel() + 1);
 		
-		//Parameters
 		doChild(node, 0, funcDef);
 		funcDef.setFunctionBody(getChild(node, 1));
 		
@@ -1026,7 +1002,7 @@ public class Parser implements CScharfVisitor {
 		return node.optimised;
 	}
 	
-	// Process new
+	// Process new (e.g. new { ... }, new int[2], etc.)
 	public Object visit(ASTNewObj node, Object data) {
 		return doChild(node, 0);
 	}
