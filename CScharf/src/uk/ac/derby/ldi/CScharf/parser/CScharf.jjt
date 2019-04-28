@@ -344,13 +344,6 @@ void typeless_assignment() #TypelessAssignment :
 	  				identifier() "=" expression()
 }
 
-//void ifstatement() #IfStatement :
-//{}
-//{
-//  					<IF> "(" expression() ")" statement() 
-//  					[ LOOKAHEAD(1) <ELSE> statement() {jjtThis.ifHasElse = true;} ]
-//}
-
 void ifstatement() #IfStatement :
 {}
 {
@@ -358,23 +351,11 @@ void ifstatement() #IfStatement :
   					[ LOOKAHEAD(1) <ELSE> block() {jjtThis.ifHasElse = true;} ]
 }
 
-//void forloop() #ForLoop :
-//{}
-//{
-//  					<FOR> "(" assignment() ";" expression() ";" assignment() ")" statement()
-//}
-
 void forloop() #ForLoop :
 {}
 {
   					<FOR> "(" assignment() ";" expression() ";" assignment() ")" block()
 }
-
-//void whileloop() #WhileLoop :
-//{}
-//{
-//					<WHILE> "(" expression() ")" statement()
-//} 
 
 void whileloop() #WhileLoop :
 {}
