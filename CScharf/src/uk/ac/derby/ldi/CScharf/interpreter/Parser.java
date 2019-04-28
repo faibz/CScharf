@@ -867,11 +867,7 @@ public class Parser implements CScharfVisitor {
 	}
 	
 	public Object visit(ASTClassBody node, Object data) {
-		System.out.println("Checkpoint #1");
-		
 		doChild(node, 0);
-		
-		System.out.println("Checkpoint #2");
 		
 		var classDef = scope.findClass(node.tokenValue); 
 		
