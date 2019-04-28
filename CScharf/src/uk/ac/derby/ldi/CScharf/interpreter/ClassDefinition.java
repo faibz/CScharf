@@ -22,12 +22,10 @@ public class ClassDefinition implements Comparable<Object>, Serializable {
 	//Should I bother with this? Could just rummage around in the functions hashmap looking at signatures
 	private FunctionDefinition constructor = null;
 	private SimpleNode ASTClassBody = null;
-	private int depth;
 	
 	/** Ctor for class definition. */
-	ClassDefinition(String className, int level) {
+	ClassDefinition(String className) {
 		name = className;
-		depth = level;
 	}
 	
 	//copy constructor
@@ -37,16 +35,6 @@ public class ClassDefinition implements Comparable<Object>, Serializable {
 		this.variables = value.getVariablesCopy();
 		this.functions = value.getFunctionsCopy();
 		this.classes = value.getClassesCopy();
-	}
-
-	/** Get the depth of this definition.
-	 * 0 - root or main scope
-	 * 1 - definition inside root or main scope
-	 * 2 - definition inside 1
-	 * n - etc.
-	 */
-	int getLevel() {
-		return depth;
 	}
 	
 	/** Get the name of this class. */
@@ -162,7 +150,27 @@ public class ClassDefinition implements Comparable<Object>, Serializable {
 	
 	/** Find a nested class definition. return null if it doesn't exist. */
 	ClassDefinition findClass(String name) {
-		return classes.get(name);
+		System.out.println("Searching for class " + name + " in a class " + getName());
+		
+		var closeClassDef = classes.get(name);
+		
+		if (closeClassDef == null) {
+			for (var classDef : classes.values()) {
+				var retClassDef = classDef.findClass(name);
+				
+				if (retClassDef == null) {
+					continue;
+				}
+				
+				return retClassDef;
+			}
+		} else {
+			return closeClassDef;
+		}
+		
+		System.out.println("Couldn't find class");
+		
+		return null;
 	}
 
 	ClassVariable findVariable(String name) {

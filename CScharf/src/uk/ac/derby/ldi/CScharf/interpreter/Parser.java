@@ -57,14 +57,26 @@ public class Parser implements CScharfVisitor {
 	// Execute a block
 	public Object visit(ASTBlock node, Object data) {
 		
+		//Pre block execution
 		var preExistingVariables = scope.getAccessibleVariables();
+		var preExistingFunctions = scope.getAccessibleFunctions();
+		
+		//Execution
 		var executionResult =  doChildren(node, data);
+		
+		//Post block execution
 		var variablesAvailableAfterExecution = scope.getAccessibleVariables();
+		var functionsAvailableAfterExecution = scope.getAccessibleFunctions();
 				
 		variablesAvailableAfterExecution.removeAll(preExistingVariables);
+		functionsAvailableAfterExecution.removeAll(preExistingFunctions);
 		
 		for (var newVariable : variablesAvailableAfterExecution) {
 			scope.removeVariable(newVariable);
+		}
+		
+		for (var newFunction : functionsAvailableAfterExecution) {
+			scope.removeFunction(newFunction.getName());
 		}
 		
 		return executionResult;
@@ -80,7 +92,6 @@ public class Parser implements CScharfVisitor {
 			throw new ExceptionSemantic("Function " + fnname + " already exists.");
 		
 		var currentFunctionDefinition = new FunctionDefinition(fnname, scope.getLevel() + 1);
-		currentFunctionDefinition.setReturnType(CScharfUtil.getClassFromString(getTokenOfChild(node, 0)));
 		
 		doChild(node, 2, currentFunctionDefinition);
 		scope.addFunction(currentFunctionDefinition);
@@ -88,7 +99,9 @@ public class Parser implements CScharfVisitor {
 		if (node.fnHasReturn) {
 			currentFunctionDefinition.setFunctionReturnExpression(getChild(node, 4));
 		}
-			
+		
+		currentFunctionDefinition.setReturnType(CScharfUtil.getClassFromString(getTokenOfChild(node, 0)));
+		
 		node.optimised = currentFunctionDefinition;
 		return data;
 	}
@@ -204,11 +217,23 @@ public class Parser implements CScharfVisitor {
 			node.optimised = fndef;
 		} else
 			fndef = (FunctionDefinition)node.optimised;
+				
 		var newInvocation = new FunctionInvocation(fndef);
 		// Child 1 - arglist
 		doChild(node, 1, newInvocation);
 		// Execute
-		scope.execute(newInvocation, this);
+		var possibleValue = scope.execute(newInvocation, this);
+				
+		if (fndef.hasReturn()) {
+			var returnType = fndef.getReturnType();
+			 if (returnType != null) {
+				 if (possibleValue.getClass() != returnType)
+					 throw new ExceptionSemantic("Cannot return value of type " + possibleValue.getClass() + " from a function with a return type of " + returnType);
+			 } else {
+				 throw new ExceptionSemantic("Cannot return a value from a void method.");
+			 }
+		}
+		
 		return data;
 	}
 	
@@ -351,6 +376,11 @@ public class Parser implements CScharfVisitor {
 	
 	// Execute a FOR loop
 	public Object visit(ASTForLoop node, Object data) {
+				
+		var assignmentNode = (SimpleNode) getChild(node, 0);
+		if (assignmentNode.jjtGetChild(0) instanceof ASTModifier)
+			throw new ExceptionSemantic("Cannot apply const/readonly to variable used for loop initialisation.");
+		
 		// loop initialisation
 		doChild(node, 0);
 		while (true) {
@@ -365,6 +395,11 @@ public class Parser implements CScharfVisitor {
 			// assign loop increment
 			doChild(node, 2);
 		}
+		
+		if (assignmentNode.jjtGetNumChildren() == 3) {
+			scope.removeVariable(((SimpleNode)assignmentNode.jjtGetChild(1)).tokenValue);
+		}
+
 		return data;
 	}
 	
@@ -786,13 +821,13 @@ public class Parser implements CScharfVisitor {
 		if (node.optimised != null)
 			return data;
 		
-		if (scope.findClassInCurrentLevel(node.tokenValue) != null) {
+		if (scope.findClass(node.tokenValue) != null) {
 			throw new ExceptionSemantic("Class: " + node.tokenValue + " already exists.");
 		}
 		
-		var classDefinition = new ClassDefinition(node.tokenValue, scope.getLevel() + 1);
+		var classDefinition = new ClassDefinition(node.tokenValue);
 		scope.addClass(classDefinition);
-				
+		
 		doChild(node, node.jjtGetNumChildren() - 1);
 		classDefinition.setClassBody(getChild(node, 0));
 		
@@ -832,7 +867,11 @@ public class Parser implements CScharfVisitor {
 	}
 	
 	public Object visit(ASTClassBody node, Object data) {
+		System.out.println("Checkpoint #1");
+		
 		doChild(node, 0);
+		
+		System.out.println("Checkpoint #2");
 		
 		var classDef = scope.findClass(node.tokenValue); 
 		
@@ -858,17 +897,20 @@ public class Parser implements CScharfVisitor {
 				classDef.declareVariable(getTokenOfChild(classBodyChildNode, childrenCount - 2), getTokenOfChild(classBodyChildNode, childrenCount - 1), false, false);
 			} else if (classBodyChildNode instanceof ASTFnDef) {
 				var functionDefinition = new FunctionDefinition(getTokenOfChild(classBodyChildNode, 1), scope.getLevel() + 1);
-				functionDefinition.setReturnType(CScharfUtil.getClassFromString(getTokenOfChild(classBodyChildNode, 0)));
+				
 				doChild(classBodyChildNode, 2, functionDefinition);
 				functionDefinition.setFunctionBody(getChild(classBodyChildNode, 3));
 				if (classBodyChildNode.fnHasReturn) {
 					functionDefinition.setFunctionReturnExpression(getChild(classBodyChildNode, 4));
 				}
 				
+				functionDefinition.setReturnType(CScharfUtil.getClassFromString(getTokenOfChild(classBodyChildNode, 0)));
+				
 				classDef.addFunction(functionDefinition);
 			} else if (classBodyChildNode instanceof ASTClassDef) {
-				var classDefinition = new ClassDefinition(classBodyChildNode.tokenValue, scope.getLevel() + 1);
-				doChild(classBodyChildNode, 0);
+				var classDefinition = new ClassDefinition(classBodyChildNode.tokenValue);
+				classDef.addClass(classDefinition);
+				doChild(classBodyChildNode, classBodyChildNode.jjtGetNumChildren() - 1);
 				classDefinition.setClassBody(getChild(classBodyChildNode, 0));
 				classDef.addClass(classDefinition);
 			}
@@ -889,18 +931,18 @@ public class Parser implements CScharfVisitor {
 		for (var i = 0; i < parmListNode.jjtGetNumChildren(); i += 2) {
 			constructorName = constructorName + getTokenOfChild((SimpleNode) parmListNode, i) + ",";			
 		}
-
+		
 		constructorName = constructorName.substring(0, constructorName.length() - 1) + ")";
 		
 		var currentFunctionDefinition = new FunctionDefinition(constructorName, scope.getLevel() + 1);
 		doChild(node, 1, currentFunctionDefinition);
-				
+		
 		scope.addFunction(currentFunctionDefinition);
 		currentFunctionDefinition.setFunctionBody(getChild(node, 2));
 		
 		var classDef = scope.findClass(suppliedClassName);
 		classDef.addConstructor(currentFunctionDefinition);
-		
+				
 		return data;
 	}
 	

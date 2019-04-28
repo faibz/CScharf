@@ -162,8 +162,20 @@ public class FunctionDefinition implements Comparable<Object> {
 	FunctionDefinition findFunction(String name) {
 		return functions.get(name);
 	}
+	
+	Vector<FunctionDefinition> getFunctions() {
+		return new Vector<FunctionDefinition>(functions.values());
+	}
+	
+	void removeFunction(String name) {
+		functions.remove(name);
+	}
 
 	void setReturnType(Class<?> returnType) {
+		if (!hasReturn() && returnType != null) {
+			throw new ExceptionSemantic("Cannot set return type for function without return expression.");
+		}
+		
 		this.returnType = returnType;
 	}
 	

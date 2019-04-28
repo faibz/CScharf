@@ -104,4 +104,12 @@ public class FunctionInvocation implements Invocation {
 		return function.findFunction(name);
 	}
 	
+	Vector<FunctionDefinition> getFunctions() {
+		return function.getFunctions();
+	}
+	
+	void removeFunction(String name) {
+		function.removeFunction(name);
+	}
+	
 }

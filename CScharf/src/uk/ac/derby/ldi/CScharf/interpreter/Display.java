@@ -11,7 +11,7 @@ class Display {
 
 	private final int maximumFunctionNesting = 64;
 	private FunctionInvocation[] display = new FunctionInvocation[maximumFunctionNesting];
-	private ClassDefinition[] classDisplay = new ClassDefinition[maximumFunctionNesting];
+	private ClassDefinition programClass = null;
 	private Vector<InterfaceDefinition> interfaces = new Vector<InterfaceDefinition>();
 		
 	private int currentLevel;
@@ -43,7 +43,7 @@ class Display {
 		// root or 0th scope
 		currentLevel = 0;
 		display[currentLevel] = new FunctionInvocation(new FunctionDefinition("%main", currentLevel));
-		classDisplay[currentLevel] = new ClassDefinition("%program", currentLevel);
+		programClass = new ClassDefinition("%program");
 	}
 	
 	/** Execute a function in its scope, using a specified parser. */
@@ -83,6 +83,14 @@ class Display {
 	void removeVariable(String name) {
 		display[currentLevel].removeSlot(name);
 	}
+	
+	Vector<FunctionDefinition> getAccessibleFunctions() {
+		return display[currentLevel].getFunctions();
+	}
+	
+	void removeFunction(String name) {
+		display[currentLevel].removeFunction(name);
+	}
 
 	/** Create a variable in the current level and return its Reference. */
 	Reference defineVariable(String name) {
@@ -103,14 +111,11 @@ class Display {
 	
 	/** Find a class.  Return null if it doesn't exist. */
 	ClassDefinition findClass(String name) {
-		int level = currentLevel;
-		while (level >= 0) {
-			ClassDefinition definition = classDisplay[level].findClass(name);
-			if (definition != null)
-				return definition;
-			level--;
-		}
-		return null;
+		
+		var classDef = programClass.findClass(name);
+				
+		return classDef == null ? null : classDef;
+
 	}
 
 	/** Find a function in the current level.  Return null if it doesn't exist. */
@@ -123,14 +128,10 @@ class Display {
 		display[currentLevel].addFunction(definition);
 	}
 	
-	/** Find a class in the current level.  Return null if it doesn't exist. */
-	ClassDefinition findClassInCurrentLevel(String name) {
-		return classDisplay[currentLevel].findClass(name);
-	}
 	
 	/** Add a class to the current level */
 	void addClass(ClassDefinition definition) {
-		classDisplay[currentLevel].addClass(definition);
+		programClass.addClass(definition);
 	}
 	
 	void addInterface(InterfaceDefinition definition) {

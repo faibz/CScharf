@@ -4,8 +4,10 @@ public interface Shape {
 	int GetArea();
 }
 
-public class Rectangle : Shape {
-	public Rectangle(int len, int wid) {
+public class Rectangle : Shape 
+{
+	public Rectangle(int len, int wid) 
+	{
 		length = len;
 		width = wid;
 	}
@@ -14,32 +16,37 @@ public class Rectangle : Shape {
 	int width = 8;
 	instance innerRect;
 	
-	public int SetLength(int newLen) {
+	public int SetLength(int newLen) 
+	{
 		write("Setting length to: " + newLen);
 		length = newLen;
 		
 		return -1;
 	}
 	
-	public int SetWidth(int newWid) {
+	public int SetWidth(int newWid) 
+	{
 		write("Setting width to: " + newWid);
 		width = newWid;
 		
 		return -1;
 	}
 	
-	public int SetInnerRect(instance rect) {
+	public int SetInnerRect(instance rect) 
+	{
 		innerRect = rect;
 		
 		return -1;
 	}
 	
 	//Modify this to test interface inheritance is enforced
-	public int GetArea() {
+	public int GetArea() 
+	{
 		return length * width;
 	}
 	
-	public int GetInnerRectArea() {
+	public int GetInnerRectArea() 
+	{
 		return innerRect.GetArea();
 	}
 }
