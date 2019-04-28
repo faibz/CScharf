@@ -56,7 +56,18 @@ public class Parser implements CScharfVisitor {
 
 	// Execute a block
 	public Object visit(ASTBlock node, Object data) {
-		return doChildren(node, data);	
+		
+		var preExistingVariables = scope.getAccessibleVariables();
+		var executionResult =  doChildren(node, data);
+		var variablesAvailableAfterExecution = scope.getAccessibleVariables();
+				
+		variablesAvailableAfterExecution.removeAll(preExistingVariables);
+		
+		for (var newVariable : variablesAvailableAfterExecution) {
+			scope.removeVariable(newVariable);
+		}
+		
+		return executionResult;
 	}
 
 	// Function definition

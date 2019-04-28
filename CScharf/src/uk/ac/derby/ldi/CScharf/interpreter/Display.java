@@ -74,7 +74,14 @@ class Display {
 			level--;
 		}
 		return null;		
+	}
 	
+	Vector<String> getAccessibleVariables() {
+		return display[currentLevel].getSlotKeys();
+	}
+	
+	void removeVariable(String name) {
+		display[currentLevel].removeSlot(name);
 	}
 
 	/** Create a variable in the current level and return its Reference. */

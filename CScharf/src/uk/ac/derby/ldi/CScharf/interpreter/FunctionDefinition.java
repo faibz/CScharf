@@ -127,6 +127,14 @@ public class FunctionDefinition implements Comparable<Object> {
 		return slots.size();
 	}
 	
+	Vector<String> getAllSlotKeys() {
+		return new Vector<String>(slots.keySet());
+	}
+	
+	void removeSlotKey(String name) {
+		slots.remove(name);
+	}
+	
 	/** Get the storage slot number of a given variable or parm.  Return -1 if it doesn't exist. */
 	int getLocalSlotNumber(String name) {
 		Integer slot = slots.get(name);

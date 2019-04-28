@@ -36,6 +36,14 @@ public class FunctionInvocation implements Invocation {
 		return function.getLevel();
 	}
 	
+	Vector<String> getSlotKeys() {
+		return function.getAllSlotKeys();
+	}
+	
+	void removeSlot(String name) {
+		function.removeSlotKey(name);
+	}
+	
 	/** Set an argument value. */
 	void setArgument(Value v) {
 		if (argumentCount >= function.getParameterCount())
