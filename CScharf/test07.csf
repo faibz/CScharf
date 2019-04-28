@@ -11,3 +11,14 @@ public int test(int p1, int p2, int p3) {
 write(test(3, 4, 5));
 
 test(3, 4, 5);
+
+{
+	public class Test
+	{
+		public Test() 
+		{
+			write ("New Test()");
+		}
+	}
+}
+

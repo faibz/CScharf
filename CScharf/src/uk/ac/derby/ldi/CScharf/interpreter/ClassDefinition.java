@@ -150,8 +150,6 @@ public class ClassDefinition implements Comparable<Object>, Serializable {
 	
 	/** Find a nested class definition. return null if it doesn't exist. */
 	ClassDefinition findClass(String name) {
-		System.out.println("Searching for class " + name + " in a class " + getName());
-		
 		var closeClassDef = classes.get(name);
 		
 		if (closeClassDef == null) {
@@ -167,8 +165,6 @@ public class ClassDefinition implements Comparable<Object>, Serializable {
 		} else {
 			return closeClassDef;
 		}
-		
-		System.out.println("Couldn't find class");
 		
 		return null;
 	}
