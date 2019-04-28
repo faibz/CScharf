@@ -454,7 +454,7 @@ void primary_expression() :
 {
                               literal()
                             | LOOKAHEAD(2) fn_invoke()
-                            |  dereference()
+                            | dereference()
                             | "(" expression() ")"
 }
 
@@ -485,7 +485,7 @@ void identifier() #Identifier :
 void dereference() #Dereference :
 {Token t;}
 {
-	t = <IDENTIFIER> ("[" add_expression() "]" | "." identifier())* { jjtThis.tokenValue = t.image; }
+	t = <IDENTIFIER> ( "[" add_expression() "]" | "." identifier())* { jjtThis.tokenValue = t.image; }
 }
 
 void character() #Character :
@@ -530,7 +530,7 @@ void array() #Array :
 void classInstance() #ClassInstance :
 {}
 {
-	identifier() arglist()
+	(LOOKAHEAD(2) identifier() "." )* identifier() arglist()
 }
 
 void newObj() #NewObj :

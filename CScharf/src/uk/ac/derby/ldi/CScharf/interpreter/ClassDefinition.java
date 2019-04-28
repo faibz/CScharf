@@ -2,6 +2,7 @@ package uk.ac.derby.ldi.CScharf.interpreter;
 
 import uk.ac.derby.ldi.CScharf.CScharfUtil;
 import uk.ac.derby.ldi.CScharf.parser.ast.SimpleNode;
+import uk.ac.derby.ldi.CScharf.values.Modifier;
 import uk.ac.derby.ldi.CScharf.values.Value;
 
 import java.util.HashMap;
@@ -113,19 +114,21 @@ public class ClassDefinition implements Comparable<Object>, Serializable {
 	}
 		
 	/** Define a variable. */
-	void defineVariable(String type, String name, boolean constant, boolean priv, Value defaultValue) {
+	void defineVariable(String type, String name, Modifier modifier, Value defaultValue) {
 		if (variables.containsKey(name))
 			throw new ExceptionSemantic("Variable " + name + " already exists in class " + getName());
-		var classVar = new ClassVariable(constant, priv, CScharfUtil.getClassFromString(type), defaultValue);
+		var classVar = new ClassVariable(modifier, CScharfUtil.getClassFromString(type), defaultValue);
 		variables.put(name, classVar);
 		varSignature += ((varSignature.length() == 0) ? name : (", " + name));
 	}
 	
-	void declareVariable(String type, String name, boolean constant, boolean priv) {
+	void declareVariable(String type, String name, boolean readonly) {
 		if (variables.containsKey(name))
 			throw new ExceptionSemantic("Variable " + name + " already exists in class " + getName());
 		
-		var classVar = new ClassVariable(constant, priv, CScharfUtil.getClassFromString(type));
+		var modifier = readonly ? Modifier.READONLY : Modifier.NONE;
+		
+		var classVar = new ClassVariable(modifier, CScharfUtil.getClassFromString(type));
 		variables.put(name, classVar);
 	}
 	
@@ -148,8 +151,33 @@ public class ClassDefinition implements Comparable<Object>, Serializable {
 		classes.put(definition.getName(), definition);
 	}
 	
-	/** Find a nested class definition. return null if it doesn't exist. */
+	/** Find a class definition. return null if it doesn't exist. */
 	ClassDefinition findClass(String name) {
+		var closeClassDef = classes.get(name);
+		
+//		if (closeClassDef == null) {
+//			for (var classDef : classes.values()) {
+//				var retClassDef = classDef.findClass(name);
+//				
+//				if (retClassDef == null) {
+//					continue;
+//				}
+//				
+//				return retClassDef;
+//			}
+//		} else {
+//			return closeClassDef;
+//		}
+		
+		//System.out.println(closeClassDef.getName());
+		
+		return closeClassDef == null ? null : closeClassDef;
+		
+		//return null;
+	}
+
+	/** Find a nested class definition. return null if it doesn't exist. */
+	ClassDefinition findClassDeep(String name) {
 		var closeClassDef = classes.get(name);
 		
 		if (closeClassDef == null) {
@@ -166,9 +194,10 @@ public class ClassDefinition implements Comparable<Object>, Serializable {
 			return closeClassDef;
 		}
 		
+		
 		return null;
 	}
-
+	
 	ClassVariable findVariable(String name) {
 		return variables.get(name);
 	}

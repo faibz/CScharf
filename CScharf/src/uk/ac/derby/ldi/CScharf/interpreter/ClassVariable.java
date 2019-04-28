@@ -1,32 +1,29 @@
 package uk.ac.derby.ldi.CScharf.interpreter;
 
 import uk.ac.derby.ldi.CScharf.CScharfUtil;
+import uk.ac.derby.ldi.CScharf.values.Modifier;
 import uk.ac.derby.ldi.CScharf.values.Value;
 
 public class ClassVariable {
-	private boolean constant = false;
-	private boolean priv = false;
+	private Modifier modifier = Modifier.NONE;
 	private Class<?> type = null;
 	private Value value = null;
 	
-	public ClassVariable(boolean constant, boolean priv, Class<?> type) {
-		this.constant = constant;
-		this.priv = priv;
+	public ClassVariable(Modifier modifier, Class<?> type) {
+		this.modifier = modifier;
 		this.type = type;
 		this.value = CScharfUtil.getDefaultValueForClass(type);
 	}
 	
-	public ClassVariable(boolean constant, boolean priv, Class<?> type, Value defaultValue) {
-		this.constant = constant;
-		this.priv = priv;
+	public ClassVariable(Modifier modifier, Class<?> type, Value defaultValue) {
+		this.modifier = modifier;
 		this.type = type;
 		this.value = defaultValue;
 	}
 	
 	//copy constructor
 	public ClassVariable(ClassVariable val) {
-		this.constant = val.constant;
-		this.priv = val.priv;
+		this.modifier = val.modifier;
 		this.type = val.type;
 		this.value = val.value;
 	}
@@ -35,11 +32,18 @@ public class ClassVariable {
 		return value;
 	}
 	
-	public void setValue(Value val) {
+	public void setValue(Value val, boolean inConstructor) {
+		if (modifier == Modifier.CONSTANT)
+			throw new ExceptionSemantic("Cannot set the value of a constant variable");
+		
+		if (modifier == Modifier.READONLY && !inConstructor) {
+			throw new ExceptionSemantic("Cannot modify readonly variable value outside of constructor.");
+		}
+		
 		value = val;
 	}
 	
 	public String toString() {
-		return "Constant=" + constant + "|Private=" + priv + "|Type=" + type;
+		return "Modifier=" + modifier.toString() + "|Type=" + type;
 	}
 }

@@ -11,6 +11,7 @@ import uk.ac.derby.ldi.CScharf.interpreter.FunctionDefinition;
 
 public class ValueClass extends ValueAbstract implements ValueContainer {
 	private UUID id = UUID.randomUUID();
+	private boolean inConstructor = false;
 	private Map<String, ClassVariable> variables = new HashMap<String, ClassVariable>();
 	private Map<String, FunctionDefinition> functions = new HashMap<String, FunctionDefinition>();
 	private Map<String, ClassDefinition> classes = new HashMap<String, ClassDefinition>();
@@ -60,7 +61,7 @@ public class ValueClass extends ValueAbstract implements ValueContainer {
 			throw new ExceptionSemantic("Variable " + name + " does not exist in class " + getName() + ".");
 		}
 
-		variables.get(name).setValue(value);
+		variables.get(name).setValue(value, inConstructor);
 	}
 	
 	public Value getVariable(String name) {
@@ -70,20 +71,16 @@ public class ValueClass extends ValueAbstract implements ValueContainer {
 		
 		return variables.get(name).getValue();
 	}
-	
-//	public FunctionDefinition getFunction(String name) {
-//		if (!functions.containsKey(name)) {
-//			throw new ExceptionSemantic("Function " + name + " does not exist in class " + getName() + ".");
-//		}
-//		
-//		return functions.get(name);
-//	}
-		
+			
 	
 	public String toString() {
 		//TODO put var data in here too
 		
 		return id.toString();
+	}
+	
+	public void setInConstructor(boolean val) {
+		this.inConstructor = val;
 	}
 
 }

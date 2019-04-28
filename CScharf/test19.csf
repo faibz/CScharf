@@ -15,7 +15,7 @@ public class Rectangle : Shape
 	int length = 12;
 	int width = 8;
 	instance innerRect;
-	
+		
 	public int SetLength(int newLen) 
 	{
 		write("Setting length to: " + newLen);
@@ -49,6 +49,22 @@ public class Rectangle : Shape
 	{
 		return innerRect.GetArea();
 	}
+	
+	public class Test
+	{
+		public Test() 
+		{
+			write("New Test()");
+			testValue = 22;
+		}
+		
+		readonly int testValue = 10;
+			
+		public int GetTestValue()
+		{
+			return testValue;
+		}
+	}
 }
 
 instance rect = new Rectangle(10, 5);
@@ -68,3 +84,6 @@ write("Inner rectangle " + rect.innerRect.GetArea());
 
 //write(rect.length);
 //write(rect.GetArea());
+
+instance carBox = new Rectangle.Test();
+write(carBox.GetTestValue());

@@ -334,7 +334,7 @@ public class Parser implements CScharfVisitor {
 		} else {
 			fndef = (FunctionDefinition)node.optimised;
 		}
-				
+		
 		var newInvocation = new FunctionInvocation(fndef);
 		// Child 1 - arglist
 		doChild(node, 1, newInvocation);
@@ -869,28 +869,37 @@ public class Parser implements CScharfVisitor {
 	public Object visit(ASTClassBody node, Object data) {
 		doChild(node, 0);
 		
-		var classDef = scope.findClass(node.tokenValue); 
+		var classDef = scope.findClassDeep(node.tokenValue);
 		
 		for(var i = 1; i < node.jjtGetNumChildren(); ++i) {
 			SimpleNode classBodyChildNode = getChild(node, i);
 			
 			if (classBodyChildNode instanceof ASTAssignment) {
-				
-				/*
-				 * childrenCount - 1 = value to assign
-				 * childrenCount - 2 = name of variable to assign to
-				 * childrenCount - 3 = type of variable
-				 * childrenCount - 4 = modifier
-				 */
-				
-				//TODO: allow multiple modifiers e.g. public const
-				
 				var childrenCount = classBodyChildNode.jjtGetNumChildren();
+				var modifier = Modifier.NONE;
 				
-				classDef.defineVariable(getTokenOfChild(classBodyChildNode, childrenCount - 3), getTokenOfChild(classBodyChildNode, childrenCount - 2), false, false, doChild(classBodyChildNode, childrenCount - 1));
+				if (classBodyChildNode.jjtGetChild(0) instanceof ASTModifier) {
+					var modifierNode = (ASTModifier) classBodyChildNode.jjtGetChild(0);
+					
+					modifier = modifierNode.tokenValue.equals("const") ? Modifier.CONSTANT : Modifier.READONLY;
+				}
+				
+				classDef.defineVariable(getTokenOfChild(classBodyChildNode, childrenCount - 3), getTokenOfChild(classBodyChildNode, childrenCount - 2), modifier, doChild(classBodyChildNode, childrenCount - 1));
 			} else if (classBodyChildNode instanceof ASTVariableDeclaration) {
 				var childrenCount = classBodyChildNode.jjtGetNumChildren();
-				classDef.declareVariable(getTokenOfChild(classBodyChildNode, childrenCount - 2), getTokenOfChild(classBodyChildNode, childrenCount - 1), false, false);
+				
+				var readonly = false;
+				
+				if (classBodyChildNode.jjtGetChild(0) instanceof ASTModifier) {
+					var modifierNode = (ASTModifier) classBodyChildNode.jjtGetChild(0);
+					
+					if (modifierNode.tokenValue.equals("const")) 
+						throw new ExceptionSemantic("Cannot set variable declaration to constant without a definition.");
+					
+					readonly = true;
+				}
+				
+				classDef.declareVariable(getTokenOfChild(classBodyChildNode, childrenCount - 2), getTokenOfChild(classBodyChildNode, childrenCount - 1), readonly);
 			} else if (classBodyChildNode instanceof ASTFnDef) {
 				var functionDefinition = new FunctionDefinition(getTokenOfChild(classBodyChildNode, 1), scope.getLevel() + 1);
 				
@@ -911,7 +920,7 @@ public class Parser implements CScharfVisitor {
 				classDef.addClass(classDefinition);
 			}
 		}
-		
+
 		return data;
 	}
 	
@@ -936,7 +945,7 @@ public class Parser implements CScharfVisitor {
 		scope.addFunction(currentFunctionDefinition);
 		currentFunctionDefinition.setFunctionBody(getChild(node, 2));
 		
-		var classDef = scope.findClass(suppliedClassName);
+		var classDef = scope.findClassDeep(suppliedClassName);	
 		classDef.addConstructor(currentFunctionDefinition);
 				
 		return data;
@@ -946,8 +955,19 @@ public class Parser implements CScharfVisitor {
 		FunctionDefinition fndef;
 		ValueClass valClass = null;
 		
-		var className = getTokenOfChild(node, 0);
-		var constructorName = className + " Constructor(";
+		var classDef = scope.findClass(getTokenOfChild(node, 0));
+		
+		if (classDef == null) {
+			throw new ExceptionSemantic("Class " + getTokenOfChild(node, 0) + " could not be found.");
+		}
+		
+		if (node.jjtGetNumChildren() > 2) {
+			for (var i = 1; i < node.jjtGetNumChildren() - 1; ++i) {
+				classDef = classDef.findClass(getTokenOfChild(node, i));
+			}
+		}
+
+		var constructorName = classDef.getName() + " Constructor(";
 		
 		var argListNode = node.jjtGetChild(1);
 		
@@ -958,7 +978,7 @@ public class Parser implements CScharfVisitor {
 		
 		constructorName = constructorName.substring(0, constructorName.length() - 1) + ")";
 		
-		valClass = new ValueClass(scope.findClass(className));
+		valClass = new ValueClass(classDef);
 		
 		//This allows the constructor to modify the value class variables
 		openValueClasses.push(valClass);
@@ -966,13 +986,15 @@ public class Parser implements CScharfVisitor {
 		fndef = scope.findFunction(constructorName);
 		
 		if (fndef == null) {
-			throw new ExceptionSemantic("Cannot find compatible constructor for class:  " + className + ".");
+			throw new ExceptionSemantic("Cannot find compatible constructor for class:  " + classDef.getName() + ".");
 		}
 
 		var newInvocation = new FunctionInvocation(fndef);
 		doChild(node, 1, newInvocation);		
 		
+		valClass.setInConstructor(true);
 		scope.execute(newInvocation, this);
+		valClass.setInConstructor(false);
 		
 		openValueClasses.pop();
 		

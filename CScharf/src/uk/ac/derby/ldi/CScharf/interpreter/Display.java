@@ -111,11 +111,16 @@ class Display {
 	
 	/** Find a class.  Return null if it doesn't exist. */
 	ClassDefinition findClass(String name) {
-		
 		var classDef = programClass.findClass(name);
-				
+		
 		return classDef == null ? null : classDef;
-
+	}
+	
+	/** Find a class.  Return null if it doesn't exist. */
+	ClassDefinition findClassDeep(String name) {
+		var classDef = programClass.findClassDeep(name);
+		
+		return classDef == null ? null : classDef;
 	}
 
 	/** Find a function in the current level.  Return null if it doesn't exist. */
