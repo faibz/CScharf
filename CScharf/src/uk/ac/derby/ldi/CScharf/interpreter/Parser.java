@@ -1029,17 +1029,20 @@ public class Parser implements CScharfVisitor {
 		return data;
 	}
 			
-	public Object visit(ASTFn node, Object data) {	
+	public Object visit(ASTFn node, Object data) {
 		var valueFunction = new ValueFn();
 		
 		var fnname = getTokenOfChild((SimpleNode) node.jjtGetParent(), 1);
 		var funcDef = new FunctionDefinition(fnname, scope.getLevel() + 1);
 		
-		doChild(node, 0, funcDef);
-		funcDef.setFunctionBody(getChild(node, 1));
+		doChild(node, 1, funcDef);
+		funcDef.setFunctionBody(getChild(node, 2));
 		
-		if (node.fnHasReturn)
-			funcDef.setFunctionReturnExpression(getChild(node, 2));
+		if (node.fnHasReturn) {
+			funcDef.setFunctionReturnExpression(getChild(node, 3));
+		}
+		
+		funcDef.setReturnType(CScharfUtil.getClassFromString(getTokenOfChild(node, 0)));
 		
 		valueFunction.setFunctionDefinition(funcDef);
 		node.optimised = valueFunction;

@@ -1,14 +1,11 @@
 // Test first-class and anonymous operators
 
-//TODO: fix issue with error if function not defined prior.
-//TODO: Worst case: when invoking a function with a function as an argument, find the function getting called...
-// look at its param list, and add a function to the scope that has the same function name as the param.
+func myop = int function(func x, int y) { return x(22) + y; };
+write(myop(int function(int p) { return p * 4;}, 3));
 
-func myop = function(func x, int y) { return x(22) + y; };
-write(myop(function(int p) { return p * 4;}, 3);
-
-func singleNested = function(func a, func b) {
+func singleNested = int function(func a, func b)
+{
 	return a() + b();
 };
 
-write(singleNested(function() { return 10; }, function() { return 10; }));
+write(singleNested(int function() { return 10; }, int function() { return 10; }));

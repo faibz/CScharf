@@ -1,9 +1,16 @@
-public int sum(int n) {
-   int p = 0;
-   if (n > 0)
-      	p = n + sum(n - 1);
-   else
-	p = 0;
+public int sum(int n) 
+{
+	int p = 0;
+	
+	if (n > 0)
+	{
+		p = n + sum(n - 1);
+	}
+	else
+	{
+		p = 0;
+	}
+	
    return p;
 }
 

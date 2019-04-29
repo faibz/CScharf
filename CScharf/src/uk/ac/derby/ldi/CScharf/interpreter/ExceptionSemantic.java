@@ -9,5 +9,4 @@ public class ExceptionSemantic extends Error {
 	public ExceptionSemantic(String message) {
 		super(message);
 	}
-
 }

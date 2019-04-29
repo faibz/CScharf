@@ -8,6 +8,6 @@ write(bob.b);
 write(bob.dogs);
 write(bob.fox);
 
-write(bob.a + bob.b;)
+write(bob.a + bob.b);
 
 write(bob);

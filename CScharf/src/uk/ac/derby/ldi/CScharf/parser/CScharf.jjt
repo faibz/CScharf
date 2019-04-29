@@ -446,23 +446,22 @@ void unary_expression() :
                               <NOT> unary_expression() #UnaryNot(1)
                             | "+"   unary_expression() #UnaryPlus(1)
                             | "-"   unary_expression() #UnaryMinus(1)
-                            | primary_expression()
+                            | LOOKAHEAD(40) primary_expression()
 }
 
 void primary_expression() : 
 {}
 {
-                              literal()
-                            | LOOKAHEAD(2) fn_invoke()
-                            | LOOKAHEAD(2) dereference()
+                            literal()
+                            | LOOKAHEAD(10) fn_invoke()
+                            | LOOKAHEAD(9) dereference()
                             | "(" expression() ")"
 }
 
 void fn_invoke() #FnInvoke :
 {}
 {
-							//dereference() arglist()
-							identifier() arglist()
+							dereference() arglist()
 }
 
 void literal() :
@@ -509,7 +508,7 @@ void rational() #Rational :
 void fn() #Fn :
 {}
 {
-	<FUNCTION> parmlist() "{"
+	type() <FUNCTION> parmlist() "{"
 		fnbody()
 		[ <RETURN> returnexpr() ";" {jjtThis.fnHasReturn = true;} ] 
 		"}"

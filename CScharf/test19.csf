@@ -16,27 +16,19 @@ public class Rectangle : Shape
 	int width = 8;
 	instance innerRect;
 		
-	public int SetLength(int newLen) 
+	public void SetLength(int newLen) 
 	{
-		write("Setting length to: " + newLen);
 		length = newLen;
-		
-		return -1;
 	}
 	
-	public int SetWidth(int newWid) 
+	public void SetWidth(int newWid) 
 	{
-		write("Setting width to: " + newWid);
 		width = newWid;
-		
-		return -1;
 	}
 	
-	public int SetInnerRect(instance rect) 
+	public void SetInnerRect(instance rect) 
 	{
 		innerRect = rect;
-		
-		return -1;
 	}
 	
 	//Modify this to test interface inheritance is enforced
@@ -76,7 +68,7 @@ write("Inner rectangle area: " + rect.innerRect.GetArea());
 
 //rect.innerRect.SetLength(15);
 
-write(rect.SetWidth(2));
+rect.SetWidth(2);
 write(rect.innerRect.SetLength(20));
 
 write("Main rectangle area: " + rect.GetArea()); //Tests that only one class instance affected

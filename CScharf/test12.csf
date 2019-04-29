@@ -1,16 +1,21 @@
 int z = 2;
 
-public int zaz(int a) {
+public int zaz(int a) 
+{
    return a;
 }
 
-public int blah(int p) {
+public int blah(int p)
+{
    int q = 3;
-   public int zot(int r) {
+   
+   public int zot(int r)
+   {
       return zaz(r + p + q + z);
    }
 
-   public int zog(int n) {
+   public int zog(int n)
+   {
       return zot(n + 2);
    }
 
