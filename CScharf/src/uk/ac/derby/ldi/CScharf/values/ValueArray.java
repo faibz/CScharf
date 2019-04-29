@@ -1,5 +1,6 @@
 package uk.ac.derby.ldi.CScharf.values;
 
+import java.util.HashMap;
 import java.util.UUID;
 import java.util.Vector;
 
@@ -10,7 +11,7 @@ public class ValueArray extends ValueAbstract {
 	private UUID id = UUID.randomUUID();
 	private int length = 0;
 	private Class<?> type;
-	private Vector<Value> data = new Vector<Value>();
+	private HashMap<Integer, Value> data = new HashMap<Integer, Value>();
 
 	public ValueArray() {}
 	
@@ -19,7 +20,7 @@ public class ValueArray extends ValueAbstract {
 		this.length = length;
 		
 		for (int i = 0; i < length; ++i) {
-			data.add(i, CScharfUtil.getDefaultValueForClass(this.type));
+			data.put(i, CScharfUtil.getDefaultValueForClass(this.type));
 		}
 	}
 
@@ -33,10 +34,11 @@ public class ValueArray extends ValueAbstract {
 		return 0;
 	}
 	
-	public void putValue(int index, Value val) {		
+	public void putValue(int index, Value val) {	
 		if(validIndex(index)) {
 			if (val.getClass().equals(type)) {
-				data.add(index, val);
+				//System.out.println("Inserting value " + val + " into index " + index);
+				data.put(index, val);
 			} else {
 				throw new ExceptionSemantic("Cannot assign value of " + val.getClass() + " to array of type " + type);
 			}

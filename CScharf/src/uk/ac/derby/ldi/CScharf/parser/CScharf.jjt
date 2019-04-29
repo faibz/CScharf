@@ -71,7 +71,7 @@ TOKEN [IGNORE_CASE] : /* RESERVED WORDS AND LITERALS */
 | < RETURN: "RETURN" >
 | < OR: "||" >
 | < AND: "&&" >
-| < NOT: "NOT" >
+| < NOT: "!" >
 | < TRUE: "TRUE" >
 | < FALSE: "FALSE" >
 | < QUIT: "QUIT" >
@@ -454,15 +454,15 @@ void primary_expression() :
 {
                               literal()
                             | LOOKAHEAD(2) fn_invoke()
-                            | dereference()
+                            | LOOKAHEAD(2) dereference()
                             | "(" expression() ")"
 }
 
 void fn_invoke() #FnInvoke :
 {}
 {
-							dereference() arglist()
-							//identifier() arglist()
+							//dereference() arglist()
+							identifier() arglist()
 }
 
 void literal() :
