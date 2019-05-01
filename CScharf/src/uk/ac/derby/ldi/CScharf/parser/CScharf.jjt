@@ -234,12 +234,12 @@ ASTCode code() #Code :
 void statement() #Statement :
 {}
 {
-  				LOOKAHEAD(3) call() ";"
-				|  	LOOKAHEAD(2) assignment() ";"
+  				LOOKAHEAD(call()) call() ";"
+				|  	LOOKAHEAD(assignment()) assignment() ";"
 				|   variable_declaration() ";"
-				|	LOOKAHEAD(2) fndef()
+				|	LOOKAHEAD(fndef()) fndef()
 				|	block()
-				|   LOOKAHEAD(2) classdef()
+				|   LOOKAHEAD(classdef()) classdef()
 				|   interfacedef()
 				|	ifstatement()	
 				|	forloop()
@@ -295,7 +295,7 @@ void constructor(String className) #ClassConstructor :
 void classbody(String className) #ClassBody :
 {}
 {
-  constructor(className) (LOOKAHEAD(3) assignment() ";" | variable_declaration() ";" | LOOKAHEAD(2) fndef() | classdef() )* { jjtThis.tokenValue = className; }
+  constructor(className) (LOOKAHEAD(assignment()) assignment() ";" | variable_declaration() ";" | LOOKAHEAD(fndef()) fndef() | classdef() )* { jjtThis.tokenValue = className; }
 }
 
 void interfacedef() #InterfaceDef :
@@ -453,8 +453,8 @@ void primary_expression() :
 {}
 {
                             literal()
-                            | LOOKAHEAD(10) fn_invoke()
-                            | LOOKAHEAD(9) dereference()
+                            | LOOKAHEAD(fn_invoke()) fn_invoke()
+                            | LOOKAHEAD(dereference()) dereference()
                             | "(" expression() ")"
 }  
 
