@@ -56,7 +56,6 @@ public class Parser implements CScharfVisitor {
 
 	// Execute a block
 	public Object visit(ASTBlock node, Object data) {
-		
 		//Pre block execution
 		var preExistingVariables = scope.getAccessibleVariables();
 		var preExistingFunctions = scope.getAccessibleFunctions();
@@ -128,6 +127,8 @@ public class Parser implements CScharfVisitor {
 	
 	// Function call
 	public Object visit(ASTCall node, Object data) {
+		int stackLength = openValueClasses.size();
+
 		FunctionDefinition fndef;
 		if (node.optimised == null) { 
 			// Child 0 - identifier (fn name)
@@ -223,6 +224,11 @@ public class Parser implements CScharfVisitor {
 		doChild(node, 1, newInvocation);
 		// Execute
 		var possibleValue = scope.execute(newInvocation, this);
+		
+		//var executionResult = scope.execute(newInvocation, this);
+		
+		if (openValueClasses.size() > stackLength)
+			openValueClasses.pop();
 				
 		if (fndef.hasReturn()) {
 			var returnType = fndef.getReturnType();
@@ -1066,7 +1072,7 @@ public class Parser implements CScharfVisitor {
 		return node.optimised;
 	}
 
-	public Object visit(ASTArray node, Object data) {	
+	public Object visit(ASTArray node, Object data) {
 		var array = new ValueArray(getTokenOfChild(node, 0), Integer.parseInt(getTokenOfChild(node, 1)));
 		
 		node.optimised = array;

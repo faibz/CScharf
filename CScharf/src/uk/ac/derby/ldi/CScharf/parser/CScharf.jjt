@@ -234,7 +234,8 @@ ASTCode code() #Code :
 void statement() #Statement :
 {}
 {
-				 	LOOKAHEAD(2) assignment() ";"
+  				LOOKAHEAD(3) call() ";"
+				|  	LOOKAHEAD(2) assignment() ";"
 				|   variable_declaration() ";"
 				|	LOOKAHEAD(2) fndef()
 				|	block()
@@ -244,7 +245,6 @@ void statement() #Statement :
 				|	forloop()
 				|   whileloop()
 				|	write() ";"
-				|	call() ";"
 				| 	quit() ";"
 }
 
@@ -446,7 +446,7 @@ void unary_expression() :
                               <NOT> unary_expression() #UnaryNot(1)
                             | "+"   unary_expression() #UnaryPlus(1)
                             | "-"   unary_expression() #UnaryMinus(1)
-                            | LOOKAHEAD(40) primary_expression()
+                            | primary_expression()
 }
 
 void primary_expression() : 
@@ -456,7 +456,7 @@ void primary_expression() :
                             | LOOKAHEAD(10) fn_invoke()
                             | LOOKAHEAD(9) dereference()
                             | "(" expression() ")"
-}
+}  
 
 void fn_invoke() #FnInvoke :
 {}

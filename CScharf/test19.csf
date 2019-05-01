@@ -60,22 +60,20 @@ public class Rectangle : Shape
 }
 
 instance rect = new Rectangle(10, 5);
-write(rect.SetInnerRect(new Rectangle(12, 6)));
+rect.SetInnerRect(new Rectangle(12, 6));
 
 write("Main rectangle area: " + rect.GetArea()); //Tests that calls work at various levels
 write("Inner rectangle area: " + rect.GetInnerRectArea());
 write("Inner rectangle area: " + rect.innerRect.GetArea());
 
-//rect.innerRect.SetLength(15);
-
 rect.SetWidth(2);
-write(rect.innerRect.SetLength(20));
+rect.innerRect.SetLength(20);
 
 write("Main rectangle area: " + rect.GetArea()); //Tests that only one class instance affected
 write("Inner rectangle " + rect.innerRect.GetArea());
 
-//write(rect.length);
-//write(rect.GetArea());
+write(rect.length);
+write(rect.GetArea());
 
 instance carBox = new Rectangle.Test();
 write(carBox.GetTestValue());
