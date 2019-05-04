@@ -155,25 +155,7 @@ public class ClassDefinition implements Comparable<Object>, Serializable {
 	ClassDefinition findClass(String name) {
 		var closeClassDef = classes.get(name);
 		
-//		if (closeClassDef == null) {
-//			for (var classDef : classes.values()) {
-//				var retClassDef = classDef.findClass(name);
-//				
-//				if (retClassDef == null) {
-//					continue;
-//				}
-//				
-//				return retClassDef;
-//			}
-//		} else {
-//			return closeClassDef;
-//		}
-		
-		//System.out.println(closeClassDef.getName());
-		
 		return closeClassDef == null ? null : closeClassDef;
-		
-		//return null;
 	}
 
 	/** Find a nested class definition. return null if it doesn't exist. */

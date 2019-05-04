@@ -27,17 +27,10 @@ public class ValueArray extends ValueAbstract {
 	public String getName() {
 		return "Array";
 	}
-
-	public int compare(Value v) {
-		//TODO: compare all values
-		
-		return 0;
-	}
 	
 	public void putValue(int index, Value val) {	
 		if(validIndex(index)) {
 			if (val.getClass().equals(type)) {
-				//System.out.println("Inserting value " + val + " into index " + index);
 				data.put(index, val);
 			} else {
 				throw new ExceptionSemantic("Cannot assign value of " + val.getClass() + " to array of type " + type);
@@ -61,5 +54,9 @@ public class ValueArray extends ValueAbstract {
 	
 	public String toString() {
 		return id.toString();
+	}
+
+	public int compare(Value v) {
+		return 1;
 	}
 }
