@@ -79,7 +79,7 @@ TOKEN [IGNORE_CASE] : /* RESERVED WORDS AND LITERALS */
 
 TOKEN : /* TYPES */
 {
-  < TYPE: "int" | "float" | "bool" | "string" | "anon" | "func" | "array" | "instance" | "void" >
+  < TYPE: "int" | "float" | "bool" | "string" | "anon" | "func" | "array" | "instance" | "reflection" | "void" >
 }
 
 TOKEN : /* TYPE MODIFIERS */
@@ -532,10 +532,16 @@ void classInstance() #ClassInstance :
 	(LOOKAHEAD(2) identifier() "." )* identifier() arglist()
 }
 
+void reflectedClass() #ReflectedClass :
+{}
+{
+	"Reflection(" character() ")"
+} 
+
 void newObj() #NewObj :
 {}
 {
-	<NEW> (anon() | array() | classInstance())
+	<NEW> (anon() | array() | classInstance() | reflectedClass() )
 }
 
 void bool() : 

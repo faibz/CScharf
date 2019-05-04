@@ -1,0 +1,4 @@
+reflection reflectedThing = new Reflection("java.awt.Point");
+//reflection test = new Reflection("sun.http.www.HttpClient");
+
+reflectedThing.setLocation(10, 200);

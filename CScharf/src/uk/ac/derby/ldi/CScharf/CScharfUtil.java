@@ -1,5 +1,6 @@
 package uk.ac.derby.ldi.CScharf;
 
+import java.lang.reflect.Array;
 import java.util.HashMap;
 
 import uk.ac.derby.ldi.CScharf.interpreter.ExceptionSemantic;
@@ -11,6 +12,7 @@ import uk.ac.derby.ldi.CScharf.values.ValueClass;
 import uk.ac.derby.ldi.CScharf.values.ValueFn;
 import uk.ac.derby.ldi.CScharf.values.ValueInteger;
 import uk.ac.derby.ldi.CScharf.values.ValueRational;
+import uk.ac.derby.ldi.CScharf.values.ValueReflection;
 import uk.ac.derby.ldi.CScharf.values.ValueString;
 
 /** Convenient runner for the CScharf interpreter. */
@@ -28,6 +30,7 @@ public class CScharfUtil {
 		defaultValues.put(ValueFn.class, new ValueFn());
 		defaultValues.put(ValueArray.class, new ValueArray());
 		defaultValues.put(ValueClass.class, new ValueClass());
+		defaultValues.put(ValueReflection.class, new ValueReflection());
 	}
 	
 	public static final Class<?> getClassFromString(String type) {
@@ -48,6 +51,8 @@ public class CScharfUtil {
 				return ValueArray.class;
 			case "instance":
 				return ValueClass.class;
+			case "reflection":
+				return ValueReflection.class;
 			case "void":
 				return null;
 			default:
@@ -64,7 +69,21 @@ public class CScharfUtil {
 		else if (type.equals(ValueFn.class)) return "func";
 		else if (type.equals(ValueArray.class)) return "array";
 		else if (type.equals(ValueClass.class)) return "instance";
+		else if (type.equals(ValueReflection.class)) return "reflection";
 		else throw new ExceptionSemantic("Could not resolve value to a type.");
+	}
+	
+	public static final Class<?> getJavaClassFromValueClass(Class<?> type) {
+		if (type.equals(ValueInteger.class)) return Integer.class;
+		else if (type.equals(ValueRational.class)) return float.class;
+		else if (type.equals(ValueBoolean.class)) return boolean.class;
+		else if (type.equals(ValueString.class)) return String.class;
+		else if (type.equals(ValueAnonymousType.class)) throw new ExceptionSemantic("Cannot resolve ValueAnonymousType to a Java class.");
+		else if (type.equals(ValueFn.class)) throw new ExceptionSemantic("Cannot resolve ValueFn to a Java class.");
+		else if (type.equals(ValueArray.class)) return Array.class;
+		else if (type.equals(ValueClass.class)) return Class.class;
+		else if (type.equals(ValueReflection.class)) return Class.class; //Will this complicate things?
+		else throw new ExceptionSemantic("Could not resolve value " + type + " to a Java class.");
 	}
 		
 	public static final Value getDefaultValueForClass(Class<?> type) {
