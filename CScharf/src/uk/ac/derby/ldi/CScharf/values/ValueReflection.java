@@ -1,6 +1,7 @@
 package uk.ac.derby.ldi.CScharf.values;
 
-import java.util.Vector;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 
 import uk.ac.derby.ldi.CScharf.CScharfUtil;
 import uk.ac.derby.ldi.CScharf.interpreter.ExceptionSemantic;
@@ -34,30 +35,54 @@ public class ValueReflection extends ValueAbstract implements ValueContainer {
 		return null;
 	}
 	
-	public void invokeMethod(String name, Vector<Value> arguments) {
-		System.out.println("HI");
-		var expectedParamTypes = new Vector<Class<?>>();
+	public Value invokeMethod(String name, ArrayList<Value> arguments) {
+		System.out.println("Searching for method named: " + name);
+		var expectedParamTypes = new ArrayList<Class<?>>();
+		var realArgs = new ArrayList<Object>();
 		
 		for (var val : arguments) {
-			expectedParamTypes.add(CScharfUtil.getJavaClassFromValueClass(val.getClass()));
+			var javaClass = CScharfUtil.getJavaClassFromValueClass(val.getClass());
+			expectedParamTypes.add(javaClass);
+			realArgs.add(CScharfUtil.getJavaValueFromValueType(val));
 		}
 		
-		for (var val : expectedParamTypes) {
-			System.out.println(val);
-		}
-		
-		//innerClass.getMethod(name, expectedParamTypes.toArray(box));
+		var paramArray = expectedParamTypes.toArray(new Class[0]);
+
 		try {
-			var paramArray = (Class<?>[]) expectedParamTypes.toArray();
-			System.out.println("cast complete");
-			innerClass.getMethod(name, paramArray);
+			var method = innerClass.getMethod(name, paramArray);
 			System.out.println("FOUND METHOD");
+			method.setAccessible(true); //necessary?
+			try {
+				var obj = method.invoke(innerInstance, realArgs.toArray());
+				
+				if (obj == null) {
+					System.out.println("obj == null");
+					return null;
+				}
+				
+				System.out.println(obj);
+				
+				//var returnedValue = CScharfUtil.getValueTypeFromJavaValue(obj);
+				
+			} catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InvocationTargetException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 		} catch (NoSuchMethodException e) {
-			System.out.println("no such method");
+			System.out.println("no such method");			
 			e.printStackTrace();
 		} catch (SecurityException e) {
 			e.printStackTrace();
 		}
+		
+		return null;
 	}
 
 }

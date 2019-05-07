@@ -74,7 +74,7 @@ public class CScharfUtil {
 	}
 	
 	public static final Class<?> getJavaClassFromValueClass(Class<?> type) {
-		if (type.equals(ValueInteger.class)) return Integer.class;
+		if (type.equals(ValueInteger.class)) return int.class;
 		else if (type.equals(ValueRational.class)) return float.class;
 		else if (type.equals(ValueBoolean.class)) return boolean.class;
 		else if (type.equals(ValueString.class)) return String.class;
@@ -84,6 +84,19 @@ public class CScharfUtil {
 		else if (type.equals(ValueClass.class)) return Class.class;
 		else if (type.equals(ValueReflection.class)) return Class.class; //Will this complicate things?
 		else throw new ExceptionSemantic("Could not resolve value " + type + " to a Java class.");
+	}
+	
+	public static final Object getJavaValueFromValueType(Value val) {
+		if (val.getClass().equals(ValueInteger.class)) return (int) val.longValue();
+		else if (val.getClass().equals(ValueRational.class)) return (float) val.doubleValue();
+		else if (val.getClass().equals(ValueBoolean.class)) return val.booleanValue();
+		else if (val.getClass().equals(ValueString.class)) return val.stringValue();
+		else if (val.getClass().equals(ValueAnonymousType.class)) throw new ExceptionSemantic("Cannot resolve ValueAnonymousType to a Java value.");
+		else if (val.getClass().equals(ValueFn.class)) throw new ExceptionSemantic("Cannot resolve ValueFn to a Java value.");
+		else if (val.getClass().equals(ValueArray.class)) throw new ExceptionSemantic("TODO");
+		else if (val.getClass().equals(ValueClass.class)) throw new ExceptionSemantic("Cannot resolve ValueClass to a Java value.");
+		else if (val.getClass().equals(ValueReflection.class)) return Class.class;
+		else throw new ExceptionSemantic("Could not resolve value " + val.getClass() + " to a Java class.");
 	}
 		
 	public static final Value getDefaultValueForClass(Class<?> type) {

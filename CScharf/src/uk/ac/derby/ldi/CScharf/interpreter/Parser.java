@@ -1,6 +1,7 @@
 package uk.ac.derby.ldi.CScharf.interpreter;
 
 import java.awt.Point;
+import java.util.ArrayList;
 import java.util.Stack;
 import java.util.Vector;
 
@@ -130,16 +131,23 @@ public class Parser implements CScharfVisitor {
 	// Function call
 	public Object visit(ASTCall node, Object data) {
 		int stackLength = openValueClasses.size();
-
 		FunctionDefinition fndef;
-		// Child 0 - identifier (fn name)
+		
 		var fnname = getTokenOfChild(node, 0);
 		fndef = scope.findFunction(fnname);
 		
-		if (fndef == null) {			
-			fndef = findFunctionDefinition(node, scope.findReference(fnname), fnname);
+		if (fndef == null) {
+			var ref = scope.findReference(fnname);
+			
+			fndef = findFunctionDefinition(node, ref, fnname);
 			
 			if (fndef == null) {
+				var val = ref.getValue();
+				
+				if (val instanceof ValueReflection) {
+					processReflectionCall(node, val);
+				}
+				
 				throw new ExceptionSemantic("Function " + fnname + " is undefined.");
 			}
 			
@@ -147,12 +155,8 @@ public class Parser implements CScharfVisitor {
 		}
 				
 		var newInvocation = new FunctionInvocation(fndef);
-		// Child 1 - arglist
 		doChild(node, 1, newInvocation);
-		// Execute
 		var possibleValue = scope.execute(newInvocation, this);
-		
-		//var executionResult = scope.execute(newInvocation, this);
 		
 		if (openValueClasses.size() > stackLength)
 			openValueClasses.pop();
@@ -172,18 +176,30 @@ public class Parser implements CScharfVisitor {
 	
 	// Function invocation in an expression
 	public Object visit(ASTFnInvoke node, Object data) {
+		System.out.println("Invoking function: " + getTokenOfChild(node, 0));
+		System.out.println("1");
 		int stackLength = openValueClasses.size();
-		
 		FunctionDefinition fndef;
-	
-		// Child 0 - identifier (fn name)
+		
+		System.out.println("2");
+
 		var fnname = getTokenOfChild(node, 0);
 		fndef = scope.findFunction(fnname);
+		
+		System.out.println("3");
 					
-		if (fndef == null) {			
-			fndef = findFunctionDefinition(node, scope.findReference(fnname), fnname);
+		if (fndef == null) {
+			var ref = scope.findReference(fnname);
+			
+			fndef = findFunctionDefinition(node, ref, fnname);
 			
 			if (fndef == null) {
+				var val = ref.getValue();
+				
+				if (val instanceof ValueReflection) {
+					processReflectionCall(node, val);
+				}
+				
 				throw new ExceptionSemantic("Function " + fnname + " is undefined.");
 			}
 			
@@ -209,6 +225,25 @@ public class Parser implements CScharfVisitor {
 		return executionResult;
 	}
 	
+	private Value processReflectionCall(SimpleNode node, Value val) {
+		var derefNode = getChild(node, 0);
+		var argListNode = getChild(node, 1);
+		
+		var values = new ArrayList<Value>();
+		
+		for (var i = 0; i < node.jjtGetNumChildren(); ++i) {
+			values.add(doChild(argListNode, i));
+		}
+		
+		var retVal = ((ValueReflection) val).invokeMethod(getTokenOfChild(derefNode, 0), values);
+		
+		if (retVal == null) return null;
+		
+		System.out.println("boxcar");
+		
+		return retVal;
+	}
+	
 	private FunctionDefinition findFunctionDefinition(SimpleNode node, Display.Reference ref, String funcName) {
 		FunctionDefinition fndef = null;
 		String fnname = funcName;
@@ -217,16 +252,7 @@ public class Parser implements CScharfVisitor {
 			Value val = ref.getValue();
 			
 			if (val instanceof ValueReflection) {
-				var derefNode = getChild(node, 0);
-				var argListNode = getChild(node, 1);
-				
-				var values = new Vector<Value>();
-				
-				for (var i = 0; i < node.jjtGetNumChildren(); ++i) {
-					values.add(doChild(argListNode, i));
-				}
-				
-				((ValueReflection) val).invokeMethod(getTokenOfChild(derefNode, 0), values);
+				return null;
 			}
 			
 			if (val instanceof ValueClass) {
@@ -1043,10 +1069,10 @@ public class Parser implements CScharfVisitor {
 		var classToFind = doChild(node, 0).stringValue();
 		ValueReflection valReflection = null;
 		
-//		var lx = new Point();
-//		lx.setLocation(10, 200);
-//		lx.translate(10, 110);
-//		
+		var lx = new Point();
+		lx.setLocation(10, 200);
+		lx.translate(10, 110);
+		
 //		System.out.println("Loc - x: " + lx.getX() + " y: " + lx.getY());
 		
 		try {
