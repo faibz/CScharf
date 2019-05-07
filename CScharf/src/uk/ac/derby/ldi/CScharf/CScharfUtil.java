@@ -98,6 +98,15 @@ public class CScharfUtil {
 		else if (val.getClass().equals(ValueReflection.class)) return Class.class;
 		else throw new ExceptionSemantic("Could not resolve value " + val.getClass() + " to a Java class.");
 	}
+	
+	public static final Value getValueTypeFromJavaValue(Object obj) {
+		if (obj instanceof Integer) return new ValueInteger((int) obj);
+		else if (obj instanceof Double) return new ValueRational((double) obj);
+		else if (obj instanceof Boolean) return new ValueBoolean((boolean) obj);
+		else if (obj instanceof String) return new ValueString((String) obj);
+		else if (obj instanceof Array) return new ValueArray((Array) obj);
+		else return new ValueReflection(obj);
+	}
 		
 	public static final Value getDefaultValueForClass(Class<?> type) {
 		return defaultValues.get(type);

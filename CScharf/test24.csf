@@ -1,6 +1,29 @@
-reflection reflectedThing = new Reflection("java.awt.Point");
-//reflection test = new Reflection("sun.http.www.HttpClient");
+reflection pointReflection = Reflect(CONSTRUCT: "java.awt.Point", 69, 221);
 
-reflectedThing.setLocation(10, 200);
-write("Set location complete.");
-write(reflectedThing.getX());
+write("X = " + pointReflection.getX());
+write("Y = " + pointReflection.getY());
+
+pointReflection.setLocation(10, 200);
+
+write("X = " + pointReflection.getX());
+write("Y = " + pointReflection.getY());
+
+pointReflection.translate(50, -10);
+
+write("X = " + pointReflection.getX());
+write("Y = " + pointReflection.getY());
+
+int roundedNumber = Reflect(METHOD: "java.lang.Math.round", 62.2024);
+write(roundedNumber);
+
+float randomNumber = Reflect(METHOD: "java.lang.Math.random");
+
+//Proposed grammar change examples:
+// 1: reflection pointReflection = Reflection(NEW, "java.awt.Point", 10, 5);
+// 2: int mathMagic = Reflection(METHOD, "java.lang.Math.round", 10.24);
+// 3: Reflection(METHOD, "java.lang.System.out.println", "boxCar");
+// 4: reflection result = Reflection(NEW, "java.lang.StringBuilder");
+//    reflection url = Reflection(NEW, "java.net.URL", "https://google.co.uk/");
+//    reflection connection  = url.openConnection();
+//    connection.setRequestMethod("GET");
+//    etc.

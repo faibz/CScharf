@@ -1,8 +1,8 @@
 package uk.ac.derby.ldi.CScharf.values;
 
+import java.lang.reflect.Array;
 import java.util.HashMap;
 import java.util.UUID;
-import java.util.Vector;
 
 import uk.ac.derby.ldi.CScharf.CScharfUtil;
 import uk.ac.derby.ldi.CScharf.interpreter.ExceptionSemantic;
@@ -14,6 +14,11 @@ public class ValueArray extends ValueAbstract {
 	private HashMap<Integer, Value> data = new HashMap<Integer, Value>();
 
 	public ValueArray() {}
+	
+	public ValueArray(Array arr) {
+		//TODO: Possible?
+		length = Array.getLength(arr);
+	}
 	
 	public ValueArray(String type, int length) {
 		this.type = CScharfUtil.getClassFromString(type);

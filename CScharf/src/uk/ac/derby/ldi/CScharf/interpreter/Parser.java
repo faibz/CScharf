@@ -1,6 +1,8 @@
 package uk.ac.derby.ldi.CScharf.interpreter;
 
 import java.awt.Point;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Stack;
 import java.util.Vector;
@@ -145,7 +147,7 @@ public class Parser implements CScharfVisitor {
 				var val = ref.getValue();
 				
 				if (val instanceof ValueReflection) {
-					processReflectionCall(node, val);
+					return processReflectionCall(node, val);
 				}
 				
 				throw new ExceptionSemantic("Function " + fnname + " is undefined.");
@@ -176,17 +178,11 @@ public class Parser implements CScharfVisitor {
 	
 	// Function invocation in an expression
 	public Object visit(ASTFnInvoke node, Object data) {
-		System.out.println("Invoking function: " + getTokenOfChild(node, 0));
-		System.out.println("1");
 		int stackLength = openValueClasses.size();
 		FunctionDefinition fndef;
-		
-		System.out.println("2");
 
 		var fnname = getTokenOfChild(node, 0);
 		fndef = scope.findFunction(fnname);
-		
-		System.out.println("3");
 					
 		if (fndef == null) {
 			var ref = scope.findReference(fnname);
@@ -197,7 +193,7 @@ public class Parser implements CScharfVisitor {
 				var val = ref.getValue();
 				
 				if (val instanceof ValueReflection) {
-					processReflectionCall(node, val);
+					return processReflectionCall(node, val);
 				}
 				
 				throw new ExceptionSemantic("Function " + fnname + " is undefined.");
@@ -231,17 +227,11 @@ public class Parser implements CScharfVisitor {
 		
 		var values = new ArrayList<Value>();
 		
-		for (var i = 0; i < node.jjtGetNumChildren(); ++i) {
+		for (var i = 0; i < argListNode.jjtGetNumChildren(); ++i) {
 			values.add(doChild(argListNode, i));
 		}
 		
-		var retVal = ((ValueReflection) val).invokeMethod(getTokenOfChild(derefNode, 0), values);
-		
-		if (retVal == null) return null;
-		
-		System.out.println("boxcar");
-		
-		return retVal;
+		return ((ValueReflection) val).invokeMethod(getTokenOfChild(derefNode, 0), values);
 	}
 	
 	private FunctionDefinition findFunctionDefinition(SimpleNode node, Display.Reference ref, String funcName) {
@@ -659,7 +649,7 @@ public class Parser implements CScharfVisitor {
 		var specifiedType = CScharfUtil.getClassFromString(getTokenOfChild(node, childrenCount - 3));
 		
 		if (!valToAssign.getClass().equals(specifiedType)) {
-			throw new ExceptionSemantic("Cannot assign value of type: " + valToAssign.getClass() + " to variable of type: " + specifiedType.getClass() + ". Are you missing a cast?");
+			throw new ExceptionSemantic("Cannot assign value of type: " + valToAssign.getClass() + " to variable of type: " + specifiedType + ". Are you missing a cast?");
 		}
 		
 		if (childrenCount == 4 && getTokenOfChild(node, childrenCount - 4).equals("const"))
@@ -930,9 +920,6 @@ public class Parser implements CScharfVisitor {
 		
 		scope.addFunction(currentFunctionDefinition);
 		currentFunctionDefinition.setFunctionBody(getChild(node, 2));
-		
-		var classDef = scope.findClassDeep(suppliedClassName);	
-		classDef.addConstructor(currentFunctionDefinition);
 				
 		return data;
 	}
@@ -1065,30 +1052,121 @@ public class Parser implements CScharfVisitor {
 		return doChild(node, 0);
 	}
 
-	public Object visit(ASTReflectedClass node, Object data) {
-		var classToFind = doChild(node, 0).stringValue();
+	public Object visit(ASTReflection node, Object data) {
+		var reflectionBaseNode = getChild(node, 0);
+		var action = reflectionBaseNode.tokenValue;
+		var path = doChild(reflectionBaseNode, 0).stringValue();
+		
+		if (action.equals("CONSTRUCT")) {
+			return createReflectionInstance(path, node);
+		} else {
+			return invokeReflectionMethod(path, node);
+		}
+	}
+	
+	private ValueReflection createReflectionInstance(String className, ASTReflection node) {
 		ValueReflection valReflection = null;
-		
-		var lx = new Point();
-		lx.setLocation(10, 200);
-		lx.translate(10, 110);
-		
-//		System.out.println("Loc - x: " + lx.getX() + " y: " + lx.getY());
+		Class<?> reflectedClass = null;
 		
 		try {
-			var reflectedClass = Class.forName(classToFind);
-			try {
-				valReflection = new ValueReflection(reflectedClass, reflectedClass.newInstance());
-				
-			} catch (InstantiationException e) {
-				e.printStackTrace();
-			} catch (IllegalAccessException e) {
-				e.printStackTrace();
-			}
+			reflectedClass = Class.forName(className);
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
+			throw new ExceptionSemantic("Could not find " + className + ". Verify that full class path is present.");
+		}
+		
+		if (node.jjtGetNumChildren() > 1) {
+			var expectedParamTypes = new ArrayList<Class<?>>();
+			var realArgs = new ArrayList<Object>();
+			
+			for (var i = 1; i < node.jjtGetNumChildren(); ++i) {
+				var val = doChild(node, i);
+				
+				var javaClass = CScharfUtil.getJavaClassFromValueClass(val.getClass());
+				expectedParamTypes.add(javaClass);
+				realArgs.add(CScharfUtil.getJavaValueFromValueType(val));
+			}
+
+			try {
+				var constructor = reflectedClass.getConstructor(expectedParamTypes.toArray(new Class<?>[0]));
+				
+				try {
+					valReflection = new ValueReflection(reflectedClass, constructor.newInstance(realArgs.toArray(new Object[0])));
+				} catch (InstantiationException e) {
+					e.printStackTrace();
+					throw new ExceptionSemantic("Could not create instance of " + className + ".");
+				} catch (IllegalAccessException e) {
+					e.printStackTrace();
+					throw new ExceptionSemantic("Could not access constructor of " + className + ".");
+				} catch (IllegalArgumentException e) {
+					e.printStackTrace();
+					throw new ExceptionSemantic("Invalid arguments provided to constructor of " + className + ".");
+				} catch (InvocationTargetException e) {
+					e.printStackTrace();
+					throw new ExceptionSemantic("Invocation target invalid.");
+				}
+			} catch (NoSuchMethodException e) {
+				e.printStackTrace();
+			} catch (SecurityException e) {
+				e.printStackTrace();
+			}
+		} else {
+			try {
+				valReflection = new ValueReflection(reflectedClass, reflectedClass.newInstance());
+			} catch (InstantiationException e) {
+				e.printStackTrace();
+				throw new ExceptionSemantic("Could not create new instance of " + className + ".");
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+				throw new ExceptionSemantic("Could not access constructor of " + className + ".");
+			}
 		}
 		
 		return valReflection;
+	}
+	
+	private Value invokeReflectionMethod(String methodPath, ASTReflection node) {
+		
+		var indexOfLastDot = methodPath.lastIndexOf('.');
+		var classPath = methodPath.substring(0, indexOfLastDot);
+		var methodName = methodPath.substring(indexOfLastDot + 1, methodPath.length());
+		
+		Class<?> reflectedClass = null;
+		Method method = null;
+		
+		var expectedParamTypes = new ArrayList<Class<?>>();
+		var realArgs = new ArrayList<Object>();
+		
+		for (var i = 1; i < node.jjtGetNumChildren(); ++i) {
+			var val = doChild(node, i);
+			
+			var javaClass = CScharfUtil.getJavaClassFromValueClass(val.getClass());
+			expectedParamTypes.add(javaClass);
+			System.out.println("Expecting a param: " + javaClass);
+			System.out.println("adding arg of type: " + CScharfUtil.getJavaValueFromValueType(val).getClass());
+			realArgs.add(CScharfUtil.getJavaValueFromValueType(val));
+		}
+		
+		try {
+			reflectedClass = Class.forName(classPath);
+			method = reflectedClass.getMethod(methodName, expectedParamTypes.size() > 0 ? expectedParamTypes.toArray(new Class<?>[0]) : null);
+			
+			System.out.println("Method data: " + method.toGenericString());
+			
+			System.out.println(realArgs.get(0).getClass());
+			System.out.println(method.getParameters()[0].getType());
+			
+			var obj = method.invoke(null, realArgs);
+			//var obj = method.invoke(null, 542.212f);
+			
+			return CScharfUtil.getValueTypeFromJavaValue("tom");
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new ExceptionSemantic("Dear lord");
+		}
+	}
+
+	public Object visit(ASTReflectionBase node, Object data) {
+		return data;
 	}
 }

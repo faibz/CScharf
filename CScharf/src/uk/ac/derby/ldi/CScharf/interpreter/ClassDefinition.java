@@ -20,8 +20,6 @@ public class ClassDefinition implements Comparable<Object>, Serializable {
 	private HashMap<String, FunctionDefinition> functions = new HashMap<String, FunctionDefinition>();
 	private HashMap<String, ClassDefinition> classes = new HashMap<String, ClassDefinition>();
 	
-	//Should I bother with this? Could just rummage around in the functions hashmap looking at signatures
-	private FunctionDefinition constructor = null;
 	private SimpleNode ASTClassBody = null;
 	
 	/** Ctor for class definition. */
@@ -135,10 +133,6 @@ public class ClassDefinition implements Comparable<Object>, Serializable {
 	/** Add an inner function definition. */
 	void addFunction(FunctionDefinition definition) {
 		functions.put(definition.getName(), definition);
-	}
-	
-	void addConstructor(FunctionDefinition definition) {
-		constructor = definition;
 	}
 	
 	/** Find an inner function definition.  Return null if it doesn't exist. */

@@ -6,12 +6,17 @@ import java.util.ArrayList;
 import uk.ac.derby.ldi.CScharf.CScharfUtil;
 import uk.ac.derby.ldi.CScharf.interpreter.ExceptionSemantic;
 
-public class ValueReflection extends ValueAbstract implements ValueContainer {
+public class ValueReflection extends ValueAbstract {
 	private Class<?> innerClass = null;
 	private Object innerInstance = null;
 	private String name = "";
 	
 	public ValueReflection() {}
+	
+	public ValueReflection(Object instance) {
+		innerInstance = instance;
+		innerClass = instance.getClass();
+	}
 	
 	public ValueReflection(Class<?> type, Object obj) {
 		innerClass = type;
@@ -29,14 +34,24 @@ public class ValueReflection extends ValueAbstract implements ValueContainer {
 	public String getName() {
 		return name;
 	}
-
-	public Value getVariable(String name) {
-		// TODO Auto-generated method stub
-		return null;
+	
+	public void setInstance(Object instance) {
+		innerInstance = instance;
+	}
+	
+	public Object getInstance() {
+		return innerInstance;
+	}
+	
+	public void setClassType(Class<?> type) {
+		innerClass = type;
+	}
+	
+	public Class<?> getClassType() {
+		return innerClass;
 	}
 	
 	public Value invokeMethod(String name, ArrayList<Value> arguments) {
-		System.out.println("Searching for method named: " + name);
 		var expectedParamTypes = new ArrayList<Class<?>>();
 		var realArgs = new ArrayList<Object>();
 		
@@ -45,44 +60,36 @@ public class ValueReflection extends ValueAbstract implements ValueContainer {
 			expectedParamTypes.add(javaClass);
 			realArgs.add(CScharfUtil.getJavaValueFromValueType(val));
 		}
-		
-		var paramArray = expectedParamTypes.toArray(new Class[0]);
 
 		try {
-			var method = innerClass.getMethod(name, paramArray);
-			System.out.println("FOUND METHOD");
-			method.setAccessible(true); //necessary?
+			var method = innerClass.getMethod(name, expectedParamTypes.toArray(new Class[0]));
+
 			try {
 				var obj = method.invoke(innerInstance, realArgs.toArray());
 				
 				if (obj == null) {
-					System.out.println("obj == null");
 					return null;
 				}
 				
-				System.out.println(obj);
-				
-				//var returnedValue = CScharfUtil.getValueTypeFromJavaValue(obj);
+				return CScharfUtil.getValueTypeFromJavaValue(obj);
 				
 			} catch (IllegalAccessException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
+				throw new ExceptionSemantic("Could not access " + name + ".");
 			} catch (IllegalArgumentException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
+				throw new ExceptionSemantic("Invalid arguments provided to " + name + ".");
 			} catch (InvocationTargetException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
+				throw new ExceptionSemantic("Invocation target invalid.");
 			}
 			
-		} catch (NoSuchMethodException e) {
-			System.out.println("no such method");			
+		} catch (NoSuchMethodException e) {	
 			e.printStackTrace();
+			throw new ExceptionSemantic("Could not find " + name + ".");
 		} catch (SecurityException e) {
 			e.printStackTrace();
+			throw new ExceptionSemantic("Security exception.");
 		}
-		
-		return null;
 	}
-
 }

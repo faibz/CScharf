@@ -75,6 +75,7 @@ TOKEN [IGNORE_CASE] : /* RESERVED WORDS AND LITERALS */
 | < TRUE: "TRUE" >
 | < FALSE: "FALSE" >
 | < QUIT: "QUIT" >
+| < REFLECTION: "REFLECT" >
 }
 
 TOKEN : /* TYPES */
@@ -90,6 +91,11 @@ TOKEN : /* TYPE MODIFIERS */
 TOKEN : /* ACCESS MODIFIERS */
 {
   < ACCESS_MODIFIER: "public" >
+}
+
+TOKEN :
+{
+  < REFLECTION_TYPE: "CONSTRUCT" | "METHOD" >
 }
 
 TOKEN : /* LITERALS */
@@ -452,7 +458,7 @@ void unary_expression() :
 void primary_expression() : 
 {}
 {
-                            literal()
+                            LOOKAHEAD(literal()) literal()
                             | LOOKAHEAD(fn_invoke()) fn_invoke()
                             | LOOKAHEAD(dereference()) dereference()
                             | "(" expression() ")"
@@ -468,11 +474,13 @@ void literal() :
 {}
 {
 							integer()
+							| reflection()
                             | character()
 							| rational()
 							| bool()
 							| fn()
 							| newObj()
+							
 }
 
 void identifier() #Identifier :
@@ -532,16 +540,23 @@ void classInstance() #ClassInstance :
 	(LOOKAHEAD(2) identifier() "." )* identifier() arglist()
 }
 
-void reflectedClass() #ReflectedClass :
+void reflection() #Reflection :
 {}
 {
-	"Reflection(" character() ")"
+	 <REFLECTION> "(" reflection_base() ("," expression() )* ")"
 } 
+
+void reflection_base() #ReflectionBase :
+{Token t;}
+{
+  t = <REFLECTION_TYPE> ":" character() { jjtThis.tokenValue = t.image; }
+}
+  
 
 void newObj() #NewObj :
 {}
 {
-	<NEW> (anon() | array() | classInstance() | reflectedClass() )
+	<NEW> (anon() | array() | classInstance())
 }
 
 void bool() : 

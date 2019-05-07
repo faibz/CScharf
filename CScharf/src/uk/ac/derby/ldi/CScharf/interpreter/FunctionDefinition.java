@@ -13,8 +13,6 @@ import java.util.Vector;
  *
  */
 public class FunctionDefinition implements Comparable<Object> {
-	private static final long serialVersionUID = 0;
-
 	private String name;
 	private String parmSignature = "";
 	private HashMap<String, Class<?>> parameters = new LinkedHashMap<String, Class<?>>();
