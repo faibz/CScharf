@@ -1128,15 +1128,15 @@ public class Parser implements CScharfVisitor {
 						try {
 							constructor = reflectedClass.getConstructor(superClass);
 							break;
-						} catch (Exception x) {}
+						} catch (Exception ex) {}
 					}
 					
 					if (constructor == null) {
 						throw new ExceptionSemantic("Could not find constructor of " + className + ".");
 					}
 					valReflection = new ValueReflection(reflectedClass, constructor.newInstance(realArgs.toArray(new Object[0])));
-				} catch (Exception xd) {
-					xd.printStackTrace();
+				} catch (Exception exc) {
+					exc.printStackTrace();
 					throw new ExceptionSemantic("An exception has occurred.");
 				}
 				
