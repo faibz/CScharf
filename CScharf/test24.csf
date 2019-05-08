@@ -14,9 +14,10 @@ write("X = " + pointReflection.getX());
 write("Y = " + pointReflection.getY());
 
 int roundedNumber = Reflect(METHOD: "java.lang.Math.round", 62.2024);
-write(roundedNumber);
+write("Rounded number: " + roundedNumber);
 
 float randomNumber = Reflect(METHOD: "java.lang.Math.random");
+write("Random number: " + randomNumber);
 
 //Proposed grammar change examples:
 // 1: reflection pointReflection = Reflection(NEW, "java.awt.Point", 10, 5);

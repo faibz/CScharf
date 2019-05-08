@@ -1,6 +1,8 @@
 package uk.ac.derby.ldi.CScharf.interpreter;
 
 import java.awt.Point;
+import java.io.FileWriter;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -66,7 +68,7 @@ public class Parser implements CScharfVisitor {
 		var preExistingFunctions = scope.getAccessibleFunctions();
 		
 		//Execution
-		var executionResult =  doChildren(node, data);
+		var executionResult = doChildren(node, data);
 		
 		//Post block execution
 		var variablesAvailableAfterExecution = scope.getAccessibleVariables();
@@ -404,7 +406,7 @@ public class Parser implements CScharfVisitor {
 	}
 	
 	// Execute the write statement
-	public Object visit(ASTWrite node, Object data) {
+	public Object visit(ASTPrint node, Object data) {
 		System.out.println(doChild(node, 0));
 		return data;
 	}
@@ -1078,11 +1080,19 @@ public class Parser implements CScharfVisitor {
 		if (node.jjtGetNumChildren() > 1) {
 			var expectedParamTypes = new ArrayList<Class<?>>();
 			var realArgs = new ArrayList<Object>();
+			var superClasses = new ArrayList<Class<?>>();
 			
 			for (var i = 1; i < node.jjtGetNumChildren(); ++i) {
 				var val = doChild(node, i);
 				
-				var javaClass = CScharfUtil.getJavaClassFromValueClass(val.getClass());
+				var javaClass = CScharfUtil.getJavaClassFromValue(val);
+				var superClass = javaClass.getSuperclass();
+				
+				while (superClass != null) {
+					superClasses.add(superClass);
+					superClass = superClass.getSuperclass();
+				}
+				
 				expectedParamTypes.add(javaClass);
 				realArgs.add(CScharfUtil.getJavaValueFromValueType(val));
 			}
@@ -1106,7 +1116,30 @@ public class Parser implements CScharfVisitor {
 					throw new ExceptionSemantic("Invocation target invalid.");
 				}
 			} catch (NoSuchMethodException e) {
-				e.printStackTrace();
+				if (superClasses.isEmpty() || node.jjtGetNumChildren() > 2) {
+					e.printStackTrace();
+					throw new ExceptionSemantic("Could not find constructor of " + className + ".");
+				}
+				
+				try {
+					Constructor<?> constructor = null;
+					
+					for (var superClass : superClasses) {
+						try {
+							constructor = reflectedClass.getConstructor(superClass);
+							break;
+						} catch (Exception x) {}
+					}
+					
+					if (constructor == null) {
+						throw new ExceptionSemantic("Could not find constructor of " + className + ".");
+					}
+					valReflection = new ValueReflection(reflectedClass, constructor.newInstance(realArgs.toArray(new Object[0])));
+				} catch (Exception xd) {
+					xd.printStackTrace();
+					throw new ExceptionSemantic("An exception has occurred.");
+				}
+				
 			} catch (SecurityException e) {
 				e.printStackTrace();
 			}
@@ -1142,8 +1175,6 @@ public class Parser implements CScharfVisitor {
 			
 			var javaClass = CScharfUtil.getJavaClassFromValueClass(val.getClass());
 			expectedParamTypes.add(javaClass);
-			System.out.println("Expecting a param: " + javaClass);
-			System.out.println("adding arg of type: " + CScharfUtil.getJavaValueFromValueType(val).getClass());
 			realArgs.add(CScharfUtil.getJavaValueFromValueType(val));
 		}
 		
@@ -1151,18 +1182,18 @@ public class Parser implements CScharfVisitor {
 			reflectedClass = Class.forName(classPath);
 			method = reflectedClass.getMethod(methodName, expectedParamTypes.size() > 0 ? expectedParamTypes.toArray(new Class<?>[0]) : null);
 			
-			System.out.println("Method data: " + method.toGenericString());
+			var obj = method.invoke(null, realArgs.toArray());
 			
-			System.out.println(realArgs.get(0).getClass());
-			System.out.println(method.getParameters()[0].getType());
+			if (obj != null) {
+				return CScharfUtil.getValueTypeFromJavaValue(obj);
+			}
 			
-			var obj = method.invoke(null, realArgs);
-			//var obj = method.invoke(null, 542.212f);
+			throw new ExceptionSemantic("Reflection call used in expression but returned null.");
 			
-			return CScharfUtil.getValueTypeFromJavaValue("tom");
+			//return null;
 		} catch (Exception e) {
 			e.printStackTrace();
-			throw new ExceptionSemantic("Dear lord");
+			throw new ExceptionSemantic("Could not invoke method " + methodName + ".");
 		}
 	}
 

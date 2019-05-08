@@ -63,7 +63,7 @@ TOKEN [IGNORE_CASE] : /* RESERVED WORDS AND LITERALS */
 | < ELSE: "ELSE" >
 | < FOR: "FOR" >
 | < WHILE: "WHILE" >
-| < WRITE: "WRITE" >
+| < PRINT: "PRINT" >
 | < CLASS: "CLASS" >
 | < FUNCTION: "FUNCTION" >
 | < INTERFACE: "INTERFACE" >
@@ -250,7 +250,7 @@ void statement() #Statement :
 				|	ifstatement()	
 				|	forloop()
 				|   whileloop()
-				|	write() ";"
+				|	print() ";"
 				| 	quit() ";"
 }
 
@@ -369,10 +369,10 @@ void whileloop() #WhileLoop :
 					<WHILE> "(" expression() ")" block()
 } 
 
-void write() :
+void print() :
 {}
 {
-					<WRITE> expression() #Write(1)
+					<PRINT> expression() #Print(1)
 }
 
 void quit() :
