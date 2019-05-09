@@ -2,12 +2,12 @@
 
 anon bob = new { a = 24, b = 211, car = false, dogs = true, fox = 62 };
 
-write(bob.a);
-write(bob.car);
-write(bob.b);
-write(bob.dogs);
-write(bob.fox);
+print(bob.a);
+print(bob.car);
+print(bob.b);
+print(bob.dogs);
+print(bob.fox);
 
-write(bob.a + bob.b);
+print(bob.a + bob.b);
 
-write(bob);
+print(bob);

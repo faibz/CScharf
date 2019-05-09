@@ -1,8 +1,5 @@
 package uk.ac.derby.ldi.CScharf.interpreter;
 
-import java.awt.Point;
-import java.io.FileWriter;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -577,32 +574,33 @@ public class Parser implements CScharfVisitor {
 		ValueClass owningClass = null;
 		Value existingValue = null;
 		boolean classMember = false;
-		if (node.optimised == null) {
-			var name = getTokenOfChild(node, 0);
-			reference = scope.findReference(name);
-			if (reference == null) {
-				for(var i = openValueClasses.size() - 1; i >= 0 ; --i) {
-					var valClass = openValueClasses.elementAt(i);
-					var value = valClass.getVariable(name);
-					if (value != null) {
-						existingValue = value;
-						owningClass = valClass;
-						classMember = true;
-					}
+		
+		var name = getTokenOfChild(node, 0);
+		reference = scope.findReference(name);
+		if (reference == null) {
+			for(var i = openValueClasses.size() - 1; i >= 0 ; --i) {
+				var valClass = openValueClasses.elementAt(i);
+				var value = valClass.getVariable(name);
+				if (value != null) {
+					existingValue = value;
+					owningClass = valClass;
+					classMember = true;
 				}
-				
-				if (existingValue == null)
-					throw new ExceptionSemantic("Variable " + name + " does not exist yet. Are you missing a declaration?");
 			}
+			
+			if (existingValue == null)
+				throw new ExceptionSemantic("Variable " + name + " does not exist yet. Are you missing a declaration?");
+		}
 
-			node.optimised = reference;
-		} else
-			reference = (Display.Reference)node.optimised;
+		node.optimised = reference;
+
 		
 		var valToAssign = doChild(node, 1);
 		
 		if (valToAssign == null) {
-			throw new ExceptionSemantic("Cannot assign null value.");
+			if (reference != null) {
+				valToAssign = CScharfUtil.getDefaultValueForClass(reference.getValue().getClass());
+			} 
 		}
 		
 		if (reference == null && existingValue == null) {
@@ -630,7 +628,7 @@ public class Parser implements CScharfVisitor {
 		Display.Reference reference;
 		
 		var childrenCount = node.jjtGetNumChildren();
-		
+
 		/*
 		 * childrenCount - 1 = value to assign
 		 * childrenCount - 2 = name of variable to assign to
@@ -651,12 +649,12 @@ public class Parser implements CScharfVisitor {
 			reference = (Display.Reference)node.optimised;
 		
 		var valToAssign = doChild(node, childrenCount - 1);
+		var specifiedType = CScharfUtil.getClassFromString(getTokenOfChild(node, childrenCount - 3));
 		
 		if (valToAssign == null) {
-			throw new ExceptionSemantic("Cannot assign null value.");
+			valToAssign = CScharfUtil.getDefaultValueForClass(specifiedType);
 		}
-		
-		var specifiedType = CScharfUtil.getClassFromString(getTokenOfChild(node, childrenCount - 3));
+
 		
 		if (!valToAssign.getClass().equals(specifiedType)) {
 			throw new ExceptionSemantic("Cannot assign value of type: " + valToAssign.getClass() + " to variable of type: " + specifiedType + ". Are you missing a cast?");
@@ -1029,7 +1027,7 @@ public class Parser implements CScharfVisitor {
 		
 		valueFunction.setFunctionDefinition(funcDef);
 		node.optimised = valueFunction;
-		
+				
 		return node.optimised;
 	}
 
@@ -1088,9 +1086,8 @@ public class Parser implements CScharfVisitor {
 		if (node.jjtGetNumChildren() > 1) {
 			var expectedParamTypes = new ArrayList<Class<?>>();
 			var realArgs = new ArrayList<Object>();
-			var castPresent = node.jjtGetChild(node.jjtGetNumChildren() - 1) instanceof ASTCharacter;
 			
-			for (var i = 1; i < (castPresent ? node.jjtGetNumChildren() - 1 : node.jjtGetNumChildren()); ++i) {
+			for (var i = 1; i < node.jjtGetNumChildren(); ++i) {
 				var val = doChild(node, i);
 				expectedParamTypes.add(CScharfUtil.getJavaClassFromValue(val));
 				realArgs.add(CScharfUtil.getJavaValueFromValueType(val));
@@ -1100,11 +1097,6 @@ public class Parser implements CScharfVisitor {
 				var constructor = reflectedClass.getConstructor(expectedParamTypes.toArray(new Class<?>[0]));
 				try {
 					valReflection = new ValueReflection(reflectedClass, constructor.newInstance(realArgs.toArray(new Object[0])));
-					
-					if (castPresent) {
-						var castToClass = doChild(node, node.jjtGetNumChildren() - 1).stringValue();
-						valReflection.setClassTypeAsSuperClass(Class.forName(castToClass));
-					}
 				} catch (InstantiationException e) {
 					e.printStackTrace();
 					throw new ExceptionSemantic("Could not create instance of " + className + ".");
@@ -1117,9 +1109,6 @@ public class Parser implements CScharfVisitor {
 				} catch (InvocationTargetException e) {
 					e.printStackTrace();
 					throw new ExceptionSemantic("Invocation target invalid.");
-				} catch (ClassNotFoundException e) {
-					e.printStackTrace();
-					throw new ExceptionSemantic("Could not find " + className + ".");
 				}
 			} catch (NoSuchMethodException e) {
 				e.printStackTrace();
@@ -1175,5 +1164,34 @@ public class Parser implements CScharfVisitor {
 
 	public Object visit(ASTReflectionBase node, Object data) {
 		return data;
+	}
+	
+	public Object visit(ASTCast node, Object data) {
+		return data;
+	}
+
+	public Object visit(ASTPrimaryExpression node, Object data) {
+		if (node.jjtGetNumChildren() == 1) {
+			return doChild(node, 0);
+		}
+		
+		var value = doChild(node, 1);		
+		var castNode = getChild(node, 0);
+		
+		if (castNode.jjtGetChild(0) instanceof ASTType) {
+			value = CScharfUtil.castValueToTypeByString(value, getTokenOfChild(castNode, 0));
+		} else if (castNode.jjtGetChild(0) instanceof ASTCharacter) {
+			if (!(value instanceof ValueReflection)) {
+				throw new ExceptionSemantic("Cannot cast primitive type to a reflection type.");
+			} else {
+				try {
+					((ValueReflection) value).setClassTypeAsSuperClass(Class.forName(doChild(castNode, 0).stringValue()));
+				} catch (ClassNotFoundException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		
+		return value;
 	}
 }

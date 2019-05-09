@@ -4,6 +4,6 @@ int p = 0;
 
 while(p < 10)
 {
-	write(p);
+	print(p);
 	p = p + 1;
 }

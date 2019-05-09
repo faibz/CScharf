@@ -76,7 +76,6 @@ TOKEN [IGNORE_CASE] : /* RESERVED WORDS AND LITERALS */
 | < FALSE: "FALSE" >
 | < QUIT: "QUIT" >
 | < REFLECTION: "REFLECT" >
-| < AS: "AS" >
 }
 
 TOKEN : /* TYPES */
@@ -457,13 +456,13 @@ void unary_expression() :
                             | primary_expression()
 }
 
-void primary_expression() : 
+void primary_expression() #PrimaryExpression: 
 {}
 {
-                            LOOKAHEAD(literal()) literal()
+                            [LOOKAHEAD(cast()) cast()] (LOOKAHEAD(literal())literal()
                             | LOOKAHEAD(fn_invoke()) fn_invoke()
                             | LOOKAHEAD(dereference()) dereference()
-                            | "(" expression() ")"
+                            | "(" expression() ")")
 }  
 
 void fn_invoke() #FnInvoke :
@@ -471,6 +470,13 @@ void fn_invoke() #FnInvoke :
 {
 							dereference() arglist()
 }
+
+void cast() #Cast :
+{}
+{
+	"(" (type() | character()) ")"
+}
+  
 
 void literal() :
 {}
@@ -545,7 +551,7 @@ void classInstance() #ClassInstance :
 void reflection() #Reflection :
 {}
 {
-	 <REFLECTION> "(" reflection_base() ("," expression() )* ")" [<AS> character()]
+	 <REFLECTION> "(" reflection_base() ("," expression() )* ")"
 } 
 
 void reflection_base() #ReflectionBase :

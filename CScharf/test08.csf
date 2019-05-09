@@ -1,11 +1,11 @@
-write(2 + 2);
-write(5 - 3);
-write(2 + 2 > 3 + 3);
-write(77 * 23);
-write(10 / 2);
+print(2 + 2);
+print(5 - 3);
+print(2 + 2 > 3 + 3);
+print(77 * 23);
+print(10 / 2);
 
 int a = 7;
 int b = 4;
-write(a);
-write(b);
-write(a * b);
+print(a);
+print(b);
+print(a * b);

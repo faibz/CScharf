@@ -4,10 +4,10 @@ public void blah(int start, int fin)
 {
 	for (int i=start; i<=fin; i=i+1)
 	{
-		write(i);
+		print(i);
 	}
 	
-	write(p + 2);
+	print(p + 2);
 }
 
 blah(5, 10);

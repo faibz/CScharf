@@ -1,25 +1,25 @@
 if (false) 
 {
-	write(1);
-	write(2);
-	write(3);
+	print(1);
+	print(2);
+	print(3);
 } 
 else 
 {
-	write(4);
-	write(5);
-	write(6);
+	print(4);
+	print(5);
+	print(6);
 }
 
 if (true) 
 {
-	write(11);
-	write(12);
-	write(13);
+	print(11);
+	print(12);
+	print(13);
 } 
 else 
 {
-	write(14);
-	write(15);
-	write(16);
+	print(14);
+	print(15);
+	print(16);
 }

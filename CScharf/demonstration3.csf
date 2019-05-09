@@ -1,11 +1,11 @@
-//Using reflection to write to a file and send an HTTP request
+//Using reflection to write to a file
 
 string textToWrite = "Boxcar";
 string fileName = "LDI.txt";
-reflection fileWriter = Reflect(CONSTRUCT: "java.io.FileWriter", fileName) as "java.io.Writer";
+reflection fileWriter = ("java.io.Writer") Reflect(CONSTRUCT: "java.io.FileWriter", fileName);
 reflection buffWriter = Reflect(CONSTRUCT: "java.io.BufferedWriter", fileWriter);
 
-buffWriter.write(textToWrite);
+buffWriter.print(textToWrite);
 buffWriter.close();
 
 print("Successfully wrote '" + textToWrite + "' to file " + fileName);

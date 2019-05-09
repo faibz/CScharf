@@ -46,7 +46,7 @@ public class Rectangle : Shape
 	{
 		public Test() 
 		{
-			write("New Test()");
+			print("New Test()");
 			testValue = 22;
 		}
 		
@@ -62,18 +62,18 @@ public class Rectangle : Shape
 instance rect = new Rectangle(10, 5);
 rect.SetInnerRect(new Rectangle(12, 6));
 
-write("Main rectangle area: " + rect.GetArea()); //Tests that calls work at various levels
-write("Inner rectangle area: " + rect.GetInnerRectArea());
-write("Inner rectangle area: " + rect.innerRect.GetArea());
+print("Main rectangle area: " + rect.GetArea()); //Tests that calls work at various levels
+print("Inner rectangle area: " + rect.GetInnerRectArea());
+print("Inner rectangle area: " + rect.innerRect.GetArea());
 
 rect.SetWidth(2);
 rect.innerRect.SetLength(20);
 
-write("Main rectangle area: " + rect.GetArea()); //Tests that only one class instance affected
-write("Inner rectangle " + rect.innerRect.GetArea());
+print("Main rectangle area: " + rect.GetArea()); //Tests that only one class instance affected
+print("Inner rectangle " + rect.innerRect.GetArea());
 
-write(rect.length);
-write(rect.GetArea());
+print(rect.length);
+print(rect.GetArea());
 
 instance carBox = new Rectangle.Test();
-write(carBox.GetTestValue());
+print(carBox.GetTestValue());

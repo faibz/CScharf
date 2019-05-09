@@ -14,4 +14,4 @@ public int sum(int n)
    return p;
 }
 
-write(sum(5));
+print(sum(5));

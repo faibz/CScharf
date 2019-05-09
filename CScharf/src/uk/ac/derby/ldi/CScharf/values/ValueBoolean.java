@@ -1,5 +1,7 @@
 package uk.ac.derby.ldi.CScharf.values;
 
+import uk.ac.derby.ldi.CScharf.interpreter.ExceptionSemantic;
+
 public class ValueBoolean extends ValueAbstract {
 
 	private boolean internalValue;
@@ -8,6 +10,11 @@ public class ValueBoolean extends ValueAbstract {
 		internalValue = b;
 	}
 	
+	public ValueBoolean(int val) {
+		if (val < 0 || val > 1) throw new ExceptionSemantic("Could not cast " + val + " to a boolean.");
+		internalValue = val == 1 ? true : false;
+	}
+
 	public String getName() {
 		return "boolean";
 	}

@@ -33,6 +33,10 @@ public class CScharfUtil {
 		defaultValues.put(ValueReflection.class, new ValueReflection());
 	}
 	
+	public static final Value getDefaultValueForClass(Class<?> type) {
+		return defaultValues.get(type);
+	}
+	
 	public static final Class<?> getClassFromString(String type) {
 		switch(type) {
 			case "int":
@@ -122,8 +126,56 @@ public class CScharfUtil {
 		else if (obj instanceof Array) return new ValueArray((Array) obj);
 		else return new ValueReflection(obj);
 	}
+
+	public static final Value castValueToTypeByString(Value value, String castToType) {
+		if (castToType.equals("int")) {
+			if (value instanceof ValueInteger) {
+				return value;
+			} else if (value instanceof ValueRational) {
+				return new ValueInteger((int) value.doubleValue());
+			} else if (value instanceof ValueBoolean) {
+				if (value.booleanValue()) return new ValueInteger(1);
+				return new ValueInteger(0);
+			} else if (value instanceof ValueString) {
+				return new ValueInteger(Integer.parseInt(value.stringValue()));				
+			}
+			throw new ExceptionSemantic("Unsupported cast.");
+		} else if (castToType.equals("float")) {
+			if (value instanceof ValueInteger) {
+				return new ValueRational(value.longValue());
+			} else if (value instanceof ValueRational) {
+				return value;
+			} else if (value instanceof ValueBoolean) {
+				if (value.booleanValue()) return new ValueRational(1.0f);
+				return new ValueRational(0.0f);
+			} else if (value instanceof ValueString) {
+				return new ValueRational(Float.parseFloat(value.stringValue()));
+			}
+			throw new ExceptionSemantic("Unsupported cast.");
+		} else if (castToType.equals("bool")) {
+			if (value instanceof ValueInteger) {
+				return new ValueBoolean((int) value.longValue());
+			} else if (value instanceof ValueRational) {
+				return new ValueBoolean((int) value.doubleValue());
+			} else if (value instanceof ValueBoolean) {
+				return value;
+			} else if (value instanceof ValueString) {
+				return new ValueBoolean(value.stringValue().equals("true") ? true : false);
+			}
+			throw new ExceptionSemantic("Unsupported cast.");
+		} else if (castToType.equals("string")) {
+			if (value instanceof ValueInteger) {
+				return new ValueString(value.stringValue());
+			} else if (value instanceof ValueRational) {
+				return new ValueString(value.stringValue());
+			} else if (value instanceof ValueBoolean) {
+				return new ValueString(value.stringValue());
+			} else if (value instanceof ValueString) {
+				return value;
+			}
+			throw new ExceptionSemantic("Unsupported cast.");
+		}
 		
-	public static final Value getDefaultValueForClass(Class<?> type) {
-		return defaultValues.get(type);
+		throw new ExceptionSemantic("Unsupport cast.");
 	}
 }

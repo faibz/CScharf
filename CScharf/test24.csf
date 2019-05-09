@@ -1,30 +1,31 @@
+//Testing some basic reflection and casting
+
 reflection pointReflection = Reflect(CONSTRUCT: "java.awt.Point", 69, 221);
 
-write("X = " + pointReflection.getX());
-write("Y = " + pointReflection.getY());
+print("X = " + pointReflection.getX());
+print("Y = " + pointReflection.getY());
 
 pointReflection.setLocation(10, 200);
 
-write("X = " + pointReflection.getX());
-write("Y = " + pointReflection.getY());
+print("X = " + pointReflection.getX());
+print("Y = " + pointReflection.getY());
 
 pointReflection.translate(50, -10);
 
-write("X = " + pointReflection.getX());
-write("Y = " + pointReflection.getY());
+print("X = " + pointReflection.getX());
+print("Y = " + pointReflection.getY());
 
 int roundedNumber = Reflect(METHOD: "java.lang.Math.round", 62.2024);
-write("Rounded number: " + roundedNumber);
+print("Rounded number: " + roundedNumber);
 
 float randomNumber = Reflect(METHOD: "java.lang.Math.random");
-write("Random number: " + randomNumber);
+print("Random number: " + randomNumber);
 
-//Proposed grammar change examples:
-// 1: reflection pointReflection = Reflection(NEW, "java.awt.Point", 10, 5);
-// 2: int mathMagic = Reflection(METHOD, "java.lang.Math.round", 10.24);
-// 3: Reflection(METHOD, "java.lang.System.out.println", "boxCar");
-// 4: reflection result = Reflection(NEW, "java.lang.StringBuilder");
-//    reflection url = Reflection(NEW, "java.net.URL", "https://google.co.uk/");
-//    reflection connection  = url.openConnection();
-//    connection.setRequestMethod("GET");
-//    etc.
+int boxCar = (int) Reflect(METHOD: "java.lang.Math.round", 62.202022);
+print(boxCar);
+
+float boxCar2 = (float) 10;
+print(boxCar2);
+
+float boxCar3 = (float) "10.24242f";
+print(boxCar3);

@@ -24,4 +24,4 @@ public int blah(int p)
 
 int v = 3;
 
-write(blah(v));
+print(blah(v));

@@ -46,18 +46,18 @@ for (int i = 0; i < 10; i = i + 1)
 
 for (int i = 0; i < 10; i = i + 1)
 {
-	write("i = " + i + " val = " + unorderedArray[i]);
+	print("i = " + i + " val = " + unorderedArray[i]);
 }
 
 bool arrayUnordered = ArrayOrdered(unorderedArray, 10);
 
 if (arrayUnordered)
 {
-	write("Sorting array...");
+	print("Sorting array...");
 }
 else
 {
-	write("Array already sorted.");
+	print("Array already sorted.");
 }
 
 while (arrayUnordered)
@@ -66,9 +66,9 @@ while (arrayUnordered)
 	arrayUnordered = ArrayOrdered(unorderedArray, 10);
 }
 
-write("Array sort complete.");
+print("Array sort complete.");
 
 for (int i = 0; i < 10; i = i + 1)
 {
-	write("i = " + i + " val = " + unorderedArray[i]);
+	print("i = " + i + " val = " + unorderedArray[i]);
 }

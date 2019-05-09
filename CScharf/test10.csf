@@ -14,10 +14,10 @@ public void blah(int start, int fin)
 
 	for (int i=start; i<=fin; i=i+1)
 	{
-		write(zot(i, p));
+		print(zot(i, p));
 	}
 
-	write(p * 1000);
+	print(p * 1000);
 }
 
 blah(5, 10);

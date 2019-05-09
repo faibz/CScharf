@@ -78,7 +78,7 @@ public class IntArray : ICollection, ISortable
 	{
 		for (int i = 0; i < _length; i = i + 1)
 		{
-			write("Array[" + i + "] = " + _array[i]);
+			print("Array[" + i + "] = " + _array[i]);
 		}
 	}
 }
@@ -100,11 +100,11 @@ bool arrayOrdered = arrayInstance.CheckOrder();
 
 if (!arrayOrdered)
 {
-	write("Sorting array...");
+	print("Sorting array...");
 }
 else
 {
-	write("Array already sorted.");
+	print("Array already sorted.");
 }
 
 while (!arrayOrdered)
@@ -113,6 +113,6 @@ while (!arrayOrdered)
 	arrayOrdered = arrayInstance.CheckOrder();
 }
 
-write("Array sort complete.");
+print("Array sort complete.");
 
 arrayInstance.Print();

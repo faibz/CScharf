@@ -6,11 +6,11 @@ public void blah(int start, int fin, string printme)
 {
 	for (int i = start; i <= fin; i=i+1)
 	{
-		write(i);
+		print(i);
 	}
 	
-	write(p + 2);
-	write(printme);
+	print(p + 2);
+	print(printme);
 }
 
 //Switch between bottom two
@@ -18,4 +18,4 @@ public void blah(int start, int fin, string printme)
 blah(1, 10, "hello");
 //blah(1, 10, 5);
 
-write(1);
+print(1);

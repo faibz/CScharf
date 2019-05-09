@@ -1,20 +1,20 @@
 //Testing array type
 
-write(10);
+print(10);
 
 anon boy = new { a = 103, b = 14 };
-write(boy.a);
+print(boy.a);
 
 array box = new int[5];
-write(box[2]);
+print(box[2]);
 
 box[2] = 240;
-write(box[2]);
+print(box[2]);
 box[2] = 1212;
-write(box[2]);
+print(box[2]);
 
 box[2+1] = box[2] + 10;
-write(box[2+1]);
+print(box[2+1]);
 
 //Should throw exception due to being out of bounds
 box[6] = 1;
