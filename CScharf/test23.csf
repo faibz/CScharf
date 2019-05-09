@@ -1,3 +1,5 @@
+//Class-based linked list
+
 public class Node
 {
 	public Node() 

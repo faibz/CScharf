@@ -241,6 +241,7 @@ void statement() #Statement :
 {}
 {
   				LOOKAHEAD(call()) call() ";"
+  				|   LOOKAHEAD(reflection()) reflection() ";"
 				|  	LOOKAHEAD(assignment()) assignment() ";"
 				|   variable_declaration() ";"
 				|	LOOKAHEAD(fndef()) fndef()
@@ -543,7 +544,7 @@ void classInstance() #ClassInstance :
 void reflection() #Reflection :
 {}
 {
-	 <REFLECTION> "(" reflection_base() ("," expression() )* ")"
+	 <REFLECTION> "(" reflection_base() ("," expression() )* ")" ["as " character()]
 } 
 
 void reflection_base() #ReflectionBase :

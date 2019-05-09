@@ -582,7 +582,6 @@ public class Parser implements CScharfVisitor {
 			reference = scope.findReference(name);
 			if (reference == null) {
 				for(var i = openValueClasses.size() - 1; i >= 0 ; --i) {
-					
 					var valClass = openValueClasses.elementAt(i);
 					var value = valClass.getVariable(name);
 					if (value != null) {
@@ -601,6 +600,10 @@ public class Parser implements CScharfVisitor {
 			reference = (Display.Reference)node.optimised;
 		
 		var valToAssign = doChild(node, 1);
+		
+		if (valToAssign == null) {
+			throw new ExceptionSemantic("Cannot assign null value.");
+		}
 		
 		if (reference == null && existingValue == null) {
 			throw new ExceptionSemantic("Variable " + getTokenOfChild(node, 0) + " does not exist in the current context.");
@@ -648,6 +651,11 @@ public class Parser implements CScharfVisitor {
 			reference = (Display.Reference)node.optimised;
 		
 		var valToAssign = doChild(node, childrenCount - 1);
+		
+		if (valToAssign == null) {
+			throw new ExceptionSemantic("Cannot assign null value.");
+		}
+		
 		var specifiedType = CScharfUtil.getClassFromString(getTokenOfChild(node, childrenCount - 3));
 		
 		if (!valToAssign.getClass().equals(specifiedType)) {
@@ -1080,28 +1088,23 @@ public class Parser implements CScharfVisitor {
 		if (node.jjtGetNumChildren() > 1) {
 			var expectedParamTypes = new ArrayList<Class<?>>();
 			var realArgs = new ArrayList<Object>();
-			var superClasses = new ArrayList<Class<?>>();
+			var castPresent = node.jjtGetChild(node.jjtGetNumChildren() - 1) instanceof ASTCharacter;
 			
-			for (var i = 1; i < node.jjtGetNumChildren(); ++i) {
+			for (var i = 1; i < (castPresent ? node.jjtGetNumChildren() - 1 : node.jjtGetNumChildren()); ++i) {
 				var val = doChild(node, i);
-				
-				var javaClass = CScharfUtil.getJavaClassFromValue(val);
-				var superClass = javaClass.getSuperclass();
-				
-				while (superClass != null) {
-					superClasses.add(superClass);
-					superClass = superClass.getSuperclass();
-				}
-				
-				expectedParamTypes.add(javaClass);
+				expectedParamTypes.add(CScharfUtil.getJavaClassFromValue(val));
 				realArgs.add(CScharfUtil.getJavaValueFromValueType(val));
 			}
 
 			try {
 				var constructor = reflectedClass.getConstructor(expectedParamTypes.toArray(new Class<?>[0]));
-				
 				try {
 					valReflection = new ValueReflection(reflectedClass, constructor.newInstance(realArgs.toArray(new Object[0])));
+					
+					if (castPresent) {
+						var castToClass = doChild(node, node.jjtGetNumChildren() - 1).stringValue();
+						valReflection.setClassTypeAsSuperClass(Class.forName(castToClass));
+					}
 				} catch (InstantiationException e) {
 					e.printStackTrace();
 					throw new ExceptionSemantic("Could not create instance of " + className + ".");
@@ -1114,32 +1117,13 @@ public class Parser implements CScharfVisitor {
 				} catch (InvocationTargetException e) {
 					e.printStackTrace();
 					throw new ExceptionSemantic("Invocation target invalid.");
+				} catch (ClassNotFoundException e) {
+					e.printStackTrace();
+					throw new ExceptionSemantic("Could not find " + className + ".");
 				}
 			} catch (NoSuchMethodException e) {
-				if (superClasses.isEmpty() || node.jjtGetNumChildren() > 2) {
-					e.printStackTrace();
-					throw new ExceptionSemantic("Could not find constructor of " + className + ".");
-				}
-				
-				try {
-					Constructor<?> constructor = null;
-					
-					for (var superClass : superClasses) {
-						try {
-							constructor = reflectedClass.getConstructor(superClass);
-							break;
-						} catch (Exception ex) {}
-					}
-					
-					if (constructor == null) {
-						throw new ExceptionSemantic("Could not find constructor of " + className + ".");
-					}
-					valReflection = new ValueReflection(reflectedClass, constructor.newInstance(realArgs.toArray(new Object[0])));
-				} catch (Exception exc) {
-					exc.printStackTrace();
-					throw new ExceptionSemantic("An exception has occurred.");
-				}
-				
+				e.printStackTrace();
+				throw new ExceptionSemantic("Could not find constructor of " + className + ".");
 			} catch (SecurityException e) {
 				e.printStackTrace();
 			}
@@ -1181,16 +1165,8 @@ public class Parser implements CScharfVisitor {
 		try {
 			reflectedClass = Class.forName(classPath);
 			method = reflectedClass.getMethod(methodName, expectedParamTypes.size() > 0 ? expectedParamTypes.toArray(new Class<?>[0]) : null);
-			
-			var obj = method.invoke(null, realArgs.toArray());
-			
-			if (obj != null) {
-				return CScharfUtil.getValueTypeFromJavaValue(obj);
-			}
-			
-			throw new ExceptionSemantic("Reflection call used in expression but returned null.");
-			
-			//return null;
+			return CScharfUtil.getValueTypeFromJavaValue(method.invoke(null, realArgs.toArray()));
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new ExceptionSemantic("Could not invoke method " + methodName + ".");

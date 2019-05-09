@@ -47,6 +47,21 @@ public class ValueReflection extends ValueAbstract {
 		innerClass = type;
 	}
 	
+	public void setClassTypeAsSuperClass(Class<?> type) {
+		var superClass = innerClass.getSuperclass();
+		
+		while (superClass != null) {
+			if (superClass.equals(type)) {
+				innerClass = type;
+				return;
+			}
+			
+			superClass = superClass.getSuperclass();
+		}
+		
+		throw new ExceptionSemantic("Class " + type + " is not a super class of " + innerClass);
+	}
+	
 	public Class<?> getClassType() {
 		return innerClass;
 	}

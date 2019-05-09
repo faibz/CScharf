@@ -2,10 +2,12 @@
 
 string textToWrite = "Boxcar";
 string fileName = "LDI.txt";
-reflection fileWriter = Reflect(CONSTRUCT: "java.io.FileWriter", fileName);
+reflection fileWriter = Reflect(CONSTRUCT: "java.io.FileWriter", fileName) as "java.io.Writer";
 reflection buffWriter = Reflect(CONSTRUCT: "java.io.BufferedWriter", fileWriter);
 
 buffWriter.write(textToWrite);
 buffWriter.close();
 
 print("Successfully wrote '" + textToWrite + "' to file " + fileName);
+
+Reflect(METHOD: "java.lang.Math.random");
