@@ -76,6 +76,7 @@ TOKEN [IGNORE_CASE] : /* RESERVED WORDS AND LITERALS */
 | < FALSE: "FALSE" >
 | < QUIT: "QUIT" >
 | < REFLECTION: "REFLECT" >
+| < AS: "AS" >
 }
 
 TOKEN : /* TYPES */
@@ -544,7 +545,7 @@ void classInstance() #ClassInstance :
 void reflection() #Reflection :
 {}
 {
-	 <REFLECTION> "(" reflection_base() ("," expression() )* ")" ["as " character()]
+	 <REFLECTION> "(" reflection_base() ("," expression() )* ")" [<AS> character()]
 } 
 
 void reflection_base() #ReflectionBase :

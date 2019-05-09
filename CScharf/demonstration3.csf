@@ -1,4 +1,4 @@
-//Using reflection to write to a file
+//Using reflection to write to a file and send an HTTP request
 
 string textToWrite = "Boxcar";
 string fileName = "LDI.txt";
@@ -9,5 +9,3 @@ buffWriter.write(textToWrite);
 buffWriter.close();
 
 print("Successfully wrote '" + textToWrite + "' to file " + fileName);
-
-Reflect(METHOD: "java.lang.Math.random");
