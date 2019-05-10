@@ -1,6 +1,7 @@
 // Test classes, interfaces, and inheritance
 
-public interface Shape {
+public interface Shape 
+{
 	int GetArea();
 }
 
@@ -44,12 +45,12 @@ public class Rectangle : Shape
 	
 	public class Test
 	{
-		public Test() 
+		public Test(int testVal) 
 		{
-			print("New Test()");
-			testValue = 22;
+			print("Hello");
+			testValue = testVal;
 		}
-		
+				
 		readonly int testValue = 10;
 			
 		public int GetTestValue()
@@ -75,5 +76,5 @@ print("Inner rectangle " + rect.innerRect.GetArea());
 print(rect.length);
 print(rect.GetArea());
 
-instance carBox = new Rectangle.Test();
-print(carBox.GetTestValue());
+instance test = new Rectangle.Test(69);
+print(test.GetTestValue());

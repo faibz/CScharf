@@ -302,7 +302,7 @@ void constructor(String className) #ClassConstructor :
 void classbody(String className) #ClassBody :
 {}
 {
-  constructor(className) (LOOKAHEAD(assignment()) assignment() ";" | variable_declaration() ";" | LOOKAHEAD(fndef()) fndef() | classdef() )* { jjtThis.tokenValue = className; }
+  constructor(className) (LOOKAHEAD(assignment()) assignment() ";" | LOOKAHEAD(variable_declaration()) variable_declaration() ";" | LOOKAHEAD(fndef()) fndef() | LOOKAHEAD(classdef()) classdef() )* { jjtThis.tokenValue = className; }
 }
 
 void interfacedef() #InterfaceDef :
@@ -545,7 +545,7 @@ void array() #Array :
 void classInstance() #ClassInstance :
 {}
 {
-	(LOOKAHEAD(2) identifier() "." )* identifier() arglist()
+	(LOOKAHEAD(10) identifier() "." )* identifier() arglist()
 }
 
 void reflection() #Reflection :

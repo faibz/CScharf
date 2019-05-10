@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import uk.ac.derby.ldi.CScharf.CScharfUtil;
 import uk.ac.derby.ldi.CScharf.interpreter.ExceptionSemantic;
 
-public class ValueReflection extends ValueAbstract {
+public class ValueReflection extends ValueAbstract implements ValueContainer {
 	private Class<?> innerClass = null;
 	private Object innerInstance = null;
 	private String name = "";
@@ -64,6 +64,18 @@ public class ValueReflection extends ValueAbstract {
 	
 	public Class<?> getClassType() {
 		return innerClass;
+	}
+	
+	public Value getVariable(String name) {
+		try {
+			var field = innerClass.getField(name);
+			var variable = field.get(innerInstance);
+			
+			return CScharfUtil.getValueTypeFromJavaValue(variable);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new ExceptionSemantic("Could not access variable " + name + ".");
+		}
 	}
 	
 	public Value invokeMethod(String name, ArrayList<Value> arguments) {

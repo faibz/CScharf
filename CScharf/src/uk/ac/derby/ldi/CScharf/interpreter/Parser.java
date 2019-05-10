@@ -484,6 +484,19 @@ public class Parser implements CScharfVisitor {
 			}
 			
 			return currentChild;
+//		} else if (value instanceof ValueReflection) {
+//			var container = (ValueReflection) value;
+//			var currentChild = container.getVariable(getTokenOfChild(node, 0));
+//			
+//			for (var i = 1; i < node.jjtGetNumChildren(); ++i) {
+//				if (currentChild instanceof ValueContainer) {
+//					currentChild = processContainerGet(currentChild, node, i);
+//				} else {
+//					currentChild = processArrayGet(currentChild, node, i);
+//				}
+//			}
+//			
+//			return currentChild;
 		} else {
 			var arr = (ValueArray) value;
 			var currentChild = arr.getValue((int)(doChild(node, 0).longValue()));
@@ -497,7 +510,7 @@ public class Parser implements CScharfVisitor {
 			}
 			
 			return currentChild;
-		}
+		} 
 	}
 		
 	private Value processContainerGet(Value child, ASTDereference node, int index) {
@@ -933,6 +946,7 @@ public class Parser implements CScharfVisitor {
 	}
 	
 	public Object visit(ASTClassInstance node, Object data) {
+		
 		FunctionDefinition fndef;
 		ValueClass valClass = null;
 		
@@ -949,8 +963,7 @@ public class Parser implements CScharfVisitor {
 		}
 
 		var constructorName = classDef.getName() + " Constructor(";
-		
-		var argListNode = node.jjtGetChild(1);
+		var argListNode = node.jjtGetChild(node.jjtGetNumChildren() - 1);
 		
 		for (var i = 0; i < argListNode.jjtGetNumChildren(); ++i) {
 			var val = doChild((SimpleNode)argListNode, i);
@@ -967,13 +980,13 @@ public class Parser implements CScharfVisitor {
 		fndef = scope.findFunction(constructorName);
 		
 		if (fndef == null) {
-			throw new ExceptionSemantic("Cannot find compatible constructor for class:  " + classDef.getName() + ".");
+			throw new ExceptionSemantic("Could not find compatible constructor for class:  " + classDef.getName() + ".");
 		}
 
 		var newInvocation = new FunctionInvocation(fndef);
-		doChild(node, 1, newInvocation);		
+		doChild(node, node.jjtGetNumChildren() - 1, newInvocation);
 		
-		valClass.setInConstructor(true);
+		valClass.setInConstructor(true);		
 		scope.execute(newInvocation, this);
 		valClass.setInConstructor(false);
 		
@@ -1132,7 +1145,6 @@ public class Parser implements CScharfVisitor {
 	}
 	
 	private Value invokeReflectionMethod(String methodPath, ASTReflection node) {
-		
 		var indexOfLastDot = methodPath.lastIndexOf('.');
 		var classPath = methodPath.substring(0, indexOfLastDot);
 		var methodName = methodPath.substring(indexOfLastDot + 1, methodPath.length());
@@ -1155,7 +1167,6 @@ public class Parser implements CScharfVisitor {
 			reflectedClass = Class.forName(classPath);
 			method = reflectedClass.getMethod(methodName, expectedParamTypes.size() > 0 ? expectedParamTypes.toArray(new Class<?>[0]) : null);
 			return CScharfUtil.getValueTypeFromJavaValue(method.invoke(null, realArgs.toArray()));
-
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new ExceptionSemantic("Could not invoke method " + methodName + ".");
