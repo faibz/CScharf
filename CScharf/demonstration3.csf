@@ -3,9 +3,10 @@
 string textToWrite = "Boxcar";
 string fileName = "LDI.txt";
 reflection fileWriter = <"java.io.Writer"> Reflect(CONSTRUCT: "java.io.FileWriter", fileName);
+
 reflection buffWriter = Reflect(CONSTRUCT: "java.io.BufferedWriter", fileWriter);
 
-buffWriter.print(textToWrite);
+buffWriter.write(textToWrite);
 buffWriter.close();
 
 print("Successfully wrote '" + textToWrite + "' to file " + fileName);
