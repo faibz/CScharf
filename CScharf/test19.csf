@@ -1,5 +1,9 @@
 // Test classes, interfaces, and inheritance
 
+print(<float> "10.242f");
+
+print("10.242f");
+
 public interface Shape 
 {
 	int GetArea();
@@ -19,6 +23,7 @@ public class Rectangle : Shape
 		
 	public void SetLength(int newLen) 
 	{
+		
 		length = newLen;
 	}
 	

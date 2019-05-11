@@ -46,4 +46,8 @@ public class ValueAnonymousType extends ValueAbstract implements ValueContainer 
 		
 		return id + "{" + memberStrings.substring(0, memberStrings.length() - 1) + "}";
 	}
+
+	public void setVariable(String name, Value value) {
+		throw new ExceptionSemantic("Cannot edit members of ValueAnonymousType; members are immutable");
+	}
 }

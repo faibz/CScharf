@@ -66,12 +66,23 @@ public class ValueReflection extends ValueAbstract implements ValueContainer {
 		return innerClass;
 	}
 	
-	public Value getVariable(String name) {
+	public Value getVariable(String name) {		
 		try {
 			var field = innerClass.getField(name);
 			var variable = field.get(innerInstance);
 			
 			return CScharfUtil.getValueTypeFromJavaValue(variable);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new ExceptionSemantic("Could not access variable " + name + ".");
+		}
+	}
+	
+	public void setVariable(String name, Value value) {
+		try {
+			var field = innerClass.getField(name);
+			
+			field.set(innerInstance, CScharfUtil.getJavaValueFromValueType(value));
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new ExceptionSemantic("Could not access variable " + name + ".");

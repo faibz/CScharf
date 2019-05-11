@@ -241,6 +241,7 @@ void statement() #Statement :
 {}
 {
   				LOOKAHEAD(call()) call() ";"
+  				| LOOKAHEAD(print()) print() ";"
   				| LOOKAHEAD(reflection()) reflection() ";"
 				| LOOKAHEAD(assignment()) assignment() ";"
 				| LOOKAHEAD(variable_declaration()) variable_declaration() ";"
@@ -248,7 +249,6 @@ void statement() #Statement :
 				| block()
 				| LOOKAHEAD(classdef()) classdef()
 				| interfacedef()
-				| LOOKAHEAD(print()) print() ";"
 				| ifstatement()	
 				| forloop()
 				| whileloop()
@@ -453,13 +453,13 @@ void unary_expression() :
                               <NOT> unary_expression() #UnaryNot(1)
                             | "+"   unary_expression() #UnaryPlus(1)
                             | "-"   unary_expression() #UnaryMinus(1)
-                            | primary_expression()
+                            | LOOKAHEAD(primary_expression()) primary_expression()
 }
 
 void primary_expression() #PrimaryExpression: 
 {}
 {
-                            [LOOKAHEAD(cast()) cast()] (LOOKAHEAD(literal()) literal()
+                            [LOOKAHEAD(cast()) cast()] ( LOOKAHEAD(literal()) literal()
                             | LOOKAHEAD(fn_invoke()) fn_invoke()
                             | LOOKAHEAD(dereference()) dereference()
                             | "(" expression() ")")
@@ -474,7 +474,7 @@ void fn_invoke() #FnInvoke :
 void cast() #Cast :
 {}
 {
-	"(" (type() | character()) ")"
+	"<" (type() | character()) ">"
 }
   
 
@@ -482,8 +482,8 @@ void literal() :
 {}
 {
 							integer()
+							| character()
 							| reflection()
-                            | character()
 							| rational()
 							| bool()
 							| fn()

@@ -534,15 +534,15 @@ public class Parser implements CScharfVisitor {
 			}
 		}
 		
-		if (currentChild instanceof ValueClass) {
-			processClassPut(currentChild, valToAssign, node, childCount - 1);
+		if (currentChild instanceof ValueContainer) {
+			processContainerPut((ValueContainer) currentChild, valToAssign, node, childCount - 1);
 		} else if (currentChild instanceof ValueArray) {
 			processArrayPut(currentChild, valToAssign, node, childCount - 1);
 		}
 	}
 	
-	private void processClassPut(Value valClass, Value valueToAssign, ASTDereference node, int index) {
-		((ValueClass) valClass).setVariable(getTokenOfChild(node, index), valueToAssign);
+	private void processContainerPut(ValueContainer valueContainer, Value valueToAssign, ASTDereference node, int index) {
+		valueContainer.setVariable(getTokenOfChild(node, index), valueToAssign);
 	}
 	
 	private void processArrayPut(Value valArray, Value valueToAssign, ASTDereference node, int index) {
