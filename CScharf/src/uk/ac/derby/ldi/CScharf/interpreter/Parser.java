@@ -864,14 +864,13 @@ public class Parser implements CScharfVisitor {
 	}
 	
 	public Object visit(ASTClassBody node, Object data) {
-		doChild(node, 0);
-		
 		var classDef = scope.findClassDeep(node.tokenValue);
 		
-		for(var i = 1; i < node.jjtGetNumChildren(); ++i) {
+		for(var i = 0; i < node.jjtGetNumChildren(); ++i) {
 			SimpleNode classBodyChildNode = getChild(node, i);
-			
-			if (classBodyChildNode instanceof ASTAssignment) {
+			if (classBodyChildNode instanceof ASTClassConstructor) {
+				doChild(node, i);
+			} else if (classBodyChildNode instanceof ASTAssignment) {
 				var childrenCount = classBodyChildNode.jjtGetNumChildren();
 				var modifier = Modifier.NONE;
 				
@@ -1025,9 +1024,7 @@ public class Parser implements CScharfVisitor {
 			
 	public Object visit(ASTFn node, Object data) {
 		var valueFunction = new ValueFn();
-		
-		var fnname = getTokenOfChild((SimpleNode) node.jjtGetParent(), 1);
-		var funcDef = new FunctionDefinition(fnname, scope.getLevel() + 1);
+		var funcDef = new FunctionDefinition("", scope.getLevel() + 1);
 		
 		doChild(node, 1, funcDef);
 		funcDef.setFunctionBody(getChild(node, 2));

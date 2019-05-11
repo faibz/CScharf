@@ -45,9 +45,10 @@ public class Rectangle : Shape
 	
 	public class Test
 	{
+		public Test() {}
+	
 		public Test(int testVal) 
 		{
-			print("Hello");
 			testValue = testVal;
 		}
 				
@@ -73,8 +74,9 @@ rect.innerRect.SetLength(20);
 print("Main rectangle area: " + rect.GetArea()); //Tests that only one class instance affected
 print("Inner rectangle " + rect.innerRect.GetArea());
 
-print(rect.length);
-print(rect.GetArea());
+print("Member access: Length = " + rect.length);
 
-instance test = new Rectangle.Test(69);
-print(test.GetTestValue());
+instance testOne = new Rectangle.Test();
+instance testTwo = new Rectangle.Test(62);
+print("Nested class test one value: " + testOne.GetTestValue());
+print("Nested class test two value: " + testTwo.GetTestValue());
