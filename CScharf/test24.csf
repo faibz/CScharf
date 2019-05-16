@@ -41,3 +41,6 @@ print("String -> Float: " + stringToFloatCast);
 
 string floatToStringCast = <string> 953.232f;
 print("Float -> String: " + floatToStringCast);
+
+readonly int val = 10;
+const int box;
