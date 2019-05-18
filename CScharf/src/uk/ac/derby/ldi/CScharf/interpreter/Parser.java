@@ -450,7 +450,6 @@ public class Parser implements CScharfVisitor {
 	
 	private ValueClass findValueClass(Node node, ValueClass container) {
 		var derefNode = (ASTDereference) node;
-		
 		int childCount = node.jjtGetNumChildren();
 		
 		Value currentChild = container;
@@ -484,19 +483,6 @@ public class Parser implements CScharfVisitor {
 			}
 			
 			return currentChild;
-//		} else if (value instanceof ValueReflection) {
-//			var container = (ValueReflection) value;
-//			var currentChild = container.getVariable(getTokenOfChild(node, 0));
-//			
-//			for (var i = 1; i < node.jjtGetNumChildren(); ++i) {
-//				if (currentChild instanceof ValueContainer) {
-//					currentChild = processContainerGet(currentChild, node, i);
-//				} else {
-//					currentChild = processArrayGet(currentChild, node, i);
-//				}
-//			}
-//			
-//			return currentChild;
 		} else {
 			var arr = (ValueArray) value;
 			var currentChild = arr.getValue((int)(doChild(node, 0).longValue()));
@@ -553,16 +539,20 @@ public class Parser implements CScharfVisitor {
 	public Object visit(ASTVariableDeclaration node, Object data) {
 		int childrenCount = node.jjtGetNumChildren();
 		
-		var name = getTokenOfChild(node, 0);
+		if (childrenCount == 3) {
+			if (getTokenOfChild(node, 0).equals("const")) {
+				throw new ExceptionSemantic("Cannot declare a const variable without a definition.");
+			} else {
+				throw new ExceptionSemantic("Cannot declare a readonly variable outside of a class.");
+			}
+		}
+		
+		var name = getTokenOfChild(node, node.jjtGetNumChildren() - 1);
 		Display.Reference reference = scope.findReference(name);
 		if (reference != null)
 			throw new ExceptionSemantic("Variable " + name + " already exists.");
 		else
 			reference = scope.defineVariable(name);
-		
-		if (childrenCount == 3) {
-			//TODO: Modifiers
-		}
 		
 		var specifiedType = CScharfUtil.getClassFromString(getTokenOfChild(node, childrenCount - 2));
 		reference.setValue(CScharfUtil.getDefaultValueForClass(specifiedType));
@@ -586,7 +576,7 @@ public class Parser implements CScharfVisitor {
 		Display.Reference reference;
 		ValueClass owningClass = null;
 		Value existingValue = null;
-		boolean classMember = false;
+		var classMember = false;
 		
 		var name = getTokenOfChild(node, 0);
 		reference = scope.findReference(name);
@@ -607,7 +597,6 @@ public class Parser implements CScharfVisitor {
 
 		node.optimised = reference;
 
-		
 		var valToAssign = doChild(node, 1);
 		
 		if (valToAssign == null) {
@@ -640,17 +629,17 @@ public class Parser implements CScharfVisitor {
 	private Object typedAssignment(ASTAssignment node, Object data) {
 		Display.Reference reference;
 		
-		var childrenCount = node.jjtGetNumChildren();
+		var childCount = node.jjtGetNumChildren();
 
 		/*
-		 * childrenCount - 1 = value to assign
-		 * childrenCount - 2 = name of variable to assign to
-		 * childrenCount - 3 = type of variable
-		 * childrenCount - 4 = modifier
+		 * childCount - 1 = value to assign
+		 * childCount - 2 = name of variable to assign to
+		 * childCount - 3 = type of variable
+		 * childCount - 4 = modifier
 		 */
 				
 		if (node.optimised == null) {
-			var name = getTokenOfChild(node, childrenCount - 2);
+			var name = getTokenOfChild(node, childCount - 2);
 			reference = scope.findReference(name);
 			if (reference == null) {
 				reference = scope.defineVariable(name);
@@ -661,8 +650,8 @@ public class Parser implements CScharfVisitor {
 		} else
 			reference = (Display.Reference)node.optimised;
 		
-		var valToAssign = doChild(node, childrenCount - 1);
-		var specifiedType = CScharfUtil.getClassFromString(getTokenOfChild(node, childrenCount - 3));
+		var valToAssign = doChild(node, childCount - 1);
+		var specifiedType = CScharfUtil.getClassFromString(getTokenOfChild(node, childCount - 3));
 		
 		if (valToAssign == null) {
 			valToAssign = CScharfUtil.getDefaultValueForClass(specifiedType);
@@ -673,8 +662,13 @@ public class Parser implements CScharfVisitor {
 			throw new ExceptionSemantic("Cannot assign value of type: " + valToAssign.getClass() + " to variable of type: " + specifiedType + ". Are you missing a cast?");
 		}
 		
-		if (childrenCount == 4 && getTokenOfChild(node, childrenCount - 4).equals("const"))
-			valToAssign.setConst();
+		if (childCount == 4) {
+			if (getTokenOfChild(node, childCount - 4).equals("const")) {
+				valToAssign.setConst();
+			} else {
+				throw new ExceptionSemantic("Cannot declare a readonly variable outside of a class.");
+			}
+		}
 		
 		reference.setValue(valToAssign);
 
@@ -890,7 +884,7 @@ public class Parser implements CScharfVisitor {
 					var modifierNode = (ASTModifier) classBodyChildNode.jjtGetChild(0);
 					
 					if (modifierNode.tokenValue.equals("const")) 
-						throw new ExceptionSemantic("Cannot set variable declaration to constant without a definition.");
+						throw new ExceptionSemantic("Cannot declare a constant variable without a definition.");
 					
 					readonly = true;
 				}
