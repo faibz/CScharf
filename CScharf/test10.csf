@@ -12,7 +12,7 @@ public void blah(int start, int fin)
 		return x * y + zaz(y);
 	}
 
-	for (int i=start; i<=fin; i=i+1)
+	for (int i=start; i<=fin; ++i)
 	{
 		print(zot(i, p));
 	}

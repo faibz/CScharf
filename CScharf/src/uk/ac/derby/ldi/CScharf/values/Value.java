@@ -54,6 +54,9 @@ public interface Value {
 	/** Convert this to a primitive long. */
 	public long longValue();
 	
+	/** Convert this to a primitive float. */
+	public float floatValue();
+	
 	/** Convert this to a primitive double. */
 	public double doubleValue();
 

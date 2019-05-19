@@ -80,7 +80,7 @@ TOKEN [IGNORE_CASE] : /* RESERVED WORDS AND LITERALS */
 
 TOKEN : /* TYPES */
 {
-  < TYPE: "int" | "float" | "bool" | "string" | "anon" | "func" | "array" | "instance" | "reflection" | "void" >
+  < TYPE: "int" | "float" | "double" | "bool" | "string" | "anon" | "func" | "array" | "instance" | "reflection" | "void" >
 }
 
 TOKEN : /* TYPE MODIFIERS */
@@ -113,10 +113,17 @@ TOKEN : /* LITERALS */
   < #OCTAL_LITERAL: "0" (["0"-"7"])* >
 |
   < FLOATING_POINT_LITERAL:
-        (["0"-"9"])+ "." (["0"-"9"])* (<EXPONENT>)? (["f","F","d","D"])?
-      | "." (["0"-"9"])+ (<EXPONENT>)? (["f","F","d","D"])?
-      | (["0"-"9"])+ <EXPONENT> (["f","F","d","D"])?
-      | (["0"-"9"])+ (<EXPONENT>)? ["f","F","d","D"]
+        (["0"-"9"])+ "." (["0"-"9"])* (<EXPONENT>)? (["f","F"])?
+      | "." (["0"-"9"])+ (<EXPONENT>)? (["f","F"])?
+      | (["0"-"9"])+ <EXPONENT> (["f","F"])?
+      | (["0"-"9"])+ (<EXPONENT>)? ["f","F"]
+  >
+|
+  < DOUBLE_LITERAL:
+        (["0"-"9"])+ "." (["0"-"9"])* (<EXPONENT>)? (["d","D"])?
+      | "." (["0"-"9"])+ (<EXPONENT>)? (["d","D"])?
+      | (["0"-"9"])+ <EXPONENT> (["d","D"])?
+      | (["0"-"9"])+ (<EXPONENT>)? ["d","D"]
   >
 |
   < #EXPONENT: ["e","E"] (["+","-"])? (["0"-"9"])+ >
@@ -240,7 +247,7 @@ ASTCode code() #Code :
 void statement() #Statement :
 {}
 {
-  				LOOKAHEAD(call()) call() ";"
+  				LOOKAHEAD(150) call() ";"
   				| LOOKAHEAD(print()) print() ";"
   				| LOOKAHEAD(reflection()) reflection() ";"
 				| LOOKAHEAD(assignment()) assignment() ";"
@@ -322,8 +329,18 @@ void returnexpr() #ReturnExpression :
 void assignment() #Assignment :
 {}
 {
-	  				[[modifier()] type()] dereference() "=" expression()
+	  				LOOKAHEAD(3) [[modifier()] type()] dereference() "=" expression()
+	  				| LOOKAHEAD(3) dereference() increment_decrement()
+	  				| increment_decrement() dereference()
 }
+
+void increment_decrement() #IncrementDecrement:
+{Token t;}
+{
+	t = <PP> { jjtThis.tokenValue = t.image; }
+	| t = <MM> { jjtThis.tokenValue = t.image; }
+}
+  
 
 void variable_declaration() #VariableDeclaration :
 {}
@@ -432,10 +449,10 @@ void compare_expression() :
 void add_expression() : 
 {} 
 {
-                              mul_expression() (
-                                  "+"  mul_expression() #Add(2)
-                                | "-"  mul_expression() #Subtract(2)
-                              )*
+    mul_expression() (
+        "+"  mul_expression() #Add(2)
+      | "-"  mul_expression() #Subtract(2)
+    )*
 }
 
 void mul_expression() : 
@@ -460,9 +477,9 @@ void unary_expression() :
 void primary_expression() #PrimaryExpression: 
 {}
 {
-                            [LOOKAHEAD(cast()) cast()] ( LOOKAHEAD(literal()) literal()
+                            [LOOKAHEAD(cast()) cast()] (LOOKAHEAD(literal()) literal()
                             | LOOKAHEAD(fn_invoke()) fn_invoke()
-                            | LOOKAHEAD(dereference()) dereference()
+                            | LOOKAHEAD(100) ([increment_decrement()]  dereference() [increment_decrement()])
                             | "(" expression() ")")
 }  
 
@@ -485,7 +502,8 @@ void literal() :
 							integer()
 							| character()
 							| reflection()
-							| rational()
+							| float_literal()
+							| double_literal()
 							| bool()
 							| fn()
 							| newObj()
@@ -516,11 +534,18 @@ void integer() #Integer :
 	t = <INTEGER_LITERAL> {jjtThis.tokenValue = t.image;}
 }
 
-void rational() #Rational : 
+void float_literal() #Float : 
 {Token t;} 
 { 
 	t = <FLOATING_POINT_LITERAL> {jjtThis.tokenValue = t.image;}
 }
+
+void double_literal() #Double :
+{Token t;}
+{
+  t = <DOUBLE_LITERAL> { jjtThis.tokenValue = t.image; }
+}
+  
 
 void fn() #Fn :
 {}

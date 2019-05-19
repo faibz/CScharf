@@ -29,15 +29,3 @@ print("Rounded number: " + roundedNumber);
 
 float randomNumber = Reflect(METHOD: "java.lang.Math.random");
 print("Random number: " + randomNumber);
-
-int floatToIntCast = <int> Reflect(METHOD: "java.lang.Math.round", 62.202022);
-print("Float -> Int: " + floatToIntCast);
-
-float intToFloatCast = <float> 10;
-print("Int -> Float: " + intToFloatCast);
-
-float stringToFloatCast = <float> "10.24242f";
-print("String -> Float: " + stringToFloatCast);
-
-string floatToStringCast = <string> 953.232f;
-print("Float -> String: " + floatToStringCast);

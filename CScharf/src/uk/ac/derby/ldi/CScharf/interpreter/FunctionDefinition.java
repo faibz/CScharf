@@ -144,8 +144,7 @@ public class FunctionDefinition implements Comparable<Object> {
 	/** Define a variable.  Return its slot number. */
 	int defineVariable(String name) {
 		Integer slot = slots.get(name);
-		if (slot != null)
-			return slot.intValue();
+		if (slot != null) return slot.intValue();
 		int slotNumber = slots.size();
 		slots.put(name, Integer.valueOf(slotNumber));
 		return slotNumber;

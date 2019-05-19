@@ -68,9 +68,14 @@ public abstract class ValueAbstract implements Value {
 		throw new ExceptionSemantic("Cannot convert " + getName() + " to integer.");
 	}
 
+	/** Convert this to a primitive float. */
+	public float floatValue() {
+		throw new ExceptionSemantic("Cannot convert " + getName() + " to float.");
+	}
+	
 	/** Convert this to a primitive double. */
 	public double doubleValue() {
-		throw new ExceptionSemantic("Cannot convert " + getName() + " to rational.");
+		throw new ExceptionSemantic("Cannot convert " + getName() + " to double.");
 	}
 
 	/** Convert this to a primitive string. */

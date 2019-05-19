@@ -1,6 +1,6 @@
-//Using reflection and more to send various HTTP requests
+//Using reflection and more to send an HTTP GET request.
 
-string urlText = "https://my-json-server.typicode.com/typicode/demo/db";
+string urlText = "https://my-json-server.typicode.com/typicode/demo/posts";
 
 reflection result = Reflect(CONSTRUCT: "java.lang.StringBuilder");
 reflection url = Reflect(CONSTRUCT: "java.net.URL", urlText);
@@ -18,6 +18,3 @@ while (!(line == "")) {
 reader.close();
 
 print("GET result: " + result.toString());
-
-reflection jsonParser = Reflect(CONSTRUCT: "com.google.json.JsonParser");
-reflection jsonElement = jsonParser.parse(result.toString());

@@ -22,3 +22,5 @@ java -classpath ./bin CScharf < test21.csf
 java -classpath ./bin CScharf < test22.csf
 java -classpath ./bin CScharf < test23.csf
 java -classpath ./bin CScharf < test24.csf
+java -classpath ./bin CScharf < test25.csf
+java -classpath ./bin CScharf < test26.csf

@@ -47,3 +47,7 @@ echo "=== Test23.csf ==="
 java -classpath ./bin CScharf < test23.csf
 echo "=== Test24.csf ==="
 java -classpath ./bin CScharf < test24.csf
+echo "=== Test25.csf ==="
+java -classpath ./bin CScharf < test25.csf
+echo "=== Test26.csf ==="
+java -classpath ./bin CScharf < test26.csf

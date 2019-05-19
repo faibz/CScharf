@@ -69,10 +69,13 @@ class Display {
 		int level = currentLevel;
 		while (level >= 0) {
 			int offset = display[level].findSlotNumber(name);
-			if (offset >= 0)
+			if (offset >= 0) {
 				return new Reference(level, offset);
+			}
+				
 			level--;
 		}
+		
 		return null;		
 	}
 	

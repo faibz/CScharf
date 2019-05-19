@@ -9,9 +9,10 @@ import uk.ac.derby.ldi.CScharf.values.ValueAnonymousType;
 import uk.ac.derby.ldi.CScharf.values.ValueArray;
 import uk.ac.derby.ldi.CScharf.values.ValueBoolean;
 import uk.ac.derby.ldi.CScharf.values.ValueClass;
+import uk.ac.derby.ldi.CScharf.values.ValueDouble;
 import uk.ac.derby.ldi.CScharf.values.ValueFn;
 import uk.ac.derby.ldi.CScharf.values.ValueInteger;
-import uk.ac.derby.ldi.CScharf.values.ValueRational;
+import uk.ac.derby.ldi.CScharf.values.ValueFloat;
 import uk.ac.derby.ldi.CScharf.values.ValueReflection;
 import uk.ac.derby.ldi.CScharf.values.ValueString;
 
@@ -23,7 +24,8 @@ public class CScharfUtil {
 	
 	static {
 		defaultValues.put(ValueInteger.class, new ValueInteger(0));
-		defaultValues.put(ValueRational.class, new ValueRational(0.0));
+		defaultValues.put(ValueFloat.class, new ValueFloat(0.0f));
+		defaultValues.put(ValueDouble.class, new ValueDouble(0.0d));
 		defaultValues.put(ValueBoolean.class, new ValueBoolean(false));
 		defaultValues.put(ValueString.class, new ValueString(""));
 		defaultValues.put(ValueAnonymousType.class, new ValueAnonymousType());
@@ -42,7 +44,9 @@ public class CScharfUtil {
 			case "int":
 				return ValueInteger.class;
 			case "float":
-				return ValueRational.class;
+				return ValueFloat.class;
+			case "double":
+				return ValueDouble.class;
 			case "bool":
 				return ValueBoolean.class;
 			case "string":
@@ -66,7 +70,8 @@ public class CScharfUtil {
 	
 	public static final String getStringFromClass(Class<?> type) {
 		if (type.equals(ValueInteger.class)) return "int";
-		else if (type.equals(ValueRational.class)) return "float";
+		else if (type.equals(ValueFloat.class)) return "float";
+		else if (type.equals(ValueDouble.class)) return "double";
 		else if (type.equals(ValueBoolean.class)) return "bool";
 		else if (type.equals(ValueString.class)) return "string";
 		else if (type.equals(ValueAnonymousType.class)) return "anon";
@@ -79,7 +84,8 @@ public class CScharfUtil {
 	
 	public static final Class<?> getJavaClassFromValueClass(Class<?> type) {
 		if (type.equals(ValueInteger.class)) return int.class;
-		else if (type.equals(ValueRational.class)) return float.class;
+		else if (type.equals(ValueFloat.class)) return float.class;
+		else if (type.equals(ValueDouble.class)) return double.class;
 		else if (type.equals(ValueBoolean.class)) return boolean.class;
 		else if (type.equals(ValueString.class)) return String.class;
 		else if (type.equals(ValueAnonymousType.class)) throw new ExceptionSemantic("Cannot resolve ValueAnonymousType to a Java class.");
@@ -94,7 +100,8 @@ public class CScharfUtil {
 		var type = val.getClass();
 		
 		if (type.equals(ValueInteger.class)) return int.class;
-		else if (type.equals(ValueRational.class)) return float.class;
+		else if (type.equals(ValueFloat.class)) return float.class;
+		else if (type.equals(ValueDouble.class)) return double.class;
 		else if (type.equals(ValueBoolean.class)) return boolean.class;
 		else if (type.equals(ValueString.class)) return String.class;
 		else if (type.equals(ValueAnonymousType.class)) throw new ExceptionSemantic("Cannot resolve ValueAnonymousType to a Java class.");
@@ -107,12 +114,13 @@ public class CScharfUtil {
 	
 	public static final Object getJavaValueFromValueType(Value val) {
 		if (val.getClass().equals(ValueInteger.class)) return (int) val.longValue();
-		else if (val.getClass().equals(ValueRational.class)) return (float) val.doubleValue();
+		else if (val.getClass().equals(ValueFloat.class)) return (float) val.floatValue();
+		else if (val.getClass().equals(ValueDouble.class)) return (double) val.doubleValue();
 		else if (val.getClass().equals(ValueBoolean.class)) return val.booleanValue();
 		else if (val.getClass().equals(ValueString.class)) return val.stringValue();
 		else if (val.getClass().equals(ValueAnonymousType.class)) throw new ExceptionSemantic("Cannot resolve ValueAnonymousType to a Java value.");
 		else if (val.getClass().equals(ValueFn.class)) throw new ExceptionSemantic("Cannot resolve ValueFn to a Java value.");
-		else if (val.getClass().equals(ValueArray.class)) throw new ExceptionSemantic("TODO?");
+		else if (val.getClass().equals(ValueArray.class)) throw new ExceptionSemantic("Cannot resolve ValueArray to a Java value.");
 		else if (val.getClass().equals(ValueClass.class)) throw new ExceptionSemantic("Cannot resolve ValueClass to a Java value.");
 		else if (val.getClass().equals(ValueReflection.class)) return ((ValueReflection) val).getInstance();
 		else throw new ExceptionSemantic("Could not resolve value " + val.getClass() + " to a Java class.");
@@ -120,7 +128,8 @@ public class CScharfUtil {
 	
 	public static final Value getValueTypeFromJavaValue(Object obj) {
 		if (obj instanceof Integer) return new ValueInteger((int) obj);
-		else if (obj instanceof Double) return new ValueRational((double) obj);
+		else if (obj instanceof Float) return new ValueFloat((float) obj);
+		else if (obj instanceof Double) return new ValueDouble((double) obj);
 		else if (obj instanceof Boolean) return new ValueBoolean((boolean) obj);
 		else if (obj instanceof String) return new ValueString((String) obj);
 		else if (obj instanceof Array) return new ValueArray((Array) obj);
@@ -131,7 +140,9 @@ public class CScharfUtil {
 		if (castToType.equals("int")) {
 			if (value instanceof ValueInteger) {
 				return value;
-			} else if (value instanceof ValueRational) {
+			} else if (value instanceof ValueFloat) {
+				return new ValueInteger((int) value.floatValue());
+			} else if (value instanceof ValueDouble) {
 				return new ValueInteger((int) value.doubleValue());
 			} else if (value instanceof ValueBoolean) {
 				if (value.booleanValue()) return new ValueInteger(1);
@@ -142,20 +153,40 @@ public class CScharfUtil {
 			throw new ExceptionSemantic("Unsupported cast.");
 		} else if (castToType.equals("float")) {
 			if (value instanceof ValueInteger) {
-				return new ValueRational(value.longValue());
-			} else if (value instanceof ValueRational) {
+				return new ValueFloat(value.longValue());
+			} else if (value instanceof ValueFloat) {
 				return value;
+			} else if (value instanceof ValueDouble) {
+				return new ValueFloat(value.doubleValue());
 			} else if (value instanceof ValueBoolean) {
-				if (value.booleanValue()) return new ValueRational(1.0f);
-				return new ValueRational(0.0f);
+				if (value.booleanValue()) return new ValueFloat(1.0f);
+				return new ValueFloat(0.0f);
 			} else if (value instanceof ValueString) {
-				return new ValueRational(Float.parseFloat(value.stringValue()));
+				return new ValueFloat(Float.parseFloat(value.stringValue()));
 			}
 			throw new ExceptionSemantic("Unsupported cast.");
+			
+		} else if (castToType.equals("double")) {
+			if (value instanceof ValueInteger) {
+				return new ValueDouble(value.longValue());
+			} else if (value instanceof ValueFloat) {
+				return new ValueDouble(value.doubleValue());
+			} else if (value instanceof ValueDouble) {
+				return value;
+			} else if (value instanceof ValueBoolean) {
+				if (value.booleanValue()) return new ValueDouble(1.0d);
+				return new ValueDouble(0.0d);
+			} else if (value instanceof ValueString) {
+				return new ValueDouble(Double.parseDouble(value.stringValue()));
+			}
+			throw new ExceptionSemantic("Unsupported cast.");
+			
 		} else if (castToType.equals("bool")) {
 			if (value instanceof ValueInteger) {
 				return new ValueBoolean((int) value.longValue());
-			} else if (value instanceof ValueRational) {
+			} else if (value instanceof ValueFloat) {
+				return new ValueBoolean((int) value.floatValue());
+			} else if (value instanceof ValueDouble) {
 				return new ValueBoolean((int) value.doubleValue());
 			} else if (value instanceof ValueBoolean) {
 				return value;
@@ -166,7 +197,9 @@ public class CScharfUtil {
 		} else if (castToType.equals("string")) {
 			if (value instanceof ValueInteger) {
 				return new ValueString(value.stringValue());
-			} else if (value instanceof ValueRational) {
+			} else if (value instanceof ValueFloat) {
+				return new ValueString(value.stringValue());
+			} else if (value instanceof ValueDouble) {
 				return new ValueString(value.stringValue());
 			} else if (value instanceof ValueBoolean) {
 				return new ValueString(value.stringValue());
@@ -176,6 +209,6 @@ public class CScharfUtil {
 			throw new ExceptionSemantic("Unsupported cast.");
 		}
 		
-		throw new ExceptionSemantic("Unsupport cast.");
+		throw new ExceptionSemantic("Unsupported cast.");
 	}
 }

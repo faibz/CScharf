@@ -353,8 +353,10 @@ public class Parser implements CScharfVisitor {
 			var hopefullyValueBoolean = doChild(node, 1);
 			if (!(hopefullyValueBoolean instanceof ValueBoolean))
 				throw new ExceptionSemantic("The test expression of a for loop must be boolean.");
-			if (!((ValueBoolean)hopefullyValueBoolean).booleanValue())
+			if (!((ValueBoolean)hopefullyValueBoolean).booleanValue()) {
 				break;
+			}
+				
 			// do loop statement
 			doChild(node, 3);
 			// assign loop increment
@@ -411,7 +413,7 @@ public class Parser implements CScharfVisitor {
 	// Dereference a variable or parameter, and return its value.
 	public Object visit(ASTDereference node, Object data) {	
 		Display.Reference reference;
-		if (node.optimised == null) {
+		//if (node.optimised == null) {
 			String name = node.tokenValue;
 			reference = scope.findReference(name);
 			if (reference == null) {
@@ -425,7 +427,7 @@ public class Parser implements CScharfVisitor {
 						}
 					} else {
 						var container = valClass.getVariable(name);
-						var value = processAccess(container, node);
+						var value = processGet(container, node);
 						
 						if (value != null) {
 							return value;
@@ -436,14 +438,14 @@ public class Parser implements CScharfVisitor {
 				throw new ExceptionSemantic("Variable or parameter " + name + " is undefined.");
 			}
 				
-			node.optimised = reference;
-		} else
-			reference = (Display.Reference)node.optimised;
+		//	node.optimised = reference;
+		//} else
+		//	reference = (Display.Reference)node.optimised;
 		
 		var value = reference.getValue();
 		
 		//If this is a member access case or index access case (i.e. obj.var/arr[0])
-		if (node.jjtGetNumChildren() >= 1) value = processAccess(value, node);
+		if (node.jjtGetNumChildren() >= 1) value = processGet(value, node);
 		
 		return value;
 	}
@@ -469,7 +471,7 @@ public class Parser implements CScharfVisitor {
 		return null;
 	}
 	
-	private Value processAccess(Value value, ASTDereference node) {
+	private Value processGet(Value value, ASTDereference node) {
 		if (value instanceof ValueContainer) {
 			var container = (ValueContainer) value;
 			var currentChild = container.getVariable(getTokenOfChild(node, 0));
@@ -555,6 +557,11 @@ public class Parser implements CScharfVisitor {
 			reference = scope.defineVariable(name);
 		
 		var specifiedType = CScharfUtil.getClassFromString(getTokenOfChild(node, childrenCount - 2));
+		
+		if (specifiedType == null) {
+			throw new ExceptionSemantic("Cannot use void as a variable type.");
+		}
+		
 		reference.setValue(CScharfUtil.getDefaultValueForClass(specifiedType));
 		
 		return data;
@@ -564,22 +571,42 @@ public class Parser implements CScharfVisitor {
 	public Object visit(ASTAssignment node, Object data) {
 		// Given that we could have anything from "const int val = 10;" to "val = 1;"
 		// We need to be able to distinguish between types of assignment and throw accurate exceptions
+		boolean isIncOrDec = false;
+		boolean increment = false;
+		boolean prefix = false;
 		
+		var firstChild = (SimpleNode) node.jjtGetChild(0);
+		var secondChild = (SimpleNode) node.jjtGetChild(1);
+		
+		if (firstChild instanceof ASTIncrementDecrement) {
+			isIncOrDec = true;
+			if (firstChild.tokenValue.equals("++")) increment = true;
+			prefix = true;
+		} else if (secondChild instanceof ASTIncrementDecrement) {
+			isIncOrDec = true;
+			if (secondChild.tokenValue.equals("++")) increment = true;
+		}
+				
 		if (node.jjtGetNumChildren() == 2) {
-			return untypedAssignment(node, data);
+			if (isIncOrDec) {
+				var name = getTokenOfChild(node, prefix ? 1 : 0);
+				var derefNode = (ASTDereference) node.jjtGetChild(prefix ? 1 : 0);
+				return untypedAssignment(name, null, derefNode, data, true, increment, prefix);
+			} else {
+				return untypedAssignment(getTokenOfChild(node, 0), doChild(node, 1), (ASTDereference) node.jjtGetChild(0), data, false, false, false);
+			}
 		} else {
 			return typedAssignment(node, data);
 		}
 	}
 	
-	private Object untypedAssignment(ASTAssignment node, Object data) {
+	private Object untypedAssignment(String name, Value valToAssign, ASTDereference derefNode, Object data, boolean isIncOrDec, boolean increment, boolean prefix) {
 		Display.Reference reference;
 		ValueClass owningClass = null;
 		Value existingValue = null;
-		var classMember = false;
-		
-		var name = getTokenOfChild(node, 0);
+		var classMember = false;	
 		reference = scope.findReference(name);
+		
 		if (reference == null) {
 			for(var i = openValueClasses.size() - 1; i >= 0 ; --i) {
 				var valClass = openValueClasses.elementAt(i);
@@ -591,34 +618,45 @@ public class Parser implements CScharfVisitor {
 				}
 			}
 			
-			if (existingValue == null)
+			if (existingValue == null) {
 				throw new ExceptionSemantic("Variable " + name + " does not exist yet. Are you missing a declaration?");
+			}
 		}
-
-		node.optimised = reference;
-
-		var valToAssign = doChild(node, 1);
 		
 		if (valToAssign == null) {
-			if (reference != null) {
+			if (reference != null && !isIncOrDec) {
 				valToAssign = CScharfUtil.getDefaultValueForClass(reference.getValue().getClass());
 			} 
 		}
-		
+	
 		if (reference == null && existingValue == null) {
-			throw new ExceptionSemantic("Variable " + getTokenOfChild(node, 0) + " does not exist in the current context.");
+			throw new ExceptionSemantic("Variable " + name + " does not exist in the current context.");
 		}
 		
 		if (existingValue == null)
 			existingValue = reference.getValue();
 		
-		if (valToAssign.getClass().equals(existingValue.getClass()) && node.jjtGetChild(0).jjtGetNumChildren() <= 0) {
+		if (valToAssign == null) {
+			if (isIncOrDec) {
+				if (existingValue != null) {
+					if (existingValue instanceof ValueArray || existingValue instanceof ValueContainer) {
+						valToAssign = processGet(existingValue, (ASTDereference) derefNode);
+						valToAssign = increment ? valToAssign.add(new ValueInteger(1)) : valToAssign.subtract(new ValueInteger(1));
+					} else {
+						if (increment) valToAssign = existingValue.add(new ValueInteger(1));
+						else valToAssign = existingValue.subtract(new ValueInteger(1));
+					}
+				}
+			}
+		}
+		
+		if (valToAssign.getClass().equals(existingValue.getClass()) && derefNode.jjtGetNumChildren() <= 0) {
 			if (classMember) 
-				owningClass.setVariable(getTokenOfChild(node, 0), valToAssign);
+				owningClass.setVariable(name, valToAssign);
 			else
 				reference.setValue(valToAssign);
-		} else if (existingValue.getClass() == ValueArray.class || existingValue instanceof ValueContainer) {
-			processPut(existingValue, valToAssign, (ASTDereference) node.jjtGetChild(0));
+		} else if (existingValue instanceof ValueArray || existingValue instanceof ValueContainer) {
+			processPut(existingValue, valToAssign, (ASTDereference) derefNode);
 		} else {
 			throw new ExceptionSemantic("Cannot assign value of type: " + valToAssign.getClass() + " to variable of type: " + existingValue.getClass() + ". Are you missing a cast?");
 		}
@@ -638,20 +676,30 @@ public class Parser implements CScharfVisitor {
 		 * childCount - 4 = modifier
 		 */
 				
-		if (node.optimised == null) {
+		//if (node.optimised == null) {
 			var name = getTokenOfChild(node, childCount - 2);
 			reference = scope.findReference(name);
 			if (reference == null) {
 				reference = scope.defineVariable(name);
 			}
-			else
-				throw new ExceptionSemantic("Variable '" + name + "' has already been defined in this scope.");
-			node.optimised = reference;
-		} else
-			reference = (Display.Reference)node.optimised;
+			else {
+				try {
+					reference.getValue();
+					throw new ExceptionSemantic("Variable '" + name + "' has already been defined in this scope.");
+				} catch (Exception e) {
+					reference = scope.defineVariable(name);
+				}
+			}
+		//	node.optimised = reference;
+		//} else
+		//	reference = (Display.Reference) node.optimised;
 		
 		var valToAssign = doChild(node, childCount - 1);
 		var specifiedType = CScharfUtil.getClassFromString(getTokenOfChild(node, childCount - 3));
+		
+		if (specifiedType == null) {
+			throw new ExceptionSemantic("Cannot use void as a variable type.");
+		}
 		
 		if (valToAssign == null) {
 			valToAssign = CScharfUtil.getDefaultValueForClass(specifiedType);
@@ -740,6 +788,70 @@ public class Parser implements CScharfVisitor {
 	public Object visit(ASTSubtract node, Object data) {
 		return doChild(node, 0).subtract(doChild(node, 1));
 	}
+	
+	// ++ (prefix)
+	public Object visit(ASTPrefixIncrement node, Object data) {
+		var childOfInterest = (SimpleNode) node.jjtGetChild(0).jjtGetChild(0);
+		
+		if (!(childOfInterest instanceof ASTDereference)) {
+			throw new ExceptionSemantic("Incrementation not appropriate in current context.");
+		}
+		
+		var derefNode = (ASTDereference) childOfInterest;
+		
+		untypedAssignment(childOfInterest.tokenValue, null, derefNode, data, true, true, true);
+		
+		return doChild(node, 0);
+	}
+
+	// -- (prefix)
+	public Object visit(ASTPrefixDecrement node, Object data) {
+		var childOfInterest = (SimpleNode) node.jjtGetChild(0).jjtGetChild(0);
+		
+		if (!(childOfInterest instanceof ASTDereference)) {
+			throw new ExceptionSemantic("Incrementation not appropriate in current context.");
+		}
+		
+		var derefNode = (ASTDereference) childOfInterest;
+		
+		untypedAssignment(childOfInterest.tokenValue, null, derefNode, data, true, false, true);
+		
+		return doChild(node, 0);
+	}
+	
+	// ++ (postfix)
+	public Object visit(ASTPostfixIncrement node, Object data) {
+		var childOfInterest = (SimpleNode) node.jjtGetChild(0).jjtGetChild(0);
+		
+		if (!(childOfInterest instanceof ASTDereference)) {
+			throw new ExceptionSemantic("Incrementation not appropriate in current context.");
+		}
+		
+		var derefNode = (ASTDereference) childOfInterest;
+		
+		var value = doChild(node, 0);
+		
+		untypedAssignment(childOfInterest.tokenValue, null, derefNode, data, true, true, false);
+		
+		return value;
+	}
+
+	// -- (postfix);
+	public Object visit(ASTPostfixDecrement node, Object data) {
+		var childOfInterest = (SimpleNode) node.jjtGetChild(0).jjtGetChild(0);
+		
+		if (!(childOfInterest instanceof ASTDereference)) {
+			throw new ExceptionSemantic("Incrementation not appropriate in current context.");
+		}
+		
+		var derefNode = (ASTDereference) childOfInterest;
+		
+		var value = doChild(node, 0);
+		
+		untypedAssignment(childOfInterest.tokenValue, null, derefNode, data, true, false, false);
+		
+		return value;
+	}
 
 	// *
 	public Object visit(ASTTimes node, Object data) {
@@ -784,11 +896,18 @@ public class Parser implements CScharfVisitor {
 			node.optimised = new ValueInteger(Long.parseLong(node.tokenValue));
 		return node.optimised;
 	}
-
-	// Return floating point literal
-	public Object visit(ASTRational node, Object data) {
+	
+	// Return float literal
+	public Object visit(ASTFloat node, Object data) {
 		if (node.optimised == null)
-			node.optimised = new ValueRational(Double.parseDouble(node.tokenValue));
+			node.optimised = new ValueFloat(Float.parseFloat(node.tokenValue));
+		return node.optimised;
+	}
+
+	// Return double literal
+	public Object visit(ASTDouble node, Object data) {
+		if (node.optimised == null)
+			node.optimised = new ValueDouble(Double.parseDouble(node.tokenValue));
 		return node.optimised;
 	}
 
@@ -1181,24 +1300,55 @@ public class Parser implements CScharfVisitor {
 		if (node.jjtGetNumChildren() == 1) {
 			return doChild(node, 0);
 		}
+				
+		Value value = null;	
 		
-		var value = doChild(node, 1);		
-		var castNode = getChild(node, 0);
-		
-		if (castNode.jjtGetChild(0) instanceof ASTType) {
-			value = CScharfUtil.castValueToTypeByString(value, getTokenOfChild(castNode, 0));
-		} else if (castNode.jjtGetChild(0) instanceof ASTCharacter) {
-			if (!(value instanceof ValueReflection)) {
-				throw new ExceptionSemantic("Cannot cast primitive type to a reflection type.");
-			} else {
-				try {
-					((ValueReflection) value).setClassTypeAsSuperClass(Class.forName(doChild(castNode, 0).stringValue()));
-				} catch (ClassNotFoundException e) {
-					e.printStackTrace();
+		if (node.jjtGetChild(0) instanceof ASTCast) {
+			value = doChild(node, 1);
+			
+			var castNode = getChild(node, 0);
+			
+			if (castNode.jjtGetChild(0) instanceof ASTType || getTokenOfChild(castNode, 0).equals("java.lang.Double")) {
+				value = CScharfUtil.castValueToTypeByString(value, getTokenOfChild(castNode, 0));
+			} else if (castNode.jjtGetChild(0) instanceof ASTCharacter) {
+				if (!(value instanceof ValueReflection)) {
+					throw new ExceptionSemantic("Cannot cast primitive type to a reflection type.");
+				} else {
+					try {
+						((ValueReflection) value).setClassTypeAsSuperClass(Class.forName(doChild(castNode, 0).stringValue()));
+					} catch (ClassNotFoundException e) {
+						e.printStackTrace();
+					}
 				}
 			}
+		} else {
+			var firstChild = (SimpleNode) node.jjtGetChild(0);
+			var secondChild = (SimpleNode) node.jjtGetChild(1);
+			var prefixIncDec = firstChild instanceof ASTIncrementDecrement;
+			var postfixIncDec = secondChild instanceof ASTIncrementDecrement;
+			var increment = prefixIncDec ? firstChild.tokenValue.equals("++") : secondChild.tokenValue.equals("++");
+			
+			if (prefixIncDec && postfixIncDec) {
+				throw new ExceptionSemantic("Cannot use both pre and post fix incrementation/decrementation operators at the same time.");
+			}
+			
+			var derefNode = (ASTDereference) node.jjtGetChild(prefixIncDec ? 1 : 0);
+			
+			if (postfixIncDec) {
+				value = doChild(node, 0);
+			}
+			
+			untypedAssignment(derefNode.tokenValue, null, derefNode, data, true, increment, prefixIncDec);
+			
+			if (prefixIncDec) {
+				value = doChild(node, 1);
+			}
 		}
-		
+	
 		return value;
+	}
+
+	public Object visit(ASTIncrementDecrement node, Object data) {
+		return data;
 	}
 }

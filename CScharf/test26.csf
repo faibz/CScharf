@@ -1,0 +1,52 @@
+// Testing increment and decrement system
+
+print("Prefix Incrementation Tests");
+
+int num = 22;
+print("Num (pre-inc): " + num);
+print("Num (post-inc): " + ++num);
+
+int numTwo = ++num;
+print("Num Two: " + numTwo);
+print("Num (post-second inc): " + num);
+
+print("");
+
+print("Prefix Decrementation Tests");
+
+num = 22;
+print("Num (pre-dec): " + num);
+print("Num (post-dec): " + --num);
+
+numTwo = --num;
+print("Num Two: " + numTwo);
+print("Num (post-second dec): " + num);
+
+print("");
+
+print("Postfix Incrementation Tests");
+num = 22;
+print("Num (pre-inc): " + num++);
+print("Num (post-inc): " + num);
+
+numTwo = num++;
+print("Num Two: " + numTwo);
+print("Num (post-second inc): " + num);
+
+print("");
+
+print("Postfix Decrementation Tests");
+
+num = 22;
+print("Num (pre-dec): " + num--);
+print("Num (post-dec): " + num);
+
+numTwo = num--;
+print("Num Two: " + numTwo);
+print("Num (post-second dec): " + num);
+
+array arr = new array[2];
+arr[0] = new int[5];
+
+print("Nested array member (pre-inc): " + arr[0][0]++);
+print("Nested array member (post-inc): " + arr[0][0]);

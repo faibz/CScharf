@@ -18,8 +18,8 @@ public class ValueInteger extends ValueAbstract {
 	}
 	
 	/** Convert this to a primitive double. */
-	public double doubleValue() {
-		return (double)internalValue;
+	public float floatValue() {
+		return (float) internalValue;
 	}
 	
 	/** Convert this to a primitive String. */
