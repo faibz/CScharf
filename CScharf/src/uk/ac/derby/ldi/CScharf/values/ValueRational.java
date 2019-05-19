@@ -46,6 +46,10 @@ public class ValueRational extends ValueAbstract {
 	public Value div(Value v) {
 		return new ValueRational(internalValue / v.doubleValue());
 	}
+	
+	public Value mod(Value v) {
+		return new ValueRational(internalValue % v.doubleValue());
+	}
 
 	public Value unary_plus() {
 		return new ValueRational(internalValue);

@@ -51,6 +51,10 @@ public class ValueInteger extends ValueAbstract {
 	public Value div(Value v) {
 		return new ValueInteger(internalValue / v.longValue());
 	}
+	
+	public Value mod(Value v) {
+		return new ValueInteger(internalValue % v.longValue());
+	}
 
 	public Value unary_plus() {
 		return new ValueInteger(internalValue);

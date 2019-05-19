@@ -750,6 +750,11 @@ public class Parser implements CScharfVisitor {
 	public Object visit(ASTDivide node, Object data) {
 		return doChild(node, 0).div(doChild(node, 1));
 	}
+	
+	// %
+	public Object visit(ASTModulo node, Object data) {
+		return doChild(node, 0).mod(doChild(node, 1));
+	}
 
 	// NOT
 	public Object visit(ASTUnaryNot node, Object data) {
