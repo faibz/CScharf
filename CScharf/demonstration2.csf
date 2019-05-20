@@ -74,9 +74,9 @@ public class IntArray : ICollection, ISortable
 		}
 	}
 	
-	public void Print()
+	public void PrintArray()
 	{
-		for (int i = 0; i < _length; i = i + 1)
+		for (int i = 0; i < _length; ++i)
 		{
 			print("Array[" + i + "] = " + _array[i]);
 		}
@@ -94,7 +94,7 @@ for (int i = 0; i < 10; i = i + 1)
 
 instance arrayInstance = new IntArray(unorderedArray, 10);
 
-arrayInstance.Print();
+arrayInstance.PrintArray();
 
 bool arrayOrdered = arrayInstance.CheckOrder();
 
@@ -115,4 +115,4 @@ while (!arrayOrdered)
 
 print("Array sort complete.");
 
-arrayInstance.Print();
+arrayInstance.PrintArray();

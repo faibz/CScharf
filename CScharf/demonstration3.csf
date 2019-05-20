@@ -1,12 +1,40 @@
 //Using reflection to write to a file
 
-string textToWrite = "Boxcar";
-string fileName = "LDI.txt";
-reflection fileWriter = <"java.io.Writer"> Reflect(CONSTRUCT: "java.io.FileWriter", fileName);
+public class FileManager
+{
+	public FileManager() {}
+	
+	public void Write(string fileName, string text)
+	{
+		reflection fileWriter = <"java.io.Writer"> Reflect(CONSTRUCT: "java.io.FileWriter", fileName);
+		reflection buffWriter = Reflect(CONSTRUCT: "java.io.BufferedWriter", fileWriter);
+		
+		buffWriter.write(text);
+		buffWriter.close();
+		fileWriter.close();
+	}
+	
+	public string Read(string fileName)
+	{
+		reflection fileReader = <"java.io.Reader"> Reflect(CONSTRUCT: "java.io.FileReader", fileName);
+		reflection buffReader = Reflect(CONSTRUCT: "java.io.BufferedReader", fileReader);
+		reflection fileContents = Reflect(CONSTRUCT: "java.lang.StringBuilder");
+		
+		string line = buffReader.readLine();
 
-reflection buffWriter = Reflect(CONSTRUCT: "java.io.BufferedWriter", fileWriter);
+		while (!(line == "")) {
+			fileContents.append(line);
+			line = buffReader.readLine();
+		}
 
-buffWriter.write(textToWrite);
-buffWriter.close();
+		buffReader.close();
+		fileReader.close();
+		
+		return fileContents.toString();
+	}
+}
 
-print("Successfully wrote '" + textToWrite + "' to file " + fileName);
+instance fileManager = new FileManager();
+
+fileManager.Write("LDI.txt", "Boxcar");
+print(fileManager.Read("LDI.txt"));

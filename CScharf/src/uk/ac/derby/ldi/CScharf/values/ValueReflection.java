@@ -94,7 +94,14 @@ public class ValueReflection extends ValueAbstract implements ValueContainer {
 		var realArgs = new ArrayList<Object>();
 		
 		for (var val : arguments) {
-			var javaClass = CScharfUtil.getJavaClassFromValueClass(val.getClass());
+			Class<?> javaClass = null;
+			if(val instanceof ValueReflection) {
+				javaClass = ((ValueReflection) val).getInstance().getClass();
+			} else {
+				javaClass = CScharfUtil.getJavaClassFromValueClass(val.getClass());
+			}
+			
+			//var javaClass = CScharfUtil.getJavaClassFromValueClass(val.getClass());
 			expectedParamTypes.add(javaClass);
 			realArgs.add(CScharfUtil.getJavaValueFromValueType(val));
 		}

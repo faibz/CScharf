@@ -1,9 +1,10 @@
-//Creating a Calculator class, demonstrating its capabilities
-//then using reflection to read from a file, and finally taking the input to run calculator instructions
+//Creating a Calculator class and then demonstrating its capabilities
+
 
 public class Calculator
 {
 	public Calculator() {}
+	
 	public Calculator(float initialValue) 
 	{
 		_currentValue = initialValue;
@@ -14,8 +15,54 @@ public class Calculator
 		_currentValue = <float> initialValue;
 	}
 	
+	array _memory = new float[16];
+	int _currentMemoryLength = 0;
+		
 	const float _pi = 3.14159f;
 	float _currentValue = 0.0f;	
+	
+	public void Save()
+	{
+		if (_currentMemoryLength < 16)
+		{
+			_memory[_currentMemoryLength] = _currentValue;
+			++_currentMemoryLength;
+		}
+		else
+		{	
+			print("Memory is full. Load a value from memory or clear the memory to save this value.");
+		}
+	}
+	
+	public void LoadFromMemory()
+	{
+		if (_currentMemoryLength > 0) 
+		{
+			_currentValue = _memory[--_currentMemoryLength];
+			_memory[_currentMemoryLength] = 0.0f;
+		}
+		else 
+		{
+			print("Memory is empty. A value must be first saved into memory using the Save method before values can be loaded from it.");
+		}
+
+	}
+	
+	public void PrintMemory()
+	{
+		for (int i = _currentMemoryLength - 1; i >= 0; --i)
+		{
+			print("[" + i + "] = " + _memory[i]);
+		}
+	}
+	
+	public void ClearMemory()
+	{
+		for (int i = 0; i < _currentMemoryLength; ++i)
+		{
+			_memory[i] = 0.0f;
+		}
+	}
 
 	public void Add(float val)
 	{
@@ -134,35 +181,20 @@ public class Calculator
 	{
 		print(_currentValue);
 	}
-	
-	public void ExecuteInstructionFromString(string instruction)
-	{
-		
-	}
 }
 
 instance calc = new Calculator();
 
 calc.Add(10.0f);
-calc.PrintValue();
 calc.Multiply(2342.0f);
+calc.Save();
 calc.PrintValue();
 
-calc.Reset();
-calc.Add(2.0f);
+calc.SetValue(2.0f);
 
 calc.Power(8);
 calc.PrintValue();
-
-calc.SquareRoot();
-calc.PrintValue();
-
-calc.Mod(5);
-calc.PrintValue();
-
-calc.Add(4.0f);
-calc.Factorial();
-calc.PrintValue();
+calc.Save();
 
 calc.SetValue(90.0f);
 calc.ToRadians();
@@ -174,3 +206,8 @@ calc.PrintValue();
 calc.Abs();
 calc.PrintValue();
 
+calc.LoadFromMemory();
+calc.PrintValue();
+
+calc.Save();
+calc.PrintMemory();

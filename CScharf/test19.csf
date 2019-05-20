@@ -1,15 +1,11 @@
 // Test classes, interfaces, and inheritance
 
-print(<float> "10.242f");
-
-print("10.242f");
-
-public interface Shape 
+public interface IShape 
 {
 	int GetArea();
 }
 
-public class Rectangle : Shape 
+public class Rectangle : IShape 
 {
 	public Rectangle(int len, int wid) 
 	{

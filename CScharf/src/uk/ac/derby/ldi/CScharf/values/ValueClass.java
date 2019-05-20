@@ -66,7 +66,7 @@ public class ValueClass extends ValueAbstract implements ValueContainer {
 	
 	public Value getVariable(String name) {
 		if (!variables.containsKey(name)) {
-			throw new ExceptionSemantic("Variable " + name + " does not exist in class " + getName() + ".");
+			return null;
 		}
 		
 		return variables.get(name).getValue();
@@ -74,7 +74,7 @@ public class ValueClass extends ValueAbstract implements ValueContainer {
 	
 	public FunctionDefinition getFunction(String name) {
 		if (!functions.containsKey(name)) {
-			throw new ExceptionSemantic("Function " + name + " does not exist in class " + getName() + ".");
+			return null;
 		}
 		
 		return functions.get(name);
@@ -82,15 +82,13 @@ public class ValueClass extends ValueAbstract implements ValueContainer {
 	
 	public ClassDefinition getClass(String name) {
 		if (!classes.containsKey(name)) {
-			throw new ExceptionSemantic("Class " + name + " does not exist in class " + getName() + ".");
+			return null;
 		}
 		
 		return classes.get(name);
 	}
 	
 	public String toString() {
-		//TODO put var data in here too
-		
 		return id.toString();
 	}
 	

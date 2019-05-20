@@ -92,7 +92,10 @@ public class CScharfUtil {
 		else if (type.equals(ValueFn.class)) throw new ExceptionSemantic("Cannot resolve ValueFn to a Java class.");
 		else if (type.equals(ValueArray.class)) throw new ExceptionSemantic("Cannot resolve ValueArray to a Java class.");
 		else if (type.equals(ValueClass.class)) throw new ExceptionSemantic("Cannot resolve ValueClass to a Java class.");
-		else if (type.equals(ValueReflection.class)) throw new ExceptionSemantic("Cannot resolve ValueReflection to a Java class.");
+		else if (type.equals(ValueReflection.class)) {
+			System.out.println("wtf bro");
+			throw new ExceptionSemantic("Cannot resolve ValueReflection to a Java class.");
+		}
 		else throw new ExceptionSemantic("Could not resolve value " + type + " to a Java class.");
 	}
 	

@@ -1122,11 +1122,11 @@ public class Parser implements CScharfVisitor {
 		
 		for (var i = 0; i < functionCount; ++i) {
 			var interfaceFunc = new InterfaceFunction();
+			interfaceFunc.setReturnType(CScharfUtil.getClassFromString(getTokenOfChild(node, i * 3)));
+
+			interfaceFunc.setName(getTokenOfChild(node, i * 3 + 1));
 			
-			interfaceFunc.setReturnType(CScharfUtil.getClassFromString(getTokenOfChild(node, i)));
-			interfaceFunc.setName(getTokenOfChild(node, i + 1));
-			
-			var parmListNode = (SimpleNode) node.jjtGetChild(i + 2);
+			var parmListNode = (SimpleNode) node.jjtGetChild(i * 3 + 2);
 			
 			for (var j = 0; j < parmListNode.jjtGetNumChildren(); j += 2) {
 				interfaceFunc.addParam(CScharfUtil.getClassFromString(getTokenOfChild(parmListNode, j)));
@@ -1272,8 +1272,15 @@ public class Parser implements CScharfVisitor {
 		
 		for (var i = 1; i < node.jjtGetNumChildren(); ++i) {
 			var val = doChild(node, i);
+			Class<?> javaClass = null;
 			
-			var javaClass = CScharfUtil.getJavaClassFromValueClass(val.getClass());
+			if(val instanceof ValueReflection) {
+				javaClass = ((ValueReflection) val).getInstance().getClass();
+			} else {
+				javaClass = CScharfUtil.getJavaClassFromValueClass(val.getClass());
+			}
+			
+			//var javaClass = CScharfUtil.getJavaClassFromValueClass(val.getClass());
 			expectedParamTypes.add(javaClass);
 			realArgs.add(CScharfUtil.getJavaValueFromValueType(val));
 		}

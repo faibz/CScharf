@@ -27,5 +27,5 @@ print("Method access: Y = " + pointReflection.getY());
 int roundedNumber = Reflect(METHOD: "java.lang.Math.round", 62.2024);
 print("Rounded number: " + roundedNumber);
 
-float randomNumber = Reflect(METHOD: "java.lang.Math.random");
+double randomNumber = Reflect(METHOD: "java.lang.Math.random");
 print("Random number: " + randomNumber);

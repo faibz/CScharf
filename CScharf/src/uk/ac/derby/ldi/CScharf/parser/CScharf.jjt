@@ -247,7 +247,7 @@ ASTCode code() #Code :
 void statement() #Statement :
 {}
 {
-  				LOOKAHEAD(150) call() ";"
+  				LOOKAHEAD(call()) call() ";"
   				| LOOKAHEAD(print()) print() ";"
   				| LOOKAHEAD(reflection()) reflection() ";"
 				| LOOKAHEAD(assignment()) assignment() ";"
