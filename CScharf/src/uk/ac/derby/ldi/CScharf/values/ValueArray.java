@@ -16,7 +16,7 @@ public class ValueArray extends ValueAbstract {
 	public ValueArray() {}
 	
 	public ValueArray(Array arr) {
-		//TODO: Possible?
+		type = CScharfUtil.getValueClassFromJavaTypeClass(arr.getClass().getComponentType());;
 		length = Array.getLength(arr);
 	}
 	
@@ -58,7 +58,17 @@ public class ValueArray extends ValueAbstract {
 	}
 	
 	public String toString() {
-		return id.toString();
+		var memberStrings = "";
+				
+		for (var key : data.keySet()) {
+			memberStrings = memberStrings.concat("[" + key + "] = " + data.get(key) + ", ");
+		}
+		
+		return id + "{" + memberStrings.substring(0, memberStrings.length() - (memberStrings.length() > 0 ? 2 : 0)) + "}";
+	}
+	
+	public String stringValue() {
+		return toString();
 	}
 
 	public int compare(Value v) {

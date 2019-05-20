@@ -413,35 +413,31 @@ public class Parser implements CScharfVisitor {
 	// Dereference a variable or parameter, and return its value.
 	public Object visit(ASTDereference node, Object data) {	
 		Display.Reference reference;
-		//if (node.optimised == null) {
-			String name = node.tokenValue;
-			reference = scope.findReference(name);
-			if (reference == null) {
-				for(var i = openValueClasses.size() - 1; i >= 0 ; --i) {
-					var valClass = openValueClasses.elementAt(i);
+		
+		String name = node.tokenValue;
+		reference = scope.findReference(name);
+		if (reference == null) {
+			for(var i = openValueClasses.size() - 1; i >= 0 ; --i) {
+				var valClass = openValueClasses.elementAt(i);
+				
+				if (node.jjtGetNumChildren() == 0) {
+					var value = valClass.getVariable(name);
+					if (value != null) {
+						return value;
+					}
+				} else {
+					var container = valClass.getVariable(name);
+					var value = processGet(container, node);
 					
-					if (node.jjtGetNumChildren() == 0) {
-						var value = valClass.getVariable(name);
-						if (value != null) {
-							return value;
-						}
-					} else {
-						var container = valClass.getVariable(name);
-						var value = processGet(container, node);
-						
-						if (value != null) {
-							return value;
-						}
+					if (value != null) {
+						return value;
 					}
 				}
-
-				throw new ExceptionSemantic("Variable or parameter " + name + " is undefined.");
 			}
-				
-		//	node.optimised = reference;
-		//} else
-		//	reference = (Display.Reference)node.optimised;
-		
+
+			throw new ExceptionSemantic("Variable or parameter " + name + " is undefined.");
+		}
+	
 		var value = reference.getValue();
 		
 		//If this is a member access case or index access case (i.e. obj.var/arr[0])
@@ -676,23 +672,19 @@ public class Parser implements CScharfVisitor {
 		 * childCount - 4 = modifier
 		 */
 				
-		//if (node.optimised == null) {
-			var name = getTokenOfChild(node, childCount - 2);
-			reference = scope.findReference(name);
-			if (reference == null) {
+		var name = getTokenOfChild(node, childCount - 2);
+		reference = scope.findReference(name);
+		if (reference == null) {
+			reference = scope.defineVariable(name);
+		}
+		else {
+			try {
+				reference.getValue();
+				throw new ExceptionSemantic("Variable '" + name + "' has already been defined in this scope.");
+			} catch (Exception e) {
 				reference = scope.defineVariable(name);
 			}
-			else {
-				try {
-					reference.getValue();
-					throw new ExceptionSemantic("Variable '" + name + "' has already been defined in this scope.");
-				} catch (Exception e) {
-					reference = scope.defineVariable(name);
-				}
-			}
-		//	node.optimised = reference;
-		//} else
-		//	reference = (Display.Reference) node.optimised;
+		}
 		
 		var valToAssign = doChild(node, childCount - 1);
 		var specifiedType = CScharfUtil.getClassFromString(getTokenOfChild(node, childCount - 3));
@@ -1280,7 +1272,6 @@ public class Parser implements CScharfVisitor {
 				javaClass = CScharfUtil.getJavaClassFromValueClass(val.getClass());
 			}
 			
-			//var javaClass = CScharfUtil.getJavaClassFromValueClass(val.getClass());
 			expectedParamTypes.add(javaClass);
 			realArgs.add(CScharfUtil.getJavaValueFromValueType(val));
 		}

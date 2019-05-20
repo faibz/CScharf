@@ -18,9 +18,7 @@ public class ValueAnonymousType extends ValueAbstract implements ValueContainer 
 		return 0;
 	}
 	
-	/* Only called when initialising an object.
-	 * Calling this after initialisation is not supported.
-	 * Unsure if allowing for values to be re-set (like what is possible with arrays) will be supported. */
+	/* Only called when initialising an object. Anonymous type members are immutable. */
 	public void addValue(String name, Value value) {
 		variables.put(name, value);
 	}
@@ -40,11 +38,15 @@ public class ValueAnonymousType extends ValueAbstract implements ValueContainer 
 	public String toString() {
 		var memberStrings = "";
 				
-		for(Map.Entry<String, Value> variable: variables.entrySet()) {
-			memberStrings = memberStrings.concat(variable.getKey() + "=" + variable.getValue() + ",");
+		for(var key: variables.keySet()) {
+			memberStrings = memberStrings.concat(key + "=" + variables.get(key) + ",");
 		}
 		
-		return id + "{" + memberStrings.substring(0, memberStrings.length() - 1) + "}";
+		return id + "{" + memberStrings.substring(0, memberStrings.length() - (memberStrings.length() > 0 ? 1 : 0)) + "}";
+	}
+	
+	public String stringValue() {
+		return toString();
 	}
 
 	public void setVariable(String name, Value value) {

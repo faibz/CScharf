@@ -13,8 +13,6 @@ int hello = chiefOne.box.c.car;
 print(bob.a);
 print(bob.car);
 
-//i = "fox";
-
 string chief = "foxes";
 print(chief);
 chief = "stringer";
@@ -25,3 +23,5 @@ arrayOne[1] = arraySlotOne;
 arrayOne[1].arraySlotOneArray[2] = 20;
 
 print(arrayOne[1].arraySlotOneArray[2]);
+
+print(arrayOne);

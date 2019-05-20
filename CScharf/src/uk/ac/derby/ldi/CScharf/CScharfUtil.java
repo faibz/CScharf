@@ -35,10 +35,12 @@ public class CScharfUtil {
 		defaultValues.put(ValueReflection.class, new ValueReflection());
 	}
 	
+	/** Returns the default value for a CScharf type. */
 	public static final Value getDefaultValueForClass(Class<?> type) {
 		return defaultValues.get(type);
 	}
 	
+	/** Returns the CScharf type equivalent of a string. */
 	public static final Class<?> getClassFromString(String type) {
 		switch(type) {
 			case "int":
@@ -68,6 +70,7 @@ public class CScharfUtil {
 		}
 	}
 	
+	/** Returns the string equivalent of a CScharf type. */
 	public static final String getStringFromClass(Class<?> type) {
 		if (type.equals(ValueInteger.class)) return "int";
 		else if (type.equals(ValueFloat.class)) return "float";
@@ -81,7 +84,8 @@ public class CScharfUtil {
 		else if (type.equals(ValueReflection.class)) return "reflection";
 		else throw new ExceptionSemantic("Could not resolve value to a type.");
 	}
-	
+
+	/** Returns a Java class from a CScharf type. */
 	public static final Class<?> getJavaClassFromValueClass(Class<?> type) {
 		if (type.equals(ValueInteger.class)) return int.class;
 		else if (type.equals(ValueFloat.class)) return float.class;
@@ -90,15 +94,13 @@ public class CScharfUtil {
 		else if (type.equals(ValueString.class)) return String.class;
 		else if (type.equals(ValueAnonymousType.class)) throw new ExceptionSemantic("Cannot resolve ValueAnonymousType to a Java class.");
 		else if (type.equals(ValueFn.class)) throw new ExceptionSemantic("Cannot resolve ValueFn to a Java class.");
-		else if (type.equals(ValueArray.class)) throw new ExceptionSemantic("Cannot resolve ValueArray to a Java class.");
+		else if (type.equals(ValueArray.class)) return Array.class;
 		else if (type.equals(ValueClass.class)) throw new ExceptionSemantic("Cannot resolve ValueClass to a Java class.");
-		else if (type.equals(ValueReflection.class)) {
-			System.out.println("wtf bro");
-			throw new ExceptionSemantic("Cannot resolve ValueReflection to a Java class.");
-		}
+		else if (type.equals(ValueReflection.class)) throw new ExceptionSemantic("Cannot resolve ValueReflection to a Java class.");
 		else throw new ExceptionSemantic("Could not resolve value " + type + " to a Java class.");
 	}
 	
+	/** Returns a Java class equivalent of a CScharf value. */
 	public static final Class<?> getJavaClassFromValue(Value val) {
 		var type = val.getClass();
 		
@@ -109,12 +111,13 @@ public class CScharfUtil {
 		else if (type.equals(ValueString.class)) return String.class;
 		else if (type.equals(ValueAnonymousType.class)) throw new ExceptionSemantic("Cannot resolve ValueAnonymousType to a Java class.");
 		else if (type.equals(ValueFn.class)) throw new ExceptionSemantic("Cannot resolve ValueFn to a Java class.");
-		else if (type.equals(ValueArray.class)) throw new ExceptionSemantic("Cannot resolve ValueArray to a Java class.");
+		else if (type.equals(ValueArray.class)) return Array.class;
 		else if (type.equals(ValueClass.class)) throw new ExceptionSemantic("Cannot resolve ValueClass to a Java class.");
 		else if (type.equals(ValueReflection.class)) return ((ValueReflection) val).getClassType();
 		else throw new ExceptionSemantic("Could not resolve value " + type + " to a Java class.");
 	}
 	
+	/** Converts a CScharf value to a Java value. */
 	public static final Object getJavaValueFromValueType(Value val) {
 		if (val.getClass().equals(ValueInteger.class)) return (int) val.longValue();
 		else if (val.getClass().equals(ValueFloat.class)) return (float) val.floatValue();
@@ -129,6 +132,7 @@ public class CScharfUtil {
 		else throw new ExceptionSemantic("Could not resolve value " + val.getClass() + " to a Java class.");
 	}
 	
+	/** Converts a Java value to a CScharf value. */
 	public static final Value getValueTypeFromJavaValue(Object obj) {
 		if (obj instanceof Integer) return new ValueInteger((int) obj);
 		else if (obj instanceof Float) return new ValueFloat((float) obj);
@@ -138,7 +142,18 @@ public class CScharfUtil {
 		else if (obj instanceof Array) return new ValueArray((Array) obj);
 		else return new ValueReflection(obj);
 	}
+	
+	/** Maps primitive Java type classes (int, boolean, etc.) to CScharf type classes. */
+	public static final Class<?> getValueClassFromJavaTypeClass(Class<?> type) {
+		if (type.equals(int.class)) return ValueInteger.class;
+		else if (type.equals(float.class)) return ValueFloat.class;
+		else if (type.equals(double.class)) return ValueDouble.class;
+		else if (type.equals(String.class)) return ValueString.class;
+		
+		throw new ExceptionSemantic("Cannot map " + type + " to a CScharf type class.");
+	}
 
+	/** Casts a CScharf value to another CScharf value by a type's string equivalent. */
 	public static final Value castValueToTypeByString(Value value, String castToType) {
 		if (castToType.equals("int")) {
 			if (value instanceof ValueInteger) {
