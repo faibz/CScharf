@@ -1,6 +1,5 @@
 //Creating a Calculator class and then demonstrating its capabilities
 
-
 public class Calculator
 {
 	public Calculator() {}

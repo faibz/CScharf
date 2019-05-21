@@ -796,55 +796,6 @@ public class Parser implements CScharfVisitor {
 		return doChild(node, 0);
 	}
 
-	// -- (prefix)
-	public Object visit(ASTPrefixDecrement node, Object data) {
-		var childOfInterest = (SimpleNode) node.jjtGetChild(0).jjtGetChild(0);
-		
-		if (!(childOfInterest instanceof ASTDereference)) {
-			throw new ExceptionSemantic("Incrementation not appropriate in current context.");
-		}
-		
-		var derefNode = (ASTDereference) childOfInterest;
-		
-		untypedAssignment(childOfInterest.tokenValue, null, derefNode, data, true, false, true);
-		
-		return doChild(node, 0);
-	}
-	
-	// ++ (postfix)
-	public Object visit(ASTPostfixIncrement node, Object data) {
-		var childOfInterest = (SimpleNode) node.jjtGetChild(0).jjtGetChild(0);
-		
-		if (!(childOfInterest instanceof ASTDereference)) {
-			throw new ExceptionSemantic("Incrementation not appropriate in current context.");
-		}
-		
-		var derefNode = (ASTDereference) childOfInterest;
-		
-		var value = doChild(node, 0);
-		
-		untypedAssignment(childOfInterest.tokenValue, null, derefNode, data, true, true, false);
-		
-		return value;
-	}
-
-	// -- (postfix);
-	public Object visit(ASTPostfixDecrement node, Object data) {
-		var childOfInterest = (SimpleNode) node.jjtGetChild(0).jjtGetChild(0);
-		
-		if (!(childOfInterest instanceof ASTDereference)) {
-			throw new ExceptionSemantic("Incrementation not appropriate in current context.");
-		}
-		
-		var derefNode = (ASTDereference) childOfInterest;
-		
-		var value = doChild(node, 0);
-		
-		untypedAssignment(childOfInterest.tokenValue, null, derefNode, data, true, false, false);
-		
-		return value;
-	}
-
 	// *
 	public Object visit(ASTTimes node, Object data) {
 		return doChild(node, 0).mult(doChild(node, 1));
@@ -1306,7 +1257,7 @@ public class Parser implements CScharfVisitor {
 			
 			var castNode = getChild(node, 0);
 			
-			if (castNode.jjtGetChild(0) instanceof ASTType || getTokenOfChild(castNode, 0).equals("java.lang.Double")) {
+			if (castNode.jjtGetChild(0) instanceof ASTType) {
 				value = CScharfUtil.castValueToTypeByString(value, getTokenOfChild(castNode, 0));
 			} else if (castNode.jjtGetChild(0) instanceof ASTCharacter) {
 				if (!(value instanceof ValueReflection)) {

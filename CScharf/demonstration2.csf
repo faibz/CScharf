@@ -1,4 +1,4 @@
-//Using classes to sort array
+//Basic array sorting via bubble sort using class-based approach
 
 public interface ICollection
 {
@@ -82,8 +82,6 @@ public class IntArray : ICollection, ISortable
 		}
 	}
 }
-
-//Basic array sorting via bubble sort
 
 array unorderedArray = new int[10];
 
