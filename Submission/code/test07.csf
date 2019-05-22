@@ -1,0 +1,14 @@
+int p5 = 10;
+
+public int test(int p1, int p2, int p3)
+{
+	print(p1);
+	print(p2);
+	print(p3);
+	int p4 = 2;
+	return p1 * p2 * p3 * p4 * p5;
+}
+
+print(test(3, 4, 5));
+
+test(3, 4, 5);

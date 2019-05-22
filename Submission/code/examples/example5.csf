@@ -1,0 +1,212 @@
+//Creating a Calculator class and then demonstrating its capabilities
+
+public class Calculator
+{
+	public Calculator() {}
+	
+	public Calculator(float initialValue) 
+	{
+		_currentValue = initialValue;
+	}
+	
+	public Calculator(int initialValue) 
+	{
+		_currentValue = <float> initialValue;
+	}
+	
+	array _memory = new float[16];
+	int _currentMemoryLength = 0;
+		
+	const float _pi = 3.14159f;
+	float _currentValue = 0.0f;	
+	
+	public void Save()
+	{
+		if (_currentMemoryLength < 16)
+		{
+			_memory[_currentMemoryLength] = _currentValue;
+			++_currentMemoryLength;
+		}
+		else
+		{	
+			print("Memory is full. Load a value from memory or clear the memory to save this value.");
+		}
+	}
+	
+	public void LoadFromMemory()
+	{
+		if (_currentMemoryLength > 0) 
+		{
+			_currentValue = _memory[--_currentMemoryLength];
+			_memory[_currentMemoryLength] = 0.0f;
+		}
+		else 
+		{
+			print("Memory is empty. A value must be first saved into memory using the Save method before values can be loaded from it.");
+		}
+
+	}
+	
+	public void PrintMemory()
+	{
+		for (int i = _currentMemoryLength - 1; i >= 0; --i)
+		{
+			print("[" + i + "] = " + _memory[i]);
+		}
+	}
+	
+	public void ClearMemory()
+	{
+		for (int i = 0; i < _currentMemoryLength; ++i)
+		{
+			_memory[i] = 0.0f;
+		}
+	}
+
+	public void Add(float val)
+	{
+		_currentValue = _currentValue + val;
+	}
+	
+	public void Subtract(float val)
+	{
+		_currentValue = _currentValue - val;
+	}
+	
+	public void Multiply(float val)
+	{
+		_currentValue = _currentValue * val;
+	}
+	
+	public void Divide(float val)
+	{
+		_currentValue = _currentValue / val;
+	}
+	
+	public void Power(int val)
+	{
+		float result = 0.0f;
+		
+		for (int i = 0; i <= val; ++i)
+		{
+			if (i == 0) 
+			{
+				result = 1.0f;
+			} 
+			else 
+			{
+				result = result * _currentValue;
+			}
+		}
+		
+		_currentValue = result;
+	}
+	
+	public void SquareRoot()
+	{
+		_currentValue = <float> Reflect(METHOD: "java.lang.Math.sqrt", <double> _currentValue);
+	}
+	
+	public void Mod(int val)
+	{
+		_currentValue = _currentValue % val;
+	}
+	
+	public void Factorial()
+	{
+		float result = 0.0f;
+		
+		for (int i = 1; i <= <int> _currentValue; ++i)
+		{
+			if (i == 1)
+			{
+				result = 1.0f;
+			} 
+			else 
+			{
+				result = result * i;
+			}
+		}
+		
+		_currentValue = result;
+	}
+	
+	public void Abs()
+	{
+		_currentValue = Reflect(METHOD: "java.lang.Math.abs", _currentValue);
+	}
+	
+	public void Sin()
+	{
+		_currentValue = <float> Reflect(METHOD: "java.lang.Math.sin", <double> _currentValue);
+	}
+	
+	public void Cos()
+	{
+		_currentValue = <float> Reflect(METHOD: "java.lang.Math.cos", <double> _currentValue);
+	}
+	
+	public void Tan()
+	{
+		_currentValue = <float> Reflect(METHOD: "java.lang.Math.tan", <double> _currentValue);
+	}
+	
+	public void ToDegrees()
+	{
+		_currentValue = _currentValue * 180.0f / _pi;
+	}
+		
+	public void ToRadians()
+	{
+		_currentValue = _currentValue * _pi / 180.0f;
+	}
+	
+	public float GetValue()
+	{
+		return _currentValue;
+	}
+	
+	public void SetValue(float val)
+	{
+		_currentValue = val;
+	}
+	
+	public void Reset()
+	{
+		_currentValue = 0.0f;
+	}
+	
+	public void PrintValue()
+	{
+		print(_currentValue);
+	}
+}
+
+instance calc = new Calculator();
+
+calc.Add(10.0f);
+calc.Multiply(2342.0f);
+calc.Save();
+calc.PrintValue();
+
+calc.SetValue(2.0f);
+
+calc.Power(8);
+calc.PrintValue();
+calc.Save();
+
+calc.SetValue(90.0f);
+calc.ToRadians();
+calc.Sin();
+calc.PrintValue();
+
+calc.Subtract(442.4f);
+calc.PrintValue();
+calc.Abs();
+calc.PrintValue();
+
+calc.LoadFromMemory();
+calc.PrintValue();
+
+calc.Save();
+calc.PrintMemory();

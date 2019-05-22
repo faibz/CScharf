@@ -1,0 +1,13 @@
+int p = 3;
+
+public void blah(int start, int fin) 
+{
+	for (int i=start; i<=fin; ++i)
+	{
+		print(i);
+	}
+	
+	print(p + 2);
+}
+
+blah(5, 10);

@@ -1,0 +1,162 @@
+//Using reflection and more to send an HTTP GET request.
+
+public class HttpResponse
+{
+	public HttpResponse(int statusCode, string responseMessage)
+	{
+		_statusCode = statusCode;
+		_responseMessage = responseMessage;
+	}
+	
+	public HttpResponse(int statusCode, string responseMessage, string responseBody)
+	{
+		_statusCode = statusCode;
+		_responseMessage = responseMessage;
+		_responseBody = responseBody;
+	}
+	
+	readonly int _statusCode;
+	readonly string _responseMessage;
+	readonly string _responseBody;
+	
+	public int GetStatusCode()
+	{
+		return _statusCode;
+	}
+	
+	public string GetResponseMessage()
+	{
+		return _responseMessage;
+	}
+	
+	public string GetResponseBody()
+	{
+		return _responseBody;
+	}
+}
+
+public interface IHttpClient
+{
+	instance Get(string url);
+	instance Post(string url, string message);
+	instance Put(string url, string message);
+	instance Delete(string url);
+}
+
+public class HttpClient : IHttpClient
+{
+	public HttpClient() {}
+	
+	public instance Get(string url)
+	{
+		reflection result = Reflect(CONSTRUCT: "java.lang.StringBuilder");
+		reflection urlObj = Reflect(CONSTRUCT: "java.net.URL", url);
+		reflection connection = <"java.net.HttpURLConnection"> urlObj.openConnection();
+		connection.setRequestMethod("GET");
+		
+		int statusCode = connection.getResponseCode();
+		
+		reflection reader = Reflect(CONSTRUCT: "java.io.BufferedReader", <"java.io.Reader"> Reflect(CONSTRUCT: "java.io.InputStreamReader", <"java.io.InputStream"> connection.getInputStream()));
+
+		string line = reader.readLine();
+
+		while (!(line == "")) {
+			result.append(line);
+			line = reader.readLine();
+		}
+
+		reader.close();
+
+		return new HttpResponse(statusCode, connection.getResponseMessage(), result.toString());
+	}
+		
+	public instance Post(string url, string message)
+	{
+		reflection result = Reflect(CONSTRUCT: "java.lang.StringBuilder");
+		reflection urlObj = Reflect(CONSTRUCT: "java.net.URL", url);
+		reflection connection = <"java.net.HttpURLConnection"> urlObj.openConnection();
+		
+		connection.setRequestMethod("POST");
+		
+		connection.setDoOutput(true);
+		reflection outputStream = connection.getOutputStream();
+		
+		reflection javaString = Reflect(CONSTRUCT: "java.lang.String", message);
+		
+		outputStream.write(javaString.getBytes());
+		outputStream.flush();
+		
+		int statusCode = connection.getResponseCode();
+		
+		reflection reader = Reflect(CONSTRUCT: "java.io.BufferedReader", <"java.io.Reader"> Reflect(CONSTRUCT: "java.io.InputStreamReader", <"java.io.InputStream"> connection.getInputStream()));
+
+		string line = reader.readLine();
+
+		while (!(line == "")) {
+			result.append(line);
+			line = reader.readLine();
+		}
+
+		reader.close();
+
+		return new HttpResponse(statusCode, connection.getResponseMessage(), result.toString());
+	}
+	
+	public instance Put(string url, string message)
+	{
+		reflection result = Reflect(CONSTRUCT: "java.lang.StringBuilder");
+		reflection urlObj = Reflect(CONSTRUCT: "java.net.URL", url);
+		reflection connection = <"java.net.HttpURLConnection"> urlObj.openConnection();
+		
+		connection.setRequestMethod("PUT");
+		
+		connection.setDoOutput(true);
+		reflection outputStreamWriter = Reflect(CONSTRUCT: "java.io.OutputStreamWriter", <"java.io.OutputStream"> connection.getOutputStream());
+		
+		outputStreamWriter.write(message);
+		outputStreamWriter.close();
+		connection.getInputStream();
+		
+		int statusCode = connection.getResponseCode();
+		
+		reflection reader = Reflect(CONSTRUCT: "java.io.BufferedReader", <"java.io.Reader"> Reflect(CONSTRUCT: "java.io.InputStreamReader", <"java.io.InputStream"> connection.getInputStream()));
+
+		string line = reader.readLine();
+
+		while (!(line == "")) {
+			result.append(line);
+			line = reader.readLine();
+		}
+
+		reader.close();
+
+		return new HttpResponse(statusCode, connection.getResponseMessage(), result.toString());
+	}
+	
+	public instance Delete(string url)
+	{
+		reflection result = Reflect(CONSTRUCT: "java.lang.StringBuilder");
+		reflection urlObj = Reflect(CONSTRUCT: "java.net.URL", url);
+		reflection connection = <"java.net.HttpURLConnection"> urlObj.openConnection();
+		
+		connection.setRequestMethod("DELETE");
+		
+		return new HttpResponse(connection.getResponseCode(), connection.getResponseMessage());
+	}
+}
+
+instance httpClient = new HttpClient();
+
+instance httpResponse = httpClient.Get("https://my-json-server.typicode.com/typicode/demo/posts");
+print("GET: " + httpResponse.GetStatusCode() + " " + httpResponse.GetResponseMessage() + " - " + httpResponse.GetResponseBody());
+
+string postBody = "{ \"title\": \"Post 4\"}";
+httpResponse = httpClient.Post("https://my-json-server.typicode.com/typicode/demo/posts", postBody);
+print("POST: " + httpResponse.GetStatusCode() + " " + httpResponse.GetResponseMessage() + " - " + httpResponse.GetResponseBody());
+
+string putBody = "{ \"title\": \"New Post 1\"}";
+httpResponse = httpClient.Put("https://my-json-server.typicode.com/typicode/demo/posts/1", putBody);
+print("PUT: " + httpResponse.GetStatusCode() + " " + httpResponse.GetResponseMessage() + " - " + httpResponse.GetResponseBody());
+
+httpResponse = httpClient.Delete("https://my-json-server.typicode.com/typicode/demo/posts/1");
+print("DELETE: " + httpResponse.GetStatusCode() + " " + httpResponse.GetResponseMessage());

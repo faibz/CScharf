@@ -1,0 +1,11 @@
+// Test first-class and anonymous operators
+
+func myop = int function(func x, int y) { return x(22) + y; };
+print(myop(int function(int p) { return p * 4;}, 3));
+
+func singleNested = int function(func a, func b)
+{
+	return a() + b();
+};
+
+print(singleNested(int function() { return 10; }, int function() { return 10; }));

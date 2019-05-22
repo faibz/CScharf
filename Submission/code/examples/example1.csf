@@ -1,0 +1,74 @@
+//Basic array sorting via bubble sort
+
+public bool ArrayOrdered(array arr, int arrayLength)
+{
+	int lastNumber = -1;
+	bool unordered = false;
+	
+	for (int i = 0; i < arrayLength; ++i)
+	{
+		if (arr[i] < lastNumber)
+		{
+			unordered = true;
+		}
+		
+		lastNumber = arr[i];
+	}
+	
+	return unordered;
+}
+
+public array SortArray(array arr, int arrayLength)
+{
+	int lastNumber = -1;
+	
+	for (int i = 0; i < arrayLength; ++i)
+	{
+		if (arr[i] < lastNumber)
+		{
+			int save = arr[i];
+			arr[i] = lastNumber;
+			arr[i - 1] = save;
+		}
+		
+		lastNumber = arr[i];
+	}
+	
+	return arr;
+}
+
+array unorderedArray = new int[10];
+
+for (int i = 0; i < 10; ++i)
+{
+	unorderedArray[9 - i] = i;
+}
+
+for (int i = 0; i < 10; ++i)
+{
+	print("[" + i + "] = " + unorderedArray[i]);
+}
+
+bool arrayUnordered = ArrayOrdered(unorderedArray, 10);
+
+if (arrayUnordered)
+{
+	print("Sorting array...");
+}
+else
+{
+	print("Array already sorted.");
+}
+
+while (arrayUnordered)
+{
+	unorderedArray = SortArray(unorderedArray, 10);
+	arrayUnordered = ArrayOrdered(unorderedArray, 10);
+}
+
+print("Array sort complete.");
+
+for (int i = 0; i < 10; ++i)
+{
+	print("[" + i + "] = " + unorderedArray[i]);
+}

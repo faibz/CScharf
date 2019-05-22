@@ -1,0 +1,21 @@
+//Further testing of the typing system
+
+int p = 3;
+
+public void blah(int start, int fin, string printme)
+{
+	for (int i = start; i <= fin; ++i)
+	{
+		print(i);
+	}
+	
+	print(p + 2);
+	print(printme);
+}
+
+//Switch between bottom two
+
+blah(1, 10, "hello");
+//blah(1, 10, 5);
+
+print(1);

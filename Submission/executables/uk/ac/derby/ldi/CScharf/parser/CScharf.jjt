@@ -1,0 +1,601 @@
+/*
+ * A simple expression parser and evaluator
+ *
+ */
+
+options {
+  LOOKAHEAD = 1;
+  CHOICE_AMBIGUITY_CHECK = 2;
+  OTHER_AMBIGUITY_CHECK = 1;
+  STATIC = false;
+  DEBUG_PARSER = false;
+  DEBUG_LOOKAHEAD = false;
+  DEBUG_TOKEN_MANAGER = false;
+  ERROR_REPORTING = true;
+  JAVA_UNICODE_ESCAPE = false;
+  UNICODE_INPUT = false;
+  IGNORE_CASE = false;
+  USER_TOKEN_MANAGER = false;
+  USER_CHAR_STREAM = false;
+  BUILD_PARSER = true;
+  BUILD_TOKEN_MANAGER = true;
+  SANITY_CHECK = true;
+  FORCE_LA_CHECK = false;
+  MULTI = true;
+  VISITOR = true;
+  JDK_VERSION = "1.8";
+  NODE_DEFAULT_VOID = true;
+  NODE_EXTENDS = "uk.ac.derby.ldi.CScharf.interpreter.BaseASTNode";
+  NODE_PACKAGE = "uk.ac.derby.ldi.CScharf.parser.ast";
+  JJTREE_OUTPUT_DIRECTORY = "ast";
+}
+
+PARSER_BEGIN(CScharf)
+package uk.ac.derby.ldi.CScharf.parser.ast;
+public class CScharf {}
+PARSER_END(CScharf)
+
+/*
+ *
+ * Lexer definitions
+ *
+ */
+
+SKIP : /* WHITE SPACE */
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+| "\f"
+}
+
+SPECIAL_TOKEN : /* COMMENTS */
+{
+  <SINGLE_LINE_COMMENT: "//" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
+| <FORMAL_COMMENT: "/**" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/">
+| <MULTI_LINE_COMMENT: "/*" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/">
+}
+
+TOKEN [IGNORE_CASE] : /* RESERVED WORDS AND LITERALS */
+{
+  < IF: "IF" >
+| < ELSE: "ELSE" >
+| < FOR: "FOR" >
+| < WHILE: "WHILE" >
+| < PRINT: "PRINT" >
+| < CLASS: "CLASS" >
+| < FUNCTION: "FUNCTION" >
+| < INTERFACE: "INTERFACE" >
+| < NEW: "NEW" >
+| < RETURN: "RETURN" >
+| < OR: "||" >
+| < AND: "&&" >
+| < NOT: "!" >
+| < TRUE: "TRUE" >
+| < FALSE: "FALSE" >
+| < QUIT: "QUIT" >
+| < REFLECTION: "REFLECT" >
+}
+
+TOKEN : /* TYPES */
+{
+  < TYPE: "int" | "float" | "double" | "bool" | "string" | "anon" | "func" | "array" | "instance" | "reflection" | "void" >
+}
+
+TOKEN : /* TYPE MODIFIERS */
+{
+  < TYPE_MODIFIER: "const" | "readonly" >
+}
+
+TOKEN : /* ACCESS MODIFIERS */
+{
+  < ACCESS_MODIFIER: "public" >
+}
+
+TOKEN :
+{
+  < REFLECTION_TYPE: "CONSTRUCT" | "METHOD" >
+}
+
+TOKEN : /* LITERALS */
+{
+  < INTEGER_LITERAL:
+        <DECIMAL_LITERAL> (["l","L"])?
+      | <HEX_LITERAL> (["l","L"])?
+      | <OCTAL_LITERAL> (["l","L"])?
+  >
+|
+  < #DECIMAL_LITERAL: ["1"-"9"] (["0"-"9"])* >
+|
+  < #HEX_LITERAL: "0" ["x","X"] (["0"-"9","a"-"f","A"-"F"])+ >
+|
+  < #OCTAL_LITERAL: "0" (["0"-"7"])* >
+|
+  < FLOATING_POINT_LITERAL:
+        (["0"-"9"])+ "." (["0"-"9"])* (<EXPONENT>)? (["f","F"])?
+      | "." (["0"-"9"])+ (<EXPONENT>)? (["f","F"])?
+      | (["0"-"9"])+ <EXPONENT> (["f","F"])?
+      | (["0"-"9"])+ (<EXPONENT>)? ["f","F"]
+  >
+|
+  < DOUBLE_LITERAL:
+        (["0"-"9"])+ "." (["0"-"9"])* (<EXPONENT>)? (["d","D"])?
+      | "." (["0"-"9"])+ (<EXPONENT>)? (["d","D"])?
+      | (["0"-"9"])+ <EXPONENT> (["d","D"])?
+      | (["0"-"9"])+ (<EXPONENT>)? ["d","D"]
+  >
+|
+  < #EXPONENT: ["e","E"] (["+","-"])? (["0"-"9"])+ >
+|
+  < STRING_LITERAL:
+     ( 
+      "\""
+      (   (~["\"","\\","\n","\r"])
+        | ("\\"
+            ( ["n","t","b","r","f","\\","'","\""]
+            | ["0"-"7"] ( ["0"-"7"] )?
+            | ["0"-"3"] ["0"-"7"] ["0"-"7"]
+            )
+          )
+      )*
+      "\""
+     )
+   | (
+      "'"
+      (   (~["\'","\\","\n","\r"])
+        | ("\\"
+            ( ["n","t","b","r","f","\\","'","\""]
+            | ["0"-"7"] ( ["0"-"7"] )?
+            | ["0"-"3"] ["0"-"7"] ["0"-"7"]
+            )
+          )
+      )*
+      "'"
+     )
+  >
+}
+
+TOKEN : /* IDENTIFIERS */
+{
+  < IDENTIFIER: <LETTER> (<LETTER>|<DIGIT>|"#")* >
+| < #LETTER:
+      [
+       "\u0024",
+       "\u0041"-"\u005a",
+       "\u005f",
+       "\u0061"-"\u007a",
+       "\u00c0"-"\u00d6",
+       "\u00d8"-"\u00f6",
+       "\u00f8"-"\u00ff",
+       "\u0100"-"\u1fff",
+       "\u3040"-"\u318f",
+       "\u3300"-"\u337f",
+       "\u3400"-"\u3d2d",
+       "\u4e00"-"\u9fff",
+       "\uf900"-"\ufaff"
+      ]
+  >
+|
+  < #DIGIT:
+      [
+       "\u0030"-"\u0039",
+       "\u0660"-"\u0669",
+       "\u06f0"-"\u06f9",
+       "\u0966"-"\u096f",
+       "\u09e6"-"\u09ef",
+       "\u0a66"-"\u0a6f",
+       "\u0ae6"-"\u0aef",
+       "\u0b66"-"\u0b6f",
+       "\u0be7"-"\u0bef",
+       "\u0c66"-"\u0c6f",
+       "\u0ce6"-"\u0cef",
+       "\u0d66"-"\u0d6f",
+       "\u0e50"-"\u0e59",
+       "\u0ed0"-"\u0ed9",
+       "\u1040"-"\u1049"
+      ]
+  >
+}
+
+TOKEN : /* SEPARATORS */
+{
+  < LPAREN: "(" >
+| < RPAREN: ")" >
+| < LBRACE: "{" >
+| < RBRACE: "}" >
+| < LBRACKET: "[" >
+| < RBRACKET: "]" >
+| < SEMICOLON: ";" >
+| < COMMA: "," >
+| < DOT: "." >
+| < PP: "++" >
+| < MM: "--" >
+}
+
+TOKEN : /* OPERATOR SYMBOLS */
+{
+  < ASSIGN: "=" >
+| < PEQ: "+=" >
+| < MEQ: "-=" >
+| < UEQ: "@=" >
+| < EQ: "==" >
+| < GT: ">" >
+| < LT: "<" >
+| < LE: "<=" >
+| < GE: ">=" >
+| < NE: "!=" >
+| < HOOK: "?" >
+| < COLON: ":" >
+| < PLUS: "+" >
+| < SUBT: "-" >
+| < STAR: "*" >
+| < SLASH: "/" >
+| < REM: "%" >
+}
+
+/***********************************************
+ *          THE GRAMMAR STARTS HERE            *
+ ***********************************************/
+
+ASTCode code() #Code :
+{}
+{
+     			      statement() ( statement() )* <EOF>  {return jjtThis;}
+}
+
+void statement() #Statement :
+{}
+{
+  				LOOKAHEAD(call()) call() ";"
+  				| LOOKAHEAD(print()) print() ";"
+  				| LOOKAHEAD(reflection()) reflection() ";"
+				| LOOKAHEAD(assignment()) assignment() ";"
+				| LOOKAHEAD(variable_declaration()) variable_declaration() ";"
+				| LOOKAHEAD(fndef()) fndef()
+				| block()
+				| LOOKAHEAD(classdef()) classdef()
+				| interfacedef()
+				| ifstatement()	
+				| forloop()
+				| whileloop()
+				| quit() ";"
+}
+
+void block() #Block :
+{}
+{
+					"{" ( statement() )* "}"
+}
+
+void parmlist() #Parmlist :
+{}
+{
+					"(" [ type() identifier() ( "," type() identifier() )* ] ")"
+}
+
+void fnbody() #FnBody :
+{}
+{
+					( statement() )*
+}
+
+void fndef() #FnDef :
+{}
+{
+					<ACCESS_MODIFIER> type() identifier() parmlist() "{" 
+						fnbody()
+						[ <RETURN> returnexpr() {jjtThis.fnHasReturn = true;} ";" ] 
+					"}"
+}
+
+void classdef() #ClassDef :
+{Token t;}
+{
+					<ACCESS_MODIFIER> <CLASS> t = <IDENTIFIER> [<COLON> identifier() ("," identifier())*] "{"
+						classbody(t.image)
+					"}" { jjtThis.tokenValue = t.image; }
+}
+
+void constructor(String className) #ClassConstructor :
+{}
+{
+				  <ACCESS_MODIFIER> identifier() parmlist() "{"
+						fnbody()
+				  "}" { jjtThis.tokenValue = className; }
+}
+  
+
+void classbody(String className) #ClassBody :
+{}
+{
+  (LOOKAHEAD(constructor()) constructor(className) | LOOKAHEAD(assignment()) assignment() ";" | LOOKAHEAD(variable_declaration()) variable_declaration() ";" | LOOKAHEAD(fndef()) fndef() | LOOKAHEAD(classdef()) classdef() )* { jjtThis.tokenValue = className; }
+}
+
+void interfacedef() #InterfaceDef :
+{Token t;}
+{
+  					<ACCESS_MODIFIER> <INTERFACE> t = <IDENTIFIER> "{"
+  						(type() identifier() parmlist() ";")*
+  					"}" { jjtThis.tokenValue = t.image; }
+}  
+
+void returnexpr() #ReturnExpression :
+{}
+{
+					expression()
+}
+
+void assignment() #Assignment :
+{}
+{
+	  				LOOKAHEAD(3) [[modifier()] type()] dereference() "=" expression()
+	  				| LOOKAHEAD(3) dereference() increment_decrement()
+	  				| increment_decrement() dereference()
+}
+
+void increment_decrement() #IncrementDecrement:
+{Token t;}
+{
+	t = <PP> { jjtThis.tokenValue = t.image; }
+	| t = <MM> { jjtThis.tokenValue = t.image; }
+}
+  
+
+void variable_declaration() #VariableDeclaration :
+{}
+{
+					[modifier()] type() identifier()
+}
+  
+
+void modifier() #Modifier :
+{Token t;}
+{
+  t = <TYPE_MODIFIER> { jjtThis.tokenValue = t.image; }
+}
+  
+
+void type() #Type :
+{Token t;}
+{
+  t = <TYPE> { jjtThis.tokenValue = t.image; } 
+} 
+
+void typeless_assignment() #TypelessAssignment :
+{}
+{
+	  				identifier() "=" expression()
+}
+
+void ifstatement() #IfStatement :
+{}
+{
+  					<IF> "(" expression() ")" block() 
+  					[ LOOKAHEAD(1) <ELSE> block() {jjtThis.ifHasElse = true;} ]
+}
+
+void forloop() #ForLoop :
+{}
+{
+  					<FOR> "(" assignment() ";" expression() ";" assignment() ")" block()
+}
+
+void whileloop() #WhileLoop :
+{}
+{
+					<WHILE> "(" expression() ")" block()
+} 
+
+void print() :
+{}
+{
+					<PRINT> expression() #Print(1)
+}
+
+void quit() :
+{}
+{
+					<QUIT> #Quit
+}
+  
+void call() #Call :
+{}
+{
+					dereference() arglist()
+}
+
+void arglist() #ArgList :
+{}
+{
+					"(" [ expression() ] ( "," expression() )* ")"
+}
+
+//
+// Expressions
+//
+
+void expression() :
+{}
+{
+                  or_expression()
+}
+
+void or_expression() : 
+{} 
+{ 
+			      and_expression() ( <OR> and_expression() #Or(2) )* 
+}
+
+void and_expression() : 
+{} 
+{ 
+			      compare_expression() ( <AND> compare_expression() #And(2) )*
+}
+
+void compare_expression() : 
+{} 
+{ 
+                              add_expression() [
+                                 "=="  add_expression() #CompEqual(2)
+                               | "<>" add_expression() #CompNequal(2)
+                               | ">=" add_expression() #CompGTE(2)
+                               | "<=" add_expression() #CompLTE(2)
+                               | ">"  add_expression() #CompGT(2)
+                               | "<"  add_expression() #CompLT(2)
+                               ]
+}
+
+void add_expression() : 
+{} 
+{
+    mul_expression() (
+        "+"  mul_expression() #Add(2)
+      | "-"  mul_expression() #Subtract(2)
+    )*
+}
+
+void mul_expression() : 
+{} 
+{ 
+			      			  unary_expression() ( 
+                                  "*" unary_expression() #Times(2)
+                                | "/" unary_expression() #Divide(2)
+                                | "%" unary_expression() #Modulo(2)
+                              )*
+}
+
+void unary_expression() :
+{}
+{
+                              <NOT> unary_expression() #UnaryNot(1)
+                            | "+"   unary_expression() #UnaryPlus(1)
+                            | "-"   unary_expression() #UnaryMinus(1)
+                            | LOOKAHEAD(primary_expression()) primary_expression()
+}
+
+void primary_expression() #PrimaryExpression: 
+{}
+{
+                            [LOOKAHEAD(cast()) cast()] (LOOKAHEAD(literal()) literal()
+                            | LOOKAHEAD(fn_invoke()) fn_invoke()
+                            | LOOKAHEAD(100) ([increment_decrement()]  dereference() [increment_decrement()])
+                            | "(" expression() ")")
+}  
+
+void fn_invoke() #FnInvoke :
+{}
+{
+							dereference() arglist()
+}
+
+void cast() #Cast :
+{}
+{
+	"<" (type() | character()) ">"
+}
+  
+
+void literal() :
+{}
+{
+							integer()
+							| character()
+							| reflection()
+							| float_literal()
+							| double_literal()
+							| bool()
+							| fn()
+							| newObj()
+							
+}
+
+void identifier() #Identifier :
+{Token t;}
+{
+	t = <IDENTIFIER> {jjtThis.tokenValue = t.image;}
+}
+
+void dereference() #Dereference :
+{Token t;}
+{
+	t = <IDENTIFIER> ( "[" add_expression() "]" | "." identifier())* { jjtThis.tokenValue = t.image; }
+}
+
+void character() #Character :
+{Token t;}
+{
+	t = <STRING_LITERAL> {jjtThis.tokenValue = t.image;}
+}
+
+void integer() #Integer : 
+{Token t;} 
+{ 
+	t = <INTEGER_LITERAL> {jjtThis.tokenValue = t.image;}
+}
+
+void float_literal() #Float : 
+{Token t;} 
+{ 
+	t = <FLOATING_POINT_LITERAL> {jjtThis.tokenValue = t.image;}
+}
+
+void double_literal() #Double :
+{Token t;}
+{
+  t = <DOUBLE_LITERAL> { jjtThis.tokenValue = t.image; }
+}
+  
+
+void fn() #Fn :
+{}
+{
+	type() <FUNCTION> parmlist() "{"
+		fnbody()
+		[ <RETURN> returnexpr() ";" {jjtThis.fnHasReturn = true;} ] 
+		"}"
+}
+
+void anon() #Anon :
+{}
+{
+	"{" typeless_assignment() ("," typeless_assignment() )* "}"
+}
+
+void array() #Array :
+{}
+{
+  	type() "[" integer() "]"
+}
+
+void classInstance() #ClassInstance :
+{}
+{
+	(LOOKAHEAD(2) identifier() "." )* identifier() arglist()
+}
+
+void reflection() #Reflection :
+{}
+{
+	 <REFLECTION> "(" reflection_base() ("," expression() )* ")"
+} 
+
+void reflection_base() #ReflectionBase :
+{Token t;}
+{
+  t = <REFLECTION_TYPE> ":" character() { jjtThis.tokenValue = t.image; }
+}
+  
+
+void newObj() #NewObj :
+{}
+{
+	<NEW> (anon() | array() | classInstance())
+}
+
+void bool() : 
+{} 
+{ 
+			      <TRUE> #True
+                | <FALSE> #False
+}

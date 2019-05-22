@@ -1,0 +1,116 @@
+//Basic array sorting via bubble sort using class-based approach
+
+public interface ICollection
+{
+	void Clear();
+}
+
+public interface ISortable
+{
+	void Sort();
+}
+
+public class IntArray : ICollection, ISortable
+{
+	public IntArray(array arr, int length)
+	{
+		_array = arr;
+		_length = length;
+	}
+	
+	array _array;
+	int _length;
+	
+	public array GetArray()
+	{
+		return _array;
+	}
+	
+	public void SetArray(array arr)
+	{
+		_array = arr;
+	}
+	
+	public bool CheckOrder()
+	{		
+		int lastNumber = -1;
+		bool unordered = false;
+		
+		for (int i = 0; i < _length; ++i)
+		{
+			if (_array[i] < lastNumber)
+			{
+				unordered = true;
+			}
+			
+			lastNumber = _array[i];
+		}
+	
+		return !unordered;
+	}
+	
+	public void Sort()
+	{
+		int lastNumber = -1;
+	
+		for (int i = 0; i < _length; ++i)
+		{
+			if (_array[i] < lastNumber)
+			{
+				int save = _array[i];
+				_array[i] = lastNumber;
+				_array[i - 1] = save;
+			}
+			
+			lastNumber = _array[i];
+		}
+	}
+	
+	public void Clear()
+	{
+		for (int i = 0; i < _length; ++i)
+		{
+			_array[i] = 0; 
+		}
+	}
+	
+	public void PrintArray()
+	{
+		for (int i = 0; i < _length; ++i)
+		{
+			print("[" + i + "] = " + _array[i]);
+		}
+	}
+}
+
+array unorderedArray = new int[10];
+
+for (int i = 0; i < 10; ++i)
+{
+	unorderedArray[9 - i] = i;
+}
+
+instance arrayInstance = new IntArray(unorderedArray, 10);
+
+arrayInstance.PrintArray();
+
+bool arrayOrdered = arrayInstance.CheckOrder();
+
+if (!arrayOrdered)
+{
+	print("Sorting array...");
+}
+else
+{
+	print("Array already sorted.");
+}
+
+while (!arrayOrdered)
+{
+	arrayInstance.Sort();
+	arrayOrdered = arrayInstance.CheckOrder();
+}
+
+print("Array sort complete.");
+
+arrayInstance.PrintArray();

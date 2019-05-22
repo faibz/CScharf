@@ -1,0 +1,27 @@
+//Thoroughly test typing system
+
+anon bob = new { a = 24, b = 211, car = "box", dogs = true, fox = 62 };
+
+anon chiefOne = new { box = new { c = new { car = 242 } }, a = 23, blob = void function(int x, int y) { print(x + y); } };
+
+print(chiefOne);
+print(chiefOne.box.c.car);
+chiefOne.blob(10, 2);
+
+int hello = chiefOne.box.c.car;
+
+print(bob.a);
+print(bob.car);
+
+string chief = "foxes";
+print(chief);
+chief = "stringer";
+
+array arrayOne = new anon[5];
+anon arraySlotOne = new { arraySlotOneArray = new int[5] };
+arrayOne[1] = arraySlotOne;
+arrayOne[1].arraySlotOneArray[2] = 20;
+
+print(arrayOne[1].arraySlotOneArray[2]);
+
+print(arrayOne);

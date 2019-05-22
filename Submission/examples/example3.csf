@@ -1,0 +1,44 @@
+//Using reflection to write to a file
+
+public class FileManager
+{
+	public FileManager() {}
+	
+	public void Write(string fileName, string text)
+	{
+		print("Writing '" + text + "' to: " + fileName);
+		
+		reflection fileWriter = <"java.io.Writer"> Reflect(CONSTRUCT: "java.io.FileWriter", fileName);
+		reflection buffWriter = Reflect(CONSTRUCT: "java.io.BufferedWriter", fileWriter);
+		
+		buffWriter.write(text);
+		buffWriter.close();
+		fileWriter.close();
+	}
+	
+	public string Read(string fileName)
+	{
+		print("Reading from: " + fileName);
+		
+		reflection fileReader = <"java.io.Reader"> Reflect(CONSTRUCT: "java.io.FileReader", fileName);
+		reflection buffReader = Reflect(CONSTRUCT: "java.io.BufferedReader", fileReader);
+		reflection fileContents = Reflect(CONSTRUCT: "java.lang.StringBuilder");
+		
+		string line = buffReader.readLine();
+
+		while (!(line == "")) {
+			fileContents.append(line);
+			line = buffReader.readLine();
+		}
+
+		buffReader.close();
+		fileReader.close();
+		
+		return fileContents.toString();
+	}
+}
+
+instance fileManager = new FileManager();
+
+fileManager.Write("LDI.txt", "Boxcar");
+print(fileManager.Read("LDI.txt"));

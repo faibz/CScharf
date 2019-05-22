@@ -1,0 +1,83 @@
+// Test classes, interfaces, and inheritance
+
+public interface IShape 
+{
+	int GetArea();
+}
+
+public class Rectangle : IShape 
+{
+	public Rectangle(int len, int wid) 
+	{
+		length = len;
+		width = wid;
+	}
+	
+	int length = 12;
+	int width = 8;
+	instance innerRect;
+		
+	public void SetLength(int newLen) 
+	{
+		
+		length = newLen;
+	}
+	
+	public void SetWidth(int newWid) 
+	{
+		width = newWid;
+	}
+	
+	public void SetInnerRect(instance rect) 
+	{
+		innerRect = rect;
+	}
+	
+	//Modify this to test interface inheritance is enforced
+	public int GetArea() 
+	{
+		return length * width;
+	}
+	
+	public int GetInnerRectArea() 
+	{
+		return innerRect.GetArea();
+	}
+	
+	public class Test
+	{
+		public Test() {}
+	
+		public Test(int testVal) 
+		{
+			testValue = testVal;
+		}
+				
+		readonly int testValue = 10;
+			
+		public int GetTestValue()
+		{
+			return testValue;
+		}
+	}
+}
+
+instance rect = new Rectangle(10, 5);
+rect.SetInnerRect(new Rectangle(12, 6));
+
+print("Main rectangle area: " + rect.GetArea()); //Tests that calls work at various levels
+print("Inner rectangle area: " + rect.GetInnerRectArea());
+print("Inner rectangle area: " + rect.innerRect.GetArea());
+
+rect.SetWidth(2);
+rect.innerRect.SetLength(20);
+
+print("Main rectangle area: " + rect.GetArea()); //Tests that only one class instance affected
+print("Inner rectangle " + rect.innerRect.GetArea());
+
+print("Member access: Length = " + rect.length);
+
+instance testOne = new Rectangle.Test();
+instance testTwo = new Rectangle.Test(62);
+print("Nested class test one value: " + testOne.GetTestValue());
+print("Nested class test two value: " + testTwo.GetTestValue());

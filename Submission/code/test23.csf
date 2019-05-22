@@ -1,0 +1,26 @@
+//Class-based linked list
+
+public class Node
+{
+	public Node() 
+	{
+	}
+	
+	int val;
+	instance next;
+}
+
+instance node = new Node();
+
+node.val = 10;
+print(node.val);
+
+for(int i = 0; i < 4; ++i)
+{
+	node.next = new Node();	
+	node.next.val = node.val + 10;
+	
+	print(node.next.val);
+	
+	node = node.next;
+}

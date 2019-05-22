@@ -1,0 +1,8 @@
+// Test while loop
+
+int p = 0;
+
+while(p < 10)
+{
+	print(p++);
+}

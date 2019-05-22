@@ -1,0 +1,1 @@
+CScharf can be compiled from the source files by opening the project in Eclipse and either using the "Build Automatically" option in Eclipse or by starting a build manually.

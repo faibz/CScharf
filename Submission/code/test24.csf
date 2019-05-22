@@ -1,0 +1,31 @@
+//Testing some basic reflection and casting
+
+reflection pointReflection = Reflect(CONSTRUCT: "java.awt.Point", 69, 221);
+
+print("Method access: X = " + pointReflection.getX());
+print("Method access: Y = " + pointReflection.getY());
+
+print("Field access: X = " + pointReflection.x);
+print("Field access: Y = " + pointReflection.y);
+
+pointReflection.setLocation(10, 200);
+
+print("Method access: X = " + pointReflection.getX());
+print("Method access: Y = " + pointReflection.getY());
+
+pointReflection.x = 100;
+pointReflection.y = 100;
+
+print("Field access: X = " + pointReflection.x);
+print("Field access: Y = " + pointReflection.y);
+
+pointReflection.translate(50, -10);
+
+print("Method access: X = " + pointReflection.getX());
+print("Method access: Y = " + pointReflection.getY());
+
+int roundedNumber = Reflect(METHOD: "java.lang.Math.round", 62.2024);
+print("Rounded number: " + roundedNumber);
+
+double randomNumber = Reflect(METHOD: "java.lang.Math.random");
+print("Random number: " + randomNumber);

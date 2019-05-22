@@ -1,0 +1,13 @@
+// Test anonymous objects
+
+anon bob = new { a = 24, b = 211, car = false, dogs = true, fox = 62 };
+
+print(bob.a);
+print(bob.car);
+print(bob.b);
+print(bob.dogs);
+print(bob.fox);
+
+print(bob.a + bob.b);
+
+print(bob);
