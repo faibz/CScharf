@@ -6,6 +6,8 @@ public class FileManager
 	
 	public void Write(string fileName, string text)
 	{
+		print("Writing '" + text + "' to: " + fileName);
+		
 		reflection fileWriter = <"java.io.Writer"> Reflect(CONSTRUCT: "java.io.FileWriter", fileName);
 		reflection buffWriter = Reflect(CONSTRUCT: "java.io.BufferedWriter", fileWriter);
 		
@@ -16,6 +18,8 @@ public class FileManager
 	
 	public string Read(string fileName)
 	{
+		print("Reading from: " + fileName);
+		
 		reflection fileReader = <"java.io.Reader"> Reflect(CONSTRUCT: "java.io.FileReader", fileName);
 		reflection buffReader = Reflect(CONSTRUCT: "java.io.BufferedReader", fileReader);
 		reflection fileContents = Reflect(CONSTRUCT: "java.lang.StringBuilder");

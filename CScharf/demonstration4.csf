@@ -2,21 +2,22 @@
 
 public class HttpResponse
 {
-	public HttpResponse() {}
-	
-	public HttpResponse(int statusCode)
-	{
-		_statusCode = statusCode;
-	}
-	
 	public HttpResponse(int statusCode, string responseMessage)
 	{
 		_statusCode = statusCode;
 		_responseMessage = responseMessage;
 	}
 	
+	public HttpResponse(int statusCode, string responseMessage, string responseBody)
+	{
+		_statusCode = statusCode;
+		_responseMessage = responseMessage;
+		_responseBody = responseBody;
+	}
+	
 	readonly int _statusCode;
 	readonly string _responseMessage;
+	readonly string _responseBody;
 	
 	public int GetStatusCode()
 	{
@@ -26,6 +27,11 @@ public class HttpResponse
 	public string GetResponseMessage()
 	{
 		return _responseMessage;
+	}
+	
+	public string GetResponseBody()
+	{
+		return _responseBody;
 	}
 }
 
@@ -61,7 +67,7 @@ public class HttpClient : IHttpClient
 
 		reader.close();
 
-		return new HttpResponse(statusCode, result.toString());
+		return new HttpResponse(statusCode, connection.getResponseMessage(), result.toString());
 	}
 		
 	public instance Post(string url, string message)
@@ -93,7 +99,7 @@ public class HttpClient : IHttpClient
 
 		reader.close();
 
-		return new HttpResponse(statusCode, result.toString());
+		return new HttpResponse(statusCode, connection.getResponseMessage(), result.toString());
 	}
 	
 	public instance Put(string url, string message)
@@ -124,7 +130,7 @@ public class HttpClient : IHttpClient
 
 		reader.close();
 
-		return new HttpResponse(statusCode, result.toString());
+		return new HttpResponse(statusCode, connection.getResponseMessage(), result.toString());
 	}
 	
 	public instance Delete(string url)
@@ -135,22 +141,22 @@ public class HttpClient : IHttpClient
 		
 		connection.setRequestMethod("DELETE");
 		
-		return new HttpResponse(connection.getResponseCode());
+		return new HttpResponse(connection.getResponseCode(), connection.getResponseMessage());
 	}
 }
 
 instance httpClient = new HttpClient();
 
 instance httpResponse = httpClient.Get("https://my-json-server.typicode.com/typicode/demo/posts");
-print("GET: HTTP Status Code: " + httpResponse.GetStatusCode() + " - " + httpResponse.GetResponseMessage());
+print("GET: " + httpResponse.GetStatusCode() + " " + httpResponse.GetResponseMessage() + " - " + httpResponse.GetResponseBody());
 
 string postBody = "{ \"title\": \"Post 4\"}";
 httpResponse = httpClient.Post("https://my-json-server.typicode.com/typicode/demo/posts", postBody);
-print("POST: HTTP Status Code: " + httpResponse.GetStatusCode() + " - " + httpResponse.GetResponseMessage());
+print("POST: " + httpResponse.GetStatusCode() + " " + httpResponse.GetResponseMessage() + " - " + httpResponse.GetResponseBody());
 
 string putBody = "{ \"title\": \"New Post 1\"}";
 httpResponse = httpClient.Put("https://my-json-server.typicode.com/typicode/demo/posts/1", putBody);
-print("PUT: HTTP Status Code: " + httpResponse.GetStatusCode() + " - " + httpResponse.GetResponseMessage());
+print("PUT: " + httpResponse.GetStatusCode() + " " + httpResponse.GetResponseMessage() + " - " + httpResponse.GetResponseBody());
 
 httpResponse = httpClient.Delete("https://my-json-server.typicode.com/typicode/demo/posts/1");
-print("DELETE: HTTP Status Code: " + httpResponse.GetStatusCode());
+print("DELETE: " + httpResponse.GetStatusCode() + " " + httpResponse.GetResponseMessage());

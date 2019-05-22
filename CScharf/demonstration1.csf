@@ -5,7 +5,7 @@ public bool ArrayOrdered(array arr, int arrayLength)
 	int lastNumber = -1;
 	bool unordered = false;
 	
-	for (int i = 0; i < arrayLength; i = i + 1)
+	for (int i = 0; i < arrayLength; ++i)
 	{
 		if (arr[i] < lastNumber)
 		{
@@ -22,7 +22,7 @@ public array SortArray(array arr, int arrayLength)
 {
 	int lastNumber = -1;
 	
-	for (int i = 0; i < arrayLength; i = i + 1)
+	for (int i = 0; i < arrayLength; ++i)
 	{
 		if (arr[i] < lastNumber)
 		{
@@ -39,14 +39,14 @@ public array SortArray(array arr, int arrayLength)
 
 array unorderedArray = new int[10];
 
-for (int i = 0; i < 10; i = i + 1)
+for (int i = 0; i < 10; ++i)
 {
 	unorderedArray[9 - i] = i;
 }
 
-for (int i = 0; i < 10; i = i + 1)
+for (int i = 0; i < 10; ++i)
 {
-	print("i = " + i + " val = " + unorderedArray[i]);
+	print("[" + i + "] = " + unorderedArray[i]);
 }
 
 bool arrayUnordered = ArrayOrdered(unorderedArray, 10);
@@ -68,7 +68,7 @@ while (arrayUnordered)
 
 print("Array sort complete.");
 
-for (int i = 0; i < 10; i = i + 1)
+for (int i = 0; i < 10; ++i)
 {
-	print("i = " + i + " val = " + unorderedArray[i]);
+	print("[" + i + "] = " + unorderedArray[i]);
 }

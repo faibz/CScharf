@@ -36,7 +36,7 @@ public class IntArray : ICollection, ISortable
 		int lastNumber = -1;
 		bool unordered = false;
 		
-		for (int i = 0; i < _length; i = i + 1)
+		for (int i = 0; i < _length; ++i)
 		{
 			if (_array[i] < lastNumber)
 			{
@@ -53,7 +53,7 @@ public class IntArray : ICollection, ISortable
 	{
 		int lastNumber = -1;
 	
-		for (int i = 0; i < _length; i = i + 1)
+		for (int i = 0; i < _length; ++i)
 		{
 			if (_array[i] < lastNumber)
 			{
@@ -68,7 +68,7 @@ public class IntArray : ICollection, ISortable
 	
 	public void Clear()
 	{
-		for (int i = 0; i < _length; i = i + 1)
+		for (int i = 0; i < _length; ++i)
 		{
 			_array[i] = 0; 
 		}
@@ -78,14 +78,14 @@ public class IntArray : ICollection, ISortable
 	{
 		for (int i = 0; i < _length; ++i)
 		{
-			print("Array[" + i + "] = " + _array[i]);
+			print("[" + i + "] = " + _array[i]);
 		}
 	}
 }
 
 array unorderedArray = new int[10];
 
-for (int i = 0; i < 10; i = i + 1)
+for (int i = 0; i < 10; ++i)
 {
 	unorderedArray[9 - i] = i;
 }
