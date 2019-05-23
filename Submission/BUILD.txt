@@ -1,1 +1,3 @@
 CScharf can be compiled from the source files by opening the project in Eclipse and either using the "Build Automatically" option in Eclipse or by starting a build manually.
+
+To build the AST used by CScharf, JJT must be used. The JJT plug-in can be added to Eclipse, and then be used to build to AST by right-clicking on CScharf.jjt and selected the JJT build option.
