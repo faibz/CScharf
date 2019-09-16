@@ -6,3 +6,4 @@ The language implements a comprehensive form of reflection utilising Java's Refl
 
 A full language specification of CScharf can be found [here](https://github.com/faibz/CScharf/blob/master/Language%20Design.pdf).
 
+Example programs and code snippets can be found both inside the aforementioned language specification document as well as in the [examples folder](https://github.com/faibz/CScharf/tree/master/CScharf/examples). These applications aim to demonstrate that solutions to real-world problems can be written in CScharf.
