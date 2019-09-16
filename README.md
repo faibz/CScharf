@@ -1,4 +1,4 @@
-# LanguageDesignAndImplementation
+# The CScharf Programming Language
 
 CScharf is an interpreted, general-purpose, imperative, object-oriented programming language that combines elements of static and dynamic typing. Written in Java, Cscharf is based on [Sili](https://github.com/DaveVoorhis/LDI/tree/master/Sili) and uses JavaCC and JJTree for its grammar. While being heavily inspired by C#, CScharf differs in several ways such as casting syntax.
 
